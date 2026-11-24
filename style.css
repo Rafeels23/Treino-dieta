@@ -608,3 +608,18 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
   dialog.sheet.is-closing { transition: none; }
   .sheet-body.t-enter-right, .sheet-body.t-enter-left { animation: none; }
 }
+
+/* ===== Spring check: o traço do check é desenhado ao marcar =====
+   O path do ícone é uma polilinha (5,12.5)→(9.5,17)→(19,7.5):
+   6,36 + 13,44 = 19,8 de comprimento, por isso o dasharray 20. */
+.meal-card.just .meal-tick .i path {
+  stroke-dasharray: 20;
+  animation: check-draw 420ms var(--ease-smooth-out) backwards;
+}
+.meal-card.just .meal-tick { animation: check-spring 420ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes check-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+@keyframes check-spring { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .meal-card.just .meal-tick, .meal-card.just .meal-tick .i path { animation: none; }
+}

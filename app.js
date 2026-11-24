@@ -571,7 +571,7 @@ views.hoje = () => {
   const pct = Math.round(((vTreino + vMeal) / 2) * 100);
   const summary = `<div class="section"><div class="group today-card">
       ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }])}
-      <div style="flex:1;min-width:0"><div class="cap">Seu dia</div><div class="pct digits">${pct}<small>%</small></div>
+      <div style="flex:1;min-width:0"><div class="cap">Seu dia</div><div class="pct digits"><span data-count="${pct}" data-count-key="pct-dia">${pct}</span><small>%</small></div>
         <ul class="legend">
           <li><i style="background:var(--c-treino)"></i>Treino<b>${doneToday.length ? 'Feito' : state.active ? 'Agora' : '—'}</b></li>
           <li><i style="background:var(--c-dieta)"></i>Refeições<b class="num">${meals.length ? `${mealsDone}/${meals.length}` : '—'}</b></li>
@@ -770,7 +770,7 @@ views.dieta = () => {
         <button class="icon-btn" data-act="diet-day" data-v="1" aria-label="Próximo dia" ${key >= todayKey() ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button>
       </div></div>`
     + `<div class="section"><div class="group diet-sum">${rings([{ v: done / groups.length, color: 'var(--c-dieta)' }], 76, 10)}
-        <div><div class="big digits">${done}<small> de ${groups.length}</small></div>
+        <div><div class="big digits"><span data-count="${done}" data-count-key="refeicoes">${done}</span><small> de ${groups.length}</small></div>
         <div class="s">refeições${extrasKcal(log) ? ` · ${Math.round(extrasKcal(log))} kcal fora do plano` : ''}</div></div></div></div>`
     + section('Refeições', `<div class="meal-list">${groups.flatMap((g) => g.options.map((o, oi) => {
         const c = mealCheck(log, g);
@@ -899,7 +899,7 @@ views.rotina = () => {
       </div></div>`
     + (list.length
       ? `<div class="section"><div class="group diet-sum">${rings([{ v: done / list.length, color: 'var(--c-dieta)' }], 76, 10)}
-          <div><div class="big digits">${done}<small> de ${list.length}</small></div>
+          <div><div class="big digits"><span data-count="${done}" data-count-key="rotina">${done}</span><small> de ${list.length}</small></div>
           <div class="s">${done === list.length ? 'rotina completa' : list.length === 1 ? 'hábito' : 'hábitos'}</div></div></div></div>`
         + section('Hábitos do dia', `<div class="meal-list">${list.map((r) => {
             const ok = !!log[r.id];
@@ -945,7 +945,7 @@ A['rot-open'] = (id) => {
     ${r.nota ? `<div class="notes-open"><div class="sub-head">Nota</div><div>${esc(r.nota).replace(/\n/g, '<br>')}</div></div>` : ''}
     <div class="sub-head">Nos últimos 30 dias</div>
     <div class="group pad row-between"><div><div class="hint">Dias cumpridos</div>
-      <div class="stat num">${prev}<small> de ${tot}</small></div></div>
+      <div class="stat num"><span data-count="${prev}" data-count-key="habito-${r.id}">${prev}</span><small> de ${tot}</small></div></div>
       ${tot ? `<span class="tag ${prev / tot >= 0.7 ? 'ok' : ''}">${Math.round((prev / tot) * 100)}%</span>` : ''}</div>
     <div class="stack-btns"><button type="button" class="text-btn" data-act="rot-edit" data-v="${r.id}">Editar hábito</button></div>`);
 };
@@ -1072,11 +1072,34 @@ views.progresso = () => {
 /* ---------------- Render ---------------- */
 /* o Perfil saiu da barra: abre pelo avatar do canto superior direito */
 const TABS = [['hoje', 'Hoje', 'home'], ['treino', 'Treino', 'dumbbell'], ['dieta', 'Dieta', 'meal'], ['rotina', 'Rotina', 'check'], ['progresso', 'Progresso', 'chart']];
+/* ---------- Count up: o número sobe até o valor em vez de aparecer pronto ----------
+   Marque com data-count="<valor final>". O texto do elemento é reescrito a cada
+   quadro, então o conteúdo inicial serve só de fallback sem JS. */
+const semMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ultimoValor = new Map();
+function countUp(el) {
+  const fim = parseFloat(el.dataset.count);
+  if (!Number.isFinite(fim)) return;
+  const casas = Number(el.dataset.countDec || 0), chave = el.dataset.countKey || '';
+  const ini = chave && ultimoValor.has(chave) ? ultimoValor.get(chave) : 0;
+  if (chave) ultimoValor.set(chave, fim);
+  const escreve = (v) => { el.textContent = casas ? br(v, casas) : String(Math.round(v)); };
+  if (semMovimento() || ini === fim) return escreve(fim);
+  const dur = 600, t0 = performance.now();
+  const passo = (t) => {
+    const k = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);  /* desacelera no fim */
+    escreve(ini + (fim - ini) * e);
+    if (k < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
 function render() {
   const tab = state.ui.tab;
   $('#view').innerHTML = views[tab]();
   $('#tabs').innerHTML = TABS.map(([k, label, icon]) => `<button data-tab="${k}" class="${k === tab ? 'active' : ''}" aria-current="${k === tab ? 'page' : 'false'}"><span class="pill">${ic(icon)}</span>${label}</button>`).join('');
   $$('[data-chart]').forEach(drawChart);
+  $$('[data-count]').forEach(countUp);
   justKey = null;
 }
 function animateView() { const v = $('#view'); v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
@@ -1145,6 +1168,7 @@ function sheet(html, onSubmit, nivel) {
   };
   if (!dlg.open) { dlg.classList.remove('is-closing'); dlg.showModal(); }
   f.scrollTop = 0;
+  $$('[data-count]', f).forEach(countUp);
   if (trocando) {
     f.classList.remove('t-enter-right', 't-enter-left');
     void f.offsetWidth;  /* reflow: sem isso a animação não reinicia */
@@ -1774,7 +1798,7 @@ A['peso-report'] = () => {
   sheet(`<h2>Relatório de peso</h2>
     <p class="lead">${ms.length} ${ms.length === 1 ? 'registro' : 'registros'} · de ${fmtDay(first.date)} até ${fmtDay(cur.date)}</p>
     <div class="group pad row-between" style="margin-bottom:12px">
-      <div><div class="hint">Peso atual</div><div class="stat num">${br(cur.peso)}<small> kg</small></div></div>
+      <div><div class="hint">Peso atual</div><div class="stat num"><span data-count="${cur.peso}" data-count-dec="1" data-count-key="peso">${br(cur.peso)}</span><small> kg</small></div></div>
       ${dTotal != null ? `<span class="tag delta num ${dTotal < 0 ? 'ok' : ''}">${dTotal > 0 ? '+' : ''}${br(dTotal)} kg no total</span>` : ''}
     </div>
     ${p.meta ? `<p class="hint" style="margin-bottom:12px">${Math.abs(cur.peso - p.meta) < 0.05 ? 'Você chegou na meta.' : `Faltam ${br(Math.abs(cur.peso - p.meta))} kg para a meta de ${br(p.meta)} kg.`}</p>` : ''}
