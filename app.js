@@ -965,7 +965,7 @@ function rotEditor() {
     <div class="chips">${ROTINA_PRESETS.filter((n) => !rs.some((r) => eqNorm(r.name) === eqNorm(n)))
       .map((n) => `<button type="button" class="chip" data-act="rot-add" data-v="${esc(n)}">+ ${esc(n)}</button>`).join('')
       || '<span class="hint">Todas as sugestões já estão na sua rotina.</span>'}</div>
-    <button type="button" class="btn soft block" style="margin-top:12px" data-act="rot-add" data-v="">+ Outro hábito</button>`);
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="rot-add" data-v="">+ Outro hábito</button>`, null, 1);
 }
 A['rot-editor'] = () => rotEditor();
 A['rot-add'] = (v) => {
@@ -990,7 +990,7 @@ function rotEdit(id) {
       <p class="hint" style="margin-top:6px">Nenhum dia marcado = todos os dias.</p></div>
     <div class="field"><label>Nota</label><textarea name="nota" style="min-height:80px" placeholder="opcional">${esc(r.nota || '')}</textarea></div>
     <button type="button" class="btn block" data-act="rot-save" data-v="${r.id}">Salvar hábito</button>
-    <button type="button" class="btn danger block" style="margin-top:12px" data-act="rot-del" data-v="${r.id}">Excluir hábito</button>`);
+    <button type="button" class="btn danger block" style="margin-top:12px" data-act="rot-del" data-v="${r.id}">Excluir hábito</button>`, null, 2);
 }
 A['rot-edit'] = (id) => rotEdit(id);
 A['rot-dia'] = (v) => {
@@ -1129,16 +1129,39 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------------- Bottom sheet ---------------- */
-function sheet(html, onSubmit) {
+/* nivel: profundidade da tela dentro da folha (1 = raiz, 2 = filha…).
+   Descer desliza da direita, subir da esquerda — a direção sai sozinha da
+   comparação, então a mesma tela acerta vindo de cima ou de baixo. */
+let sheetLevel = 0;
+function sheet(html, onSubmit, nivel) {
   const dlg = $('#sheet'), f = $('#sheet-body');
+  const dir = dlg.open && nivel && sheetLevel && nivel !== sheetLevel
+    ? (nivel > sheetLevel ? 'avanca' : 'volta') : null;
+  sheetLevel = nivel || 0;
+  const trocando = dlg.open && dir;
   f.innerHTML = `<div class="grab"></div>${html}`;
   f.onsubmit = (ev) => {
     if (ev.submitter?.value === 'ok' && onSubmit && onSubmit(f) === false) ev.preventDefault();
   };
-  if (!dlg.open) dlg.showModal();
+  if (!dlg.open) { dlg.classList.remove('is-closing'); dlg.showModal(); }
   f.scrollTop = 0;
+  if (trocando) {
+    f.classList.remove('t-enter-right', 't-enter-left');
+    void f.offsetWidth;  /* reflow: sem isso a animação não reinicia */
+    f.classList.add(dir === 'volta' ? 't-enter-left' : 't-enter-right');
+  }
 }
-$('#sheet').addEventListener('click', (ev) => { if (ev.target.id === 'sheet') ev.target.close(); });
+/* fecha com animação de saída, depois fecha de verdade */
+const SHEET_CLOSE_MS = 180;
+$('#sheet').addEventListener('cancel', (ev) => { ev.preventDefault(); closeSheet(); });
+function closeSheet() {
+  const dlg = $('#sheet');
+  if (!dlg.open || dlg.classList.contains('is-closing')) return;
+  sheetLevel = 0;
+  dlg.classList.add('is-closing');
+  setTimeout(() => { dlg.classList.remove('is-closing'); dlg.open && dlg.close(); }, SHEET_CLOSE_MS);
+}
+$('#sheet').addEventListener('click', (ev) => { if (ev.target.id === 'sheet') closeSheet(); });
 const sheetActions = (ok = 'Salvar') => `<div class="sheet-actions"><button class="btn soft" value="cancel" formnovalidate>Cancelar</button><button class="btn" value="ok">${ok}</button></div>`;
 const seg = (name, opts, cur) => `<input type="hidden" name="${name}" value="${esc(cur ?? '')}"><div class="seg" data-seg="${name}">${opts.map(([v, l]) => `<button type="button" data-act="seg" data-v="${esc(v)}" class="${String(v) === String(cur) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 
@@ -1165,7 +1188,7 @@ A.workout = (id) => {
 A.start = (id) => {
   const w = state.plan.workouts.find((x) => x.id === id);
   if (!w || state.active) return;
-  $('#sheet').open && $('#sheet').close();
+  closeSheet();
   state.active = {
     id: uid(), workoutId: w.id, workoutLetter: w.letter, workoutName: w.name, start: Date.now(),
     exercises: w.exercises.map((e) => ({ name: e.name, tipo: e.tipo, reps: e.reps, rest: e.rest, notes: e.notes,
@@ -1237,7 +1260,7 @@ A.session = (id) => {
 A['del-session'] = (id) => {
   if (!confirm('Apagar este treino do histórico?')) return;
   state.sessions = state.sessions.filter((s) => s.id !== id);
-  $('#sheet').close(); save(); render();
+  closeSheet(); save(); render();
 };
 
 A['timer-add'] = (v) => {
@@ -1310,7 +1333,7 @@ A['ed-del-workout'] = (id) => {
   state.plan.workouts = state.plan.workouts.filter((w) => w.id !== id);
   state.plan.workouts.forEach((w, k) => { w.letter = String.fromCharCode(65 + k); });
   state.plan.source = 'personalizado';
-  $('#sheet').close(); save(); render();
+  closeSheet(); save(); render();
 };
 A['progress-ex'] = (v) => { state.ui.progressEx = v; save(); render(); };
 
@@ -1374,7 +1397,7 @@ function subsSheet(gid, oi, fi) {
     <div class="subs-screen">
       ${own.length ? `<div class="sub-head">Indicadas pela nutricionista</div>${own.map(subLine).join('')}` : ''}
       ${auto ? `<div class="sub-head">Equivalentes · ${esc(auto.label)} · mesma caloria</div>${auto.list.map(subLine).join('')}` : ''}
-    </div>`);
+    </div>`, null, 2);
 }
 function mealSheet(gid, oi) {
   const g = state.diet.groups.find((x) => x.id === gid);
@@ -1402,7 +1425,7 @@ function mealSheet(gid, oi) {
     ${o.notes ? `<div class="notes-open"><div class="sub-head">Observação</div><div>${esc(o.notes).replace(/\n/g, '<br>')}</div></div>` : ''}
     <div class="stack-btns">
       <button class="text-btn" type="button" data-act="add-extra">Comi outra coisa</button>
-    </div>`);
+    </div>`, null, 1);
 }
 A['meal-open'] = (v) => { const [gid, i] = String(v).split(':'); mealSheet(gid, i == null ? undefined : +i); };
 A['meal-opt'] = (v) => { const [gid, i] = v.split(':'); mealSheet(gid, +i); };
@@ -1459,7 +1482,7 @@ A['meal-reg'] = (v) => {
   const log = dayLog(state.ui.dietDay || todayKey()), c = log.checked[gid];
   if (c != null && (typeof c !== 'object' || c.opt === +i)) delete log.checked[gid];
   else { log.checked[gid] = { opt: +i, at: Date.now() }; justKey = `${gid}:${i}`; buzz(); }
-  $('#sheet').close(); save(); render();
+  closeSheet(); save(); render();
 };
 A['meal-quick'] = (v) => {
   const [gid, i] = String(v).split(':'), oi = i == null ? 0 : +i;
@@ -1500,7 +1523,7 @@ function dietEditor() {
     <div class="chips">${MEAL_PRESETS.filter((m) => !gs.some((g) => eqNorm(g.name) === eqNorm(m.name)))
       .map((m) => `<button type="button" class="chip" data-act="grp-add" data-v="${esc(m.name)}|${m.time}">+ ${esc(m.name)}</button>`).join('')
       || '<span class="hint">Todas as refeições sugeridas já estão no plano.</span>'}</div>
-    <button type="button" class="btn soft block" style="margin-top:12px" data-act="grp-add" data-v="|">+ Outra refeição</button>`);
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="grp-add" data-v="|">+ Outra refeição</button>`, null, 1);
 }
 A['diet-editor'] = () => dietEditor();
 A['grp-add'] = (v) => {
@@ -1530,7 +1553,7 @@ function grpEditor(gid) {
       <div class="s">${o.foods.length ? esc(o.foods.map((f) => f.name).join(', ').slice(0, 60)) : 'Sem alimentos'}</div></span>
       <span class="end">${ic('right')}</span></button>`).join('')}</div>
     <button type="button" class="btn soft block" style="margin-top:12px" data-act="opt-add" data-v="${g.id}">+ Adicionar opção</button>
-    <button type="button" class="btn danger block" style="margin-top:12px" data-act="grp-del" data-v="${g.id}">Excluir refeição</button>`);
+    <button type="button" class="btn danger block" style="margin-top:12px" data-act="grp-del" data-v="${g.id}">Excluir refeição</button>`, null, 2);
 }
 A['grp-edit'] = (gid) => grpEditor(gid);
 A['grp-save'] = (gid) => {
@@ -1570,7 +1593,7 @@ function optEditor(gid, oi) {
     <div class="field" style="margin-top:18px"><label>Observação da nutricionista</label>
       <textarea name="notes" style="min-height:110px" placeholder="ex.: duas variedades de legumes, consumo livre, mínimo 100 g">${esc(o.notes || '')}</textarea></div>
     <button type="button" class="btn soft block" data-act="opt-save" data-v="${gid}:${oi}">Salvar observação</button>
-    ${g.options.length > 1 ? `<button type="button" class="btn danger block" style="margin-top:12px" data-act="opt-del" data-v="${gid}:${oi}">Excluir esta opção</button>` : ''}`);
+    ${g.options.length > 1 ? `<button type="button" class="btn danger block" style="margin-top:12px" data-act="opt-del" data-v="${gid}:${oi}">Excluir esta opção</button>` : ''}`, null, 3);
 }
 A['opt-edit'] = (v) => { const [gid, oi] = String(v).split(':'); optEditor(gid, +oi); };
 A['opt-save'] = (v) => {
@@ -1608,7 +1631,7 @@ function foodEditor(gid, oi, fi) {
     <div class="field" style="margin-top:14px"><label>Substituições da nutricionista (uma por linha)</label>
       <textarea name="subs" style="min-height:90px" placeholder="Salada de frutas - 1 porção&#10;Mamão - 170 g">${esc((f.subs || []).map((s) => (s.qty ? `${s.name} - ${s.qty}` : s.name)).join('\n'))}</textarea></div>
     <button type="button" class="btn block" data-act="fd-save" data-v="${gid}:${oi}:${fi}">Salvar alimento</button>
-    ${novo ? '' : `<button type="button" class="btn danger block" style="margin-top:12px" data-act="fd-del" data-v="${gid}:${oi}:${fi}">Excluir alimento</button>`}`);
+    ${novo ? '' : `<button type="button" class="btn danger block" style="margin-top:12px" data-act="fd-del" data-v="${gid}:${oi}:${fi}">Excluir alimento</button>`}`, null, 4);
 }
 A['fd-edit'] = (v) => { const [gid, oi, fi] = String(v).split(':'); foodEditor(gid, +oi, +fi); };
 A['fd-save'] = (v) => {
@@ -1712,7 +1735,7 @@ A['ai-key'] = () => {
     save(); render();
   });
 };
-A['ai-key-del'] = () => { delete state.ai; save(); $('#sheet').close(); render(); };
+A['ai-key-del'] = () => { delete state.ai; save(); closeSheet(); render(); };
 A['del-extra'] = (i) => { dayLog(state.ui.dietDay || todayKey()).extras.splice(+i, 1); save(); render(); };
 
 /* Peso: atualizar quando quiser, sem cobrança diária */
@@ -1845,7 +1868,7 @@ A.import = () => {
       delete data.fotos;
       const ai = state.ai;
       state = migrate(Object.assign(defaultState(), data));
-      if (ai) state.ai = ai; save(); $('#sheet').close(); render();
+      if (ai) state.ai = ai; save(); closeSheet(); render();
     } catch (e) { alert('Não consegui importar: ' + e.message); }
   };
   inp.click();
@@ -1853,7 +1876,7 @@ A.import = () => {
 A.reset = async () => {
   if (!confirm('Apagar TODOS os dados? Isso não pode ser desfeito.')) return;
   if (!confirm('Tem certeza? Faça um backup antes se quiser guardar.')) return;
-  state = defaultState(); stopTimer(); save(); $('#sheet').close(); render();
+  state = defaultState(); stopTimer(); save(); closeSheet(); render();
 };
 
 /* ================= Lista de compras ================= */

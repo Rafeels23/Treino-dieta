@@ -569,3 +569,42 @@ dialog.sheet::backdrop { background: var(--scrim); animation: fade .25s ease; }
 .week .wd .d { font-size: 12px; font-weight: 700; color: var(--ink-3); }
 /* dias da semana no editor de hábito */
 .day-chip.on { background: var(--dieta-soft); color: var(--c-dieta); box-shadow: inset 0 0 0 2px var(--c-dieta); }
+
+/* ===== Movimento (tokens transitions.dev) =====
+   Só os tokens que o app usa, em vez do bloco inteiro das 36 transições. */
+:root {
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --distance-base: 8px;
+  --blur-medium: 3px;
+  --sheet-close-dur: 180ms;
+}
+/* saída da folha: desce e some, mais rápido do que entrou */
+dialog.sheet.is-closing {
+  animation: none;
+  transform: translateY(24px);
+  opacity: 0;
+  transition:
+    transform var(--sheet-close-dur) var(--ease-smooth-out),
+    opacity   var(--sheet-close-dur) var(--ease-smooth-out);
+}
+dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-close-dur) var(--ease-smooth-out); }
+
+/* troca de tela dentro da folha: descer entra pela direita, subir pela esquerda */
+.sheet-body.t-enter-right { animation: sheet-in-right var(--duration-fast) var(--ease-smooth-out); }
+.sheet-body.t-enter-left  { animation: sheet-in-left  var(--duration-fast) var(--ease-smooth-out); }
+@keyframes sheet-in-right {
+  from { opacity: 0; transform: translateX(var(--distance-base)); filter: blur(var(--blur-medium)); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes sheet-in-left {
+  from { opacity: 0; transform: translateX(calc(var(--distance-base) * -1)); filter: blur(var(--blur-medium)); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.sheet[open] { animation: none; }
+  dialog.sheet.is-closing { transition: none; }
+  .sheet-body.t-enter-right, .sheet-body.t-enter-left { animation: none; }
+}
