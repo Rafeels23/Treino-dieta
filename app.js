@@ -1,7 +1,7 @@
 'use strict';
 
 /* =========================================================
-   Treino & Dieta — v1.1 (visual novo, só celular)
+   Pilar — treino e dieta, os dois pilares (v1.2, só celular)
    Dados salvos no próprio aparelho (localStorage).
    ========================================================= */
 
@@ -103,7 +103,7 @@ const defaultState = () => {
   const profile = { objetivo: 'emagrecimento', dias: 3, nivel: 'iniciante' };
   return { version: 2, profile, plan: generatePlan(profile), sessions: [], active: null,
     diet: { raw: '', groups: [] }, dietLog: {}, morning: [], activities: [], ui: { tab: 'hoje' },
-    supps: [], recipes: [], shopping: { checked: {}, extra: [], days: 7 } };
+    recipes: [], shopping: { checked: {}, extra: [], days: 7 } };
 };
 
 function migrate(s) {
@@ -113,7 +113,7 @@ function migrate(s) {
     delete s.diet.meals;
   }
   if (!s.diet.groups) s.diet.groups = [];
-  ['supps', 'recipes'].forEach((k) => { if (!Array.isArray(s[k])) s[k] = []; });
+  ['recipes'].forEach((k) => { if (!Array.isArray(s[k])) s[k] = []; });
   if (!s.shopping) s.shopping = { checked: {}, extra: [], days: 7 };
   if (!['hoje', 'treino', 'dieta', 'progresso', 'perfil'].includes(s.ui?.tab)) s.ui = { ...(s.ui || {}), tab: 'hoje' };
   s.plan.workouts.forEach((w, k) => {
@@ -131,8 +131,8 @@ try { state = migrate(Object.assign(defaultState(), JSON.parse(localStorage.getI
 catch { state = defaultState(); }
 
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-  catch (e) { alert('Não consegui salvar no celular: ' + e.message); }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); return true; }
+  catch (e) { alert('Não consegui salvar no celular: ' + e.message); return false; }
 }
 
 /* ---------------- Imagem (para a IA analisar; não fica salva) ---------------- */
@@ -283,6 +283,181 @@ function parsePlan(text) {
   }
   groups.forEach((g) => g.options.forEach((o) => { o.notes = o.notes.trim(); }));
   return groups;
+}
+
+/* ---------------- Equivalências: substituição para qualquer alimento ----------------
+   Cada item: n nome, k kcal/100 g, u unidade caseira, g gramas da unidade, a apelidos.
+   A substituição é proporcional: calculamos as kcal da porção prescrita e devolvemos
+   cada equivalente na quantidade que entrega as mesmas kcal. */
+const EQ = {
+  fruta: { label: 'Frutas', items: [
+    { n: 'Morango', k: 30, u: 'unidade(s) média(s)', g: 12 },
+    { n: 'Uva', k: 69, u: 'cacho(s) pequeno(s)', g: 100 },
+    { n: 'Melão', k: 29, u: 'fatia(s) grande(s)', g: 115 },
+    { n: 'Melancia', k: 30, u: 'fatia(s) pequena(s)', g: 100 },
+    { n: 'Maracujá', k: 68, u: 'unidade(s) média(s)', g: 45, a: ['maracuja amarelo'] },
+    { n: 'Maçã', k: 52, u: 'unidade(s) média(s)', g: 130 },
+    { n: 'Pera', k: 57, u: 'unidade(s) média(s)', g: 110 },
+    { n: 'Amora preta', k: 43, u: 'xícara(s)', g: 145, a: ['amora'] },
+    { n: 'Mirtilo', k: 57, u: 'xícara(s)', g: 148, a: ['blueberry'] },
+    { n: 'Kiwi', k: 60, u: 'unidade(s)', g: 75 },
+    { n: 'Banana prata', k: 98, u: 'unidade(s) média(s)', g: 70, a: ['banana'] },
+    { n: 'Mamão papaia', k: 40, u: 'metade(s)', g: 170, a: ['mamao'] },
+    { n: 'Laranja', k: 46, u: 'unidade(s) média(s)', g: 180 },
+    { n: 'Abacaxi', k: 50, u: 'fatia(s)', g: 75 },
+    { n: 'Manga', k: 64, u: 'unidade(s) pequena(s)', g: 150 },
+    { n: 'Tangerina', k: 44, u: 'unidade(s) média(s)', g: 130, a: ['mexerica', 'bergamota', 'poncã'] },
+    { n: 'Goiaba', k: 54, u: 'unidade(s) média(s)', g: 130 },
+    { n: 'Ameixa', k: 53, u: 'unidade(s)', g: 70 },
+    { n: 'Pêssego', k: 36, u: 'unidade(s)', g: 100 },
+  ] },
+  carbo: { label: 'Carboidratos', items: [
+    { n: 'Arroz branco cozido', k: 128, u: 'colher(es) de sopa cheia(s)', g: 25, a: ['arroz branco', 'arroz'] },
+    { n: 'Arroz integral cozido', k: 124, u: 'colher(es) de sopa cheia(s)', g: 25, a: ['arroz integral'] },
+    { n: 'Macarrão cozido', k: 158, u: 'pegador(es)', g: 80, a: ['macarrao', 'massa'] },
+    { n: 'Batata inglesa cozida', k: 52, u: 'unidade(s) média(s)', g: 100, a: ['batata', 'batata inglesa'] },
+    { n: 'Batata doce cozida', k: 77, u: 'fatia(s)', g: 50, a: ['batata doce'] },
+    { n: 'Mandioca cozida', k: 125, u: 'pedaço(s)', g: 60, a: ['mandioca', 'aipim', 'macaxeira'] },
+    { n: 'Inhame cozido', k: 98, u: 'unidade(s) pequena(s)', g: 90, a: ['inhame'] },
+    { n: 'Batata baroa cozida', k: 80, u: 'unidade(s)', g: 70, a: ['mandioquinha', 'batata baroa'] },
+    { n: 'Quinoa cozida', k: 120, u: 'colher(es) de sopa cheia(s)', g: 25, a: ['quinoa'] },
+    { n: 'Cuscuz de milho cozido', k: 113, u: 'fatia(s)', g: 80, a: ['cuscuz'] },
+    { n: 'Aveia em flocos', k: 394, u: 'colher(es) de sopa cheia(s)', g: 15, a: ['aveia'] },
+    { n: 'Tapioca (goma)', k: 240, u: 'colher(es) de sopa', g: 20, a: ['tapioca', 'goma'] },
+    { n: 'Pão integral', k: 253, u: 'fatia(s)', g: 25, a: ['pao integral'] },
+    { n: 'Pão francês', k: 300, u: 'unidade(s)', g: 50, a: ['pao frances', 'pao', 'pao de sal'] },
+    { n: 'Milho verde cozido', k: 98, u: 'colher(es) de sopa', g: 20, a: ['milho'] },
+  ] },
+  proteina: { label: 'Proteínas', items: [
+    { n: 'Peito de frango grelhado', k: 159, u: 'filé(s) médio(s)', g: 100, a: ['frango', 'peito de frango', 'file de frango'] },
+    { n: 'Coxa de frango sem pele', k: 167, u: 'unidade(s)', g: 80, a: ['coxa de frango', 'sobrecoxa'] },
+    { n: 'Patinho moído cozido', k: 180, u: 'colher(es) de sopa cheia(s)', g: 30, a: ['carne moida', 'patinho'] },
+    { n: 'Alcatra grelhada', k: 220, u: 'bife(s) médio(s)', g: 100, a: ['alcatra', 'bife', 'carne bovina'] },
+    { n: 'Filé mignon grelhado', k: 220, u: 'medalhão(ões)', g: 100, a: ['file mignon'] },
+    { n: 'Lombo suíno assado', k: 210, u: 'fatia(s)', g: 60, a: ['lombo', 'carne suina', 'porco'] },
+    { n: 'Tilápia grelhada', k: 128, u: 'filé(s)', g: 100, a: ['tilapia', 'peixe'] },
+    { n: 'Merluza cozida', k: 122, u: 'filé(s)', g: 100, a: ['merluza'] },
+    { n: 'Salmão grelhado', k: 230, u: 'posta(s)', g: 100, a: ['salmao'] },
+    { n: 'Sardinha', k: 164, u: 'unidade(s)', g: 40, a: ['sardinha'] },
+    { n: 'Atum em água', k: 116, u: 'lata(s)', g: 120, a: ['atum'] },
+    { n: 'Ovo cozido', k: 146, u: 'unidade(s)', g: 50, a: ['ovo', 'ovos', 'ovo de galinha'] },
+    { n: 'Clara de ovo', k: 44, u: 'unidade(s)', g: 33, a: ['clara'] },
+    { n: 'Peito de peru', k: 135, u: 'fatia(s)', g: 20, a: ['peru', 'blanquet'] },
+  ] },
+  laticinio: { label: 'Laticínios', items: [
+    { n: 'Iogurte desnatado', k: 41, u: 'unidade(s)', g: 100, a: ['iogurte', 'iogurte natural desnatado'] },
+    { n: 'Iogurte natural integral', k: 61, u: 'unidade(s)', g: 100, a: ['iogurte natural', 'iogurte integral'] },
+    { n: 'Leite desnatado', k: 35, u: 'copo(s)', g: 200, a: ['leite desnatado'] },
+    { n: 'Leite semidesnatado', k: 42, u: 'copo(s)', g: 200, a: ['leite semidesnatado'] },
+    { n: 'Leite integral', k: 61, u: 'copo(s)', g: 200, a: ['leite', 'leite de vaca'] },
+    { n: 'Leite em pó desnatado', k: 358, u: 'colher(es) de sopa cheia(s)', g: 10, a: ['leite em po', 'leite de vaca desnatado em po'] },
+    { n: 'Queijo minas frescal', k: 264, u: 'fatia(s)', g: 30, a: ['minas frescal', 'queijo minas', 'queijo branco'] },
+    { n: 'Ricota', k: 140, u: 'fatia(s)', g: 30, a: ['ricota'] },
+    { n: 'Queijo cottage', k: 98, u: 'colher(es) de sopa', g: 30, a: ['cottage'] },
+    { n: 'Requeijão light', k: 175, u: 'colher(es) de sopa', g: 20, a: ['requeijao'] },
+    { n: 'Queijo mussarela', k: 330, u: 'fatia(s)', g: 20, a: ['mussarela', 'muçarela', 'queijo'] },
+    { n: 'Kefir', k: 55, u: 'copo(s)', g: 200, a: ['kefir'] },
+  ] },
+  gordura: { label: 'Gorduras e oleaginosas', items: [
+    { n: 'Azeite de oliva', k: 884, u: 'colher(es) de sopa', g: 8, a: ['azeite'] },
+    { n: 'Óleo de coco', k: 862, u: 'colher(es) de sopa', g: 8, a: ['oleo de coco'] },
+    { n: 'Castanha de caju', k: 570, u: 'unidade(s)', g: 5, a: ['castanha de caju'] },
+    { n: 'Castanha-do-pará', k: 699, u: 'unidade(s)', g: 4, a: ['castanha do para', 'castanha'] },
+    { n: 'Amendoim', k: 544, u: 'colher(es) de sopa', g: 12, a: ['amendoim'] },
+    { n: 'Amêndoa', k: 579, u: 'unidade(s)', g: 1.2, a: ['amendoa', 'amendoas'] },
+    { n: 'Nozes', k: 654, u: 'unidade(s)', g: 5, a: ['noz', 'nozes'] },
+    { n: 'Pasta de amendoim', k: 588, u: 'colher(es) de sopa', g: 15, a: ['pasta de amendoim'] },
+    { n: 'Abacate', k: 96, u: 'colher(es) de sopa', g: 30, a: ['abacate'] },
+    { n: 'Semente de chia', k: 486, u: 'colher(es) de sopa cheia(s)', g: 15, a: ['chia'] },
+    { n: 'Linhaça', k: 534, u: 'colher(es) de sopa', g: 12, a: ['linhaca'] },
+    { n: 'Gergelim', k: 573, u: 'colher(es) de sopa', g: 9, a: ['gergelim'] },
+    { n: 'Coco ralado', k: 406, u: 'colher(es) de sopa', g: 10, a: ['coco'] },
+  ] },
+  leguminosa: { label: 'Leguminosas', items: [
+    { n: 'Feijão carioca cozido', k: 76, u: 'concha(s)', g: 80, a: ['feijao', 'feijao carioca'] },
+    { n: 'Feijão preto cozido', k: 77, u: 'concha(s)', g: 80, a: ['feijao preto'] },
+    { n: 'Lentilha cozida', k: 93, u: 'colher(es) de sopa cheia(s)', g: 30, a: ['lentilha'] },
+    { n: 'Grão-de-bico cozido', k: 121, u: 'colher(es) de sopa cheia(s)', g: 30, a: ['grao de bico'] },
+    { n: 'Ervilha cozida', k: 81, u: 'colher(es) de sopa', g: 25, a: ['ervilha'] },
+    { n: 'Soja cozida', k: 141, u: 'colher(es) de sopa', g: 30, a: ['soja'] },
+  ] },
+  vegetal: { label: 'Vegetais', items: [
+    { n: 'Alface', k: 15, u: 'folha(s)', g: 10, a: ['alface'] },
+    { n: 'Brócolis', k: 25, u: 'colher(es) de sopa', g: 25, a: ['brocolis'] },
+    { n: 'Couve', k: 27, u: 'colher(es) de sopa', g: 20, a: ['couve'] },
+    { n: 'Cenoura', k: 34, u: 'unidade(s) média(s)', g: 70, a: ['cenoura'] },
+    { n: 'Abobrinha', k: 19, u: 'colher(es) de sopa', g: 30, a: ['abobrinha'] },
+    { n: 'Berinjela', k: 20, u: 'colher(es) de sopa', g: 30, a: ['berinjela'] },
+    { n: 'Tomate', k: 15, u: 'unidade(s) média(s)', g: 90, a: ['tomate'] },
+    { n: 'Pepino', k: 10, u: 'unidade(s)', g: 130, a: ['pepino'] },
+    { n: 'Chuchu', k: 17, u: 'colher(es) de sopa', g: 30, a: ['chuchu'] },
+    { n: 'Repolho', k: 17, u: 'colher(es) de sopa', g: 20, a: ['repolho'] },
+    { n: 'Espinafre', k: 16, u: 'colher(es) de sopa', g: 20, a: ['espinafre'] },
+    { n: 'Vagem', k: 25, u: 'colher(es) de sopa', g: 25, a: ['vagem'] },
+    { n: 'Couve-flor', k: 23, u: 'colher(es) de sopa', g: 25, a: ['couve flor'] },
+    { n: 'Beterraba', k: 32, u: 'colher(es) de sopa', g: 30, a: ['beterraba'] },
+  ] },
+};
+const eqNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+/* índice nome normalizado -> { grupo, item }, chaves maiores primeiro */
+const EQ_INDEX = (() => {
+  const out = [];
+  for (const [key, grp] of Object.entries(EQ)) {
+    for (const it of grp.items) {
+      for (const k of [it.n, ...(it.a || [])]) out.push({ key: eqNorm(k), group: key, item: it });
+    }
+  }
+  return out.sort((a, b) => b.key.length - a.key.length);
+})();
+function eqFind(name) {
+  const n = eqNorm(name);
+  if (n.length < 3) return null;
+  for (const e of EQ_INDEX) if (n === e.key) return e;
+  for (const e of EQ_INDEX) if (e.key.length >= 4 && (n.includes(e.key) || e.key.includes(n))) return e;
+  return null;
+}
+/* gramas da porção prescrita: usa "120 g", senão "2 unidades" x peso da unidade */
+function eqGrams(qty, item) {
+  const q = String(qty || '').toLowerCase().replace(',', '.');
+  let m = q.match(/(\d+(?:\.\d+)?)\s*(?:g\b|gr\b|gramas?\b)/);
+  if (m) return parseFloat(m[1]);
+  m = q.match(/(\d+(?:\.\d+)?)\s*ml\b/);
+  if (m) return parseFloat(m[1]);
+  if (!item || !item.g) return null;
+  m = q.match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) * item.g : null;
+}
+const eqRound = (g) => (g >= 100 ? Math.round(g / 5) * 5 : g >= 20 ? Math.round(g) : Math.round(g * 10) / 10);
+/* quantidade de `item` que entrega `kcal` */
+function eqPortion(item, kcal) {
+  const g = kcal / (item.k / 100);
+  if (!Number.isFinite(g) || g <= 0) return null;
+  const gr = eqRound(g);
+  if (item.u && item.g) {
+    const u = g / item.g;
+    const un = u >= 10 ? Math.round(u) : Math.round(u * 2) / 2;
+    if (un >= 0.5) return `${br(un, 1)} ${item.u} (${br(gr, 1)} g)`;
+  }
+  return `${br(gr, 1)} g`;
+}
+/* substituições automáticas de um alimento, já fora as que a nutri escreveu */
+function autoSubs(food, max = 10) {
+  const hit = eqFind(food.name);
+  if (!hit) return null;
+  const grams = eqGrams(food.qty, hit.item);
+  if (grams == null) return null;
+  const kcal = grams * (hit.item.k / 100);
+  if (!(kcal > 0)) return null;
+  const taken = new Set((food.subs || []).map((s) => eqNorm(s.name)));
+  const list = [];
+  for (const it of EQ[hit.group].items) {
+    if (it === hit.item || taken.has(eqNorm(it.n))) continue;
+    const qty = eqPortion(it, kcal);
+    if (qty) list.push({ name: it.n, qty });
+    if (list.length >= max) break;
+  }
+  return list.length ? { label: EQ[hit.group].label, kcal: Math.round(kcal), list } : null;
 }
 const mealCheck = (log, g) => { const c = log.checked[g.id]; return c == null ? null : (typeof c === 'object' ? c : { opt: 0 }); };
 
@@ -554,41 +729,28 @@ views.dieta = () => {
     + `<div class="section"><div class="group diet-sum">${rings([{ v: done / groups.length, color: 'var(--c-dieta)' }], 76, 10)}
         <div><div class="big digits">${done}<small> de ${groups.length}</small></div>
         <div class="s">refeições${extrasKcal(log) ? ` · ${Math.round(extrasKcal(log))} kcal fora do plano` : ''}</div></div></div></div>`
-    + section('Refeições', `<div class="timeline">${groups.map((g) => {
+    + section('Refeições', `<div class="meal-list">${groups.flatMap((g) => g.options.map((o, oi) => {
         const c = mealCheck(log, g);
-        const o = g.options[c ? c.opt : 0] || g.options[0];
-        const isNow = key === todayKey() && !c && nowMeal?.id === g.id;
-        const sub = c ? `Registrada${g.options.length > 1 ? ` · Opção ${c.opt + 1}` : ''}`
-          : `${g.options.length > 1 ? `${g.options.length} opções · ` : ''}${o.foods.slice(0, 3).map((f) => f.name).join(', ')}${o.foods.length > 3 ? '…' : ''}`;
-        return `<div class="tl-item ${c ? 'done' : ''} ${isNow ? 'now' : ''} ${justKey === g.id ? 'just' : ''}">
-          <div class="tl-time">${esc(g.time || '')}</div>
-          <div class="tl-rail"><button class="tl-dot" data-act="meal-quick" data-v="${g.id}" aria-pressed="${!!c}" aria-label="Marcar ${esc(g.name)}">${ic('check')}</button></div>
-          <button class="tl-card" data-act="meal-open" data-v="${g.id}">
-            <span class="body"><div class="t">${esc(g.name)}${isNow ? '<span class="now-tag">Agora</span>' : ''}</div><div class="s">${esc(sub)}</div></span>
-            <span class="end">${ic('right')}</span></button></div>`;
-      }).join('')}</div>`)
-    + suppSection(log)
+        const reg = !!c && c.opt === oi;        // esta opção é a registrada
+        const other = !!c && c.opt !== oi;      // outra opção da mesma refeição foi registrada
+        const isNow = key === todayKey() && !c && nowMeal?.id === g.id && oi === 0;
+        return `<div class="meal-card ${reg ? 'done' : ''} ${other ? 'faded' : ''} ${isNow ? 'now' : ''} ${justKey === `${g.id}:${oi}` ? 'just' : ''}">
+          <button class="meal-main" data-act="meal-open" data-v="${g.id}:${oi}">
+            <span class="mc-ic">${ic('meal')}</span>
+            <span class="body"><div class="t">${esc(mealTitle(g, oi))}</div>${isNow ? '<span class="now-tag">Agora</span>' : ''}</span>
+          </button>
+          <button class="meal-tick" data-act="meal-quick" data-v="${g.id}:${oi}" aria-pressed="${reg}" aria-label="Marcar ${esc(mealLabel(g, oi))}">${ic('check')}</button>
+        </div>`;
+      })).join('')}</div>`)
     + section(`Fora do plano${extrasKcal(log) ? ` · ${Math.round(extrasKcal(log))} kcal` : ''}`, log.extras.length
         ? `<div class="group">${log.extras.map((x, i) => `<div class="row plain"><span class="body"><div class="t" style="font-weight:500">${esc(x.text)}</div>
             <div class="s num">${esc(x.time)}${x.kcal != null ? ` · ${Math.round(x.kcal)} kcal` : ''}${x.ai ? ' · estimado pela IA' : ''}</div></span>
             <button class="text-btn" style="color:var(--ink-3)" data-act="del-extra" data-v="${i}">Remover</button></div>`).join('')}</div>`
-        : `<div class="group empty">Comeu algo fora das refeições? Tire uma foto ou descreva, e a IA calcula as calorias.</div>`,
-      `<button class="text-btn" data-act="add-extra">+ Adicionar</button>`)
+        : '',
+      `<button class="add-btn" data-act="add-extra" aria-label="Registrar algo que comi fora do plano">${ic('plus')}</button>`)
     + toolsSection();
 };
 
-function suppSection(log) {
-  log.supps = log.supps || {};
-  const add = `<button class="text-btn" data-act="supp-edit">+ Adicionar</button>`;
-  if (!state.supps.length) return section('Suplementos', `<div class="group empty">Ômega 3, creatina, fórmulas… cadastre para lembrar de tomar.</div>`, add);
-  const list = state.supps.slice().sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
-  return section('Suplementos', `<div class="group">${list.map((sp) => `
-    <div class="meal-row ${log.supps[sp.id] ? 'done' : ''}">
-      <button class="circle" data-act="supp-check" data-v="${sp.id}" aria-pressed="${!!log.supps[sp.id]}" aria-label="Tomei ${esc(sp.name)}">${ic('check')}</button>
-      <button class="meal-open" data-act="supp-edit" data-v="${sp.id}">
-        <span class="body"><div class="t">${sp.time ? `<span class="time num">${esc(sp.time)}</span>` : ''}${esc(sp.name)}</div>${sp.dose ? `<div class="s">${esc(sp.dose)}</div>` : ''}</span>
-        <span class="end">${ic('right')}</span></button></div>`).join('')}</div>`, add);
-}
 
 function toolsSection() {
   const nRec = RECIPES.length + state.recipes.length;
@@ -644,6 +806,10 @@ views.perfil = () => {
       </div>`, `<button class="text-btn" data-act="edit-profile">Editar</button>`)
     + section('Treino', `<div class="group"><button class="row plain" data-act="plan"><span class="body"><div class="t">Plano de treino</div>
         <div class="s">Emagrecimento · ${p.dias}x por semana · ${LEVEL_LABEL[p.nivel]}</div></span><span class="end">${ic('right')}</span></button></div>`)
+    + section('Alimentação', `<div class="group"><button class="row plain" data-act="diet-editor">
+        <span class="body"><div class="t">Montar refeições</div>
+        <div class="s">${state.diet.groups.length ? `${state.diet.groups.length} ${state.diet.groups.length === 1 ? 'refeição' : 'refeições'} · ${state.diet.groups.reduce((t, g) => t + g.options.length, 0)} opções` : 'Café, almoço, lanche, jantar, ceia…'}</div></span>
+        <span class="end">${ic('right')}</span></button></div>`)
     + section('Assistente IA', `<div class="group"><button class="row plain" data-act="ai-key"><span class="body"><div class="t">Cálculo de calorias por foto</div>
         <div class="s">${state.ai?.key ? 'Ativado' : 'Toque para configurar'}</div></span><span class="end">${state.ai?.key ? '<span class="tag ok">Ativo</span>' : ''}${ic('right')}</span></button></div>`)
     + section('Seus dados', `<div class="group">
@@ -968,6 +1134,49 @@ A['edit-diet'] = () => {
     state.diet = { raw, groups }; save(); render();
   });
 };
+/* "Café da manhã" ou "Café da manhã - Opção 2" quando a refeição tem mais de uma opção */
+const mealLabel = (g, oi) => (g.options.length > 1 ? `${g.name} - Opção ${oi + 1}` : g.name);
+/* "07:30 - Café da manhã - Opção 2", como na lista do app da nutricionista */
+const mealTitle = (g, oi) => (g.time ? `${g.time} - ` : '') + mealLabel(g, oi);
+const subLine = (x) => `<div class="sub"><div class="t">${esc(x.name)}</div>${x.qty ? `<div class="s">${esc(x.qty)}</div>` : ''}</div>`;
+/* um alimento: quantidade, kcal estimada e as substituições (da nutri + equivalentes) */
+/* "1,5 filé(s) médio(s) ou 150g" — medida caseira na frente, gramas atrás.
+   Se o texto da nutri já traz as duas (…"ou"…), respeita o que ela escreveu. */
+function foodQty(f) {
+  const raw = (f.qty || '').trim();
+  if (!raw || /\bou\b/i.test(raw)) return raw;
+  const hit = eqFind(f.name);
+  if (!hit || !hit.item.u || !hit.item.g) return raw;
+  const g = eqGrams(raw, hit.item);
+  if (g == null) return raw;
+  const u = g / hit.item.g, un = u >= 10 ? Math.round(u) : Math.round(u * 2) / 2;
+  if (un < 0.5) return raw;
+  return `${br(un, 1)} ${hit.item.u} ou ${br(eqRound(g), 1)}g`;
+}
+function foodRow(f, fi, gid, oi) {
+  const own = f.subs || [], auto = autoSubs(f), total = own.length + (auto ? auto.list.length : 0);
+  const qty = foodQty(f);
+  return `<div class="food">
+    <div class="t">${esc(f.name)}</div>${qty ? `<div class="s">${esc(qty)}</div>` : ''}
+    ${total ? `<button type="button" class="subs-btn" data-act="subs" data-v="${gid}:${oi}:${fi}">${ic('swap')} Ver opções de substituição</button>` : ''}
+  </div>`;
+}
+/* tela própria das substituições, com voltar — como no app da nutricionista */
+function subsSheet(gid, oi, fi) {
+  const g = state.diet.groups.find((x) => x.id === gid);
+  const f = g?.options[oi]?.foods[fi];
+  if (!f) return;
+  const own = f.subs || [], auto = autoSubs(f);
+  sheet(`<div class="sheet-nav">
+      <button type="button" class="icon-btn" data-act="meal-open" data-v="${gid}:${oi}" aria-label="Voltar para a refeição">${ic('left')}</button>
+      <div><div class="kicker">${esc(mealLabel(g, oi))}</div><h2 style="margin:0">${esc(f.name)}</h2></div>
+    </div>
+    <p class="lead">${esc(foodQty(f))}${auto ? ` · ≈ ${auto.kcal} kcal` : ''}</p>
+    <div class="subs-screen">
+      ${own.length ? `<div class="sub-head">Indicadas pela nutricionista</div>${own.map(subLine).join('')}` : ''}
+      ${auto ? `<div class="sub-head">Equivalentes · ${esc(auto.label)} · mesma caloria</div>${auto.list.map(subLine).join('')}` : ''}
+    </div>`);
+}
 function mealSheet(gid, oi) {
   const g = state.diet.groups.find((x) => x.id === gid);
   if (!g) return;
@@ -975,35 +1184,252 @@ function mealSheet(gid, oi) {
   oi = oi ?? (c ? c.opt : 0);
   const o = g.options[oi] || g.options[0];
   const registered = c && c.opt === oi;
-  sheet(`<h2>${g.time ? `<span class="num" style="color:var(--ink-3)">${esc(g.time)}</span> · ` : ''}${esc(g.name)}</h2>
-    <p class="lead">${g.options.length > 1 ? `${g.options.length} opções — escolha a que você vai comer` : `${o.foods.length} alimentos`}</p>
-    ${g.options.length > 1 ? `<div class="seg" style="margin-bottom:14px">${g.options.map((_, i) => `<button type="button" data-act="meal-opt" data-v="${g.id}:${i}" class="${i === oi ? 'on' : ''}">Opção ${i + 1}</button>`).join('')}</div>` : ''}
-    ${o.foods.map((f, fi) => `<div class="food">
-      <div class="t">${esc(f.name)}</div>${f.qty ? `<div class="s">${esc(f.qty)}</div>` : ''}
-      ${f.subs.length ? `<button type="button" class="subs-btn" data-act="subs" data-v="${fi}">${ic('swap')} Substituições (${f.subs.length})</button>
-        <div class="subs hidden" data-subs="${fi}">${f.subs.map((x) => `<div class="sub"><div class="t">${esc(x.name)}</div>${x.qty ? `<div class="s">${esc(x.qty)}</div>` : ''}</div>`).join('')}</div>` : ''}
-    </div>`).join('') || '<p class="hint">Nenhum alimento nesta opção.</p>'}
-    ${o.notes ? `<details class="notes"><summary>Observações da nutricionista</summary><div>${esc(o.notes).replace(/\n/g, '<br>')}</div></details>` : ''}
+  const diary = (log.diary || {})[g.id], mood = (log.mood || {})[g.id];
+  sheet(`<h2>${g.time ? `<span class="num" style="color:var(--ink-3)">${esc(g.time)}</span> · ` : ''}${esc(mealLabel(g, oi))}</h2>
+    <p class="lead">${o.foods.length} ${o.foods.length === 1 ? 'alimento' : 'alimentos'}${g.options.length > 1 ? ` · uma das ${g.options.length} opções desta refeição` : ''}</p>
+    <div class="meal-menu">
+      <button type="button" class="mm ${registered ? 'on' : ''}" data-act="meal-reg" data-v="${g.id}:${oi}">
+        ${ic(registered ? 'check' : 'meal')}<span>${registered ? 'Registrada' : 'Registrar refeição'}</span></button>
+      <button type="button" class="mm ${diary ? 'on' : ''}" data-act="meal-diary" data-v="${g.id}">
+        ${ic('camera')}<span>Diário alimentar</span></button>
+      <button type="button" class="mm ${mood ? 'on' : ''}" data-act="meal-mood" data-v="${g.id}">
+        ${mood ? `<span class="mm-face">${MOODS.find((m) => m.k === mood)?.face || ''}</span>` : ic('pulse')}<span>Humor na refeição</span></button>
+    </div>
+    <div class="sub-head">Alimentos</div>
+    ${o.foods.map((f, fi) => foodRow(f, fi, g.id, oi)).join('') || '<p class="hint">Nenhum alimento nesta opção.</p>'}
+    ${diary ? `<div class="sub-head">Diário alimentar</div>
+      <div class="food"><img class="diary-img" src="${diary.photo}" alt="Foto da refeição">
+        <button type="button" class="text-btn" data-act="meal-diary-del" data-v="${g.id}">Remover foto</button></div>` : ''}
+    ${o.notes ? `<div class="notes-open"><div class="sub-head">Observação</div><div>${esc(o.notes).replace(/\n/g, '<br>')}</div></div>` : ''}
     <div class="stack-btns">
-      <button class="btn block ${registered ? 'soft' : ''}" type="button" data-act="meal-reg" data-v="${g.id}:${oi}">${registered ? `${ic('check')} Registrada · toque para desfazer` : 'Registrar refeição'}</button>
       <button class="text-btn" type="button" data-act="add-extra">Comi outra coisa</button>
     </div>`);
 }
-A['meal-open'] = (gid) => mealSheet(gid);
+A['meal-open'] = (v) => { const [gid, i] = String(v).split(':'); mealSheet(gid, i == null ? undefined : +i); };
 A['meal-opt'] = (v) => { const [gid, i] = v.split(':'); mealSheet(gid, +i); };
-A.subs = (fi) => $(`[data-subs="${fi}"]`)?.classList.toggle('hidden');
+A.subs = (v) => { const [gid, oi, fi] = String(v).split(':'); subsSheet(gid, +oi, +fi); };
+/* Diário alimentar: a foto do que você realmente comeu, guardada no dia */
+A['meal-diary'] = async (gid) => {
+  const file = await pickImage();
+  if (!file) return;
+  const blob = await shrink(file, 640);
+  const photo = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(blob); });
+  const log = dayLog(state.ui.dietDay || todayKey());
+  log.diary = log.diary || {};
+  log.diary[gid] = { photo, at: Date.now() };
+  if (!save()) { delete log.diary[gid]; return; }
+  buzz(); mealSheetFor(gid);
+};
+A['meal-diary-del'] = (gid) => {
+  const log = dayLog(state.ui.dietDay || todayKey());
+  if (log.diary) delete log.diary[gid];
+  save(); mealSheetFor(gid);
+};
+/* Humor na refeição */
+const MOODS = [
+  { k: 'otimo', face: '😄', label: 'Ótimo' },
+  { k: 'bem', face: '🙂', label: 'Bem' },
+  { k: 'neutro', face: '😐', label: 'Normal' },
+  { k: 'ruim', face: '😕', label: 'Ruim' },
+  { k: 'mal', face: '😣', label: 'Mal' },
+];
+A['meal-mood'] = (gid) => {
+  const log = dayLog(state.ui.dietDay || todayKey()), cur = (log.mood || {})[gid];
+  sheet(`<h2>Humor na refeição</h2><p class="lead">Como você se sentiu nesta refeição?</p>
+    <div class="mood-pick">${MOODS.map((m) => `<button type="button" class="mood ${cur === m.k ? 'on' : ''}" data-act="mood-set" data-v="${gid}:${m.k}">
+      <span class="face">${m.face}</span><span class="s">${m.label}</span></button>`).join('')}</div>
+    ${cur ? `<button type="button" class="text-btn block" data-act="mood-set" data-v="${gid}:">Limpar</button>` : ''}`);
+};
+A['mood-set'] = (v) => {
+  const i = String(v).indexOf(':'), gid = String(v).slice(0, i), k = String(v).slice(i + 1);
+  const log = dayLog(state.ui.dietDay || todayKey());
+  log.mood = log.mood || {};
+  if (k) { log.mood[gid] = k; buzz(); } else delete log.mood[gid];
+  save(); mealSheetFor(gid);
+};
+/* reabre a refeição na opção certa depois de uma ação */
+function mealSheetFor(gid) {
+  const g = state.diet.groups.find((x) => x.id === gid);
+  if (!g) return;
+  const c = mealCheck(dayLog(state.ui.dietDay || todayKey()), g);
+  mealSheet(gid, c ? c.opt : 0);
+  render();
+}
 A['meal-reg'] = (v) => {
   const [gid, i] = v.split(':');
   const log = dayLog(state.ui.dietDay || todayKey()), c = log.checked[gid];
   if (c != null && (typeof c !== 'object' || c.opt === +i)) delete log.checked[gid];
-  else { log.checked[gid] = { opt: +i, at: Date.now() }; justKey = gid; buzz(); }
+  else { log.checked[gid] = { opt: +i, at: Date.now() }; justKey = `${gid}:${i}`; buzz(); }
   $('#sheet').close(); save(); render();
 };
-A['meal-quick'] = (gid) => {
-  const log = dayLog(state.ui.dietDay || todayKey());
-  if (log.checked[gid] != null) delete log.checked[gid]; else { log.checked[gid] = { opt: 0, at: Date.now() }; justKey = gid; buzz(); }
+A['meal-quick'] = (v) => {
+  const [gid, i] = String(v).split(':'), oi = i == null ? 0 : +i;
+  const log = dayLog(state.ui.dietDay || todayKey()), c = log.checked[gid];
+  const cur = c == null ? null : (typeof c === 'object' ? c.opt : 0);
+  /* marcada na mesma opção → desmarca; em outra opção → troca a escolha */
+  if (cur === oi) delete log.checked[gid];
+  else { log.checked[gid] = { opt: oi, at: Date.now() }; justKey = `${gid}:${oi}`; buzz(); }
   save(); render();
+
 };
+/* ================= Montar a alimentação na mão (Perfil › Alimentação) =================
+   Mesma estrutura do plano colado: refeição › opções › alimentos › substituições.
+   Mexe direto em state.diet.groups, então convive com o plano importado por texto. */
+const MEAL_PRESETS = [
+  { name: 'Café da manhã', time: '07:30' },
+  { name: 'Lanche da manhã', time: '10:00' },
+  { name: 'Almoço', time: '12:00' },
+  { name: 'Lanche', time: '18:00' },
+  { name: 'Jantar', time: '20:30' },
+  { name: 'Ceia', time: '22:00' },
+];
+const findGroup = (gid) => state.diet.groups.find((x) => x.id === gid);
+const newOption = () => ({ id: uid(), foods: [], notes: '' });
+const sortGroups = () => state.diet.groups.sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+/* lista de refeições do plano, com adicionar e editar */
+function dietEditor() {
+  const gs = state.diet.groups;
+  sheet(`<h2>Alimentação</h2>
+    <p class="lead">Monte as refeições do seu dia. Cada uma pode ter várias opções.</p>
+    ${gs.length ? `<div class="group">${gs.map((g) => `<button type="button" class="row plain" data-act="grp-edit" data-v="${g.id}">
+        <span class="body"><div class="t">${g.time ? `<span class="num" style="color:var(--ink-3);margin-right:8px">${esc(g.time)}</span>` : ''}${esc(g.name)}</div>
+        <div class="s">${g.options.length} ${g.options.length === 1 ? 'opção' : 'opções'} · ${g.options.reduce((t, o) => t + o.foods.length, 0)} alimentos</div></span>
+        <span class="end">${ic('right')}</span></button>`).join('')}</div>`
+      : '<p class="hint">Nenhuma refeição ainda. Comece pelas sugestões abaixo.</p>'}
+    <div class="sub-head">Adicionar refeição</div>
+    <div class="chips">${MEAL_PRESETS.filter((m) => !gs.some((g) => eqNorm(g.name) === eqNorm(m.name)))
+      .map((m) => `<button type="button" class="chip" data-act="grp-add" data-v="${esc(m.name)}|${m.time}">+ ${esc(m.name)}</button>`).join('')
+      || '<span class="hint">Todas as refeições sugeridas já estão no plano.</span>'}</div>
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="grp-add" data-v="|">+ Outra refeição</button>`);
+}
+A['diet-editor'] = () => dietEditor();
+A['grp-add'] = (v) => {
+  const i = String(v).lastIndexOf('|');
+  const name = String(v).slice(0, i), time = String(v).slice(i + 1);
+  const g = { id: uid(), name: name || 'Nova refeição', time, options: [newOption()] };
+  state.diet.groups.push(g); sortGroups(); save(); render();
+  grpEditor(g.id);
+};
+
+/* uma refeição: nome, horário e as opções */
+function grpEditor(gid) {
+  const g = findGroup(gid);
+  if (!g) return dietEditor();
+  sheet(`<div class="sheet-nav">
+      <button type="button" class="icon-btn" data-act="diet-editor" aria-label="Voltar">${ic('left')}</button>
+      <div><div class="kicker">Refeição</div><h2 style="margin:0">${esc(g.name)}</h2></div>
+    </div>
+    <div class="two" style="margin-top:14px">
+      <div class="field"><label>Nome</label><input name="nome" value="${esc(g.name)}" placeholder="ex.: Almoço"></div>
+      <div class="field"><label>Horário</label><input name="hora" type="time" value="${esc(g.time || '')}"></div>
+    </div>
+    <button type="button" class="btn soft block" data-act="grp-save" data-v="${g.id}">Salvar nome e horário</button>
+    <div class="sub-head">Opções desta refeição</div>
+    <div class="group">${g.options.map((o, oi) => `<button type="button" class="row plain" data-act="opt-edit" data-v="${g.id}:${oi}">
+      <span class="body"><div class="t">Opção ${oi + 1}</div>
+      <div class="s">${o.foods.length ? esc(o.foods.map((f) => f.name).join(', ').slice(0, 60)) : 'Sem alimentos'}</div></span>
+      <span class="end">${ic('right')}</span></button>`).join('')}</div>
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="opt-add" data-v="${g.id}">+ Adicionar opção</button>
+    <button type="button" class="btn danger block" style="margin-top:12px" data-act="grp-del" data-v="${g.id}">Excluir refeição</button>`);
+}
+A['grp-edit'] = (gid) => grpEditor(gid);
+A['grp-save'] = (gid) => {
+  const g = findGroup(gid), f = $('#sheet-body');
+  if (!g) return;
+  g.name = f.nome.value.trim() || g.name;
+  g.time = f.hora.value;
+  sortGroups(); save(); render(); grpEditor(gid);
+};
+A['grp-del'] = (gid) => {
+  const g = findGroup(gid);
+  if (!g || !confirm(`Excluir "${g.name}" e todas as suas opções?`)) return;
+  state.diet.groups = state.diet.groups.filter((x) => x.id !== gid);
+  save(); render(); dietEditor();
+};
+A['opt-add'] = (gid) => {
+  const g = findGroup(gid);
+  if (!g) return;
+  g.options.push(newOption()); save(); render();
+  optEditor(gid, g.options.length - 1);
+};
+
+/* uma opção: os alimentos e a observação da nutricionista */
+function optEditor(gid, oi) {
+  const g = findGroup(gid), o = g?.options[oi];
+  if (!o) return grpEditor(gid);
+  sheet(`<div class="sheet-nav">
+      <button type="button" class="icon-btn" data-act="grp-edit" data-v="${gid}" aria-label="Voltar">${ic('left')}</button>
+      <div><div class="kicker">${esc(g.name)}</div><h2 style="margin:0">Opção ${oi + 1}</h2></div>
+    </div>
+    <div class="sub-head">Alimentos</div>
+    ${o.foods.length ? `<div class="group">${o.foods.map((f, fi) => `<button type="button" class="row plain" data-act="fd-edit" data-v="${gid}:${oi}:${fi}">
+        <span class="body"><div class="t">${esc(f.name)}</div><div class="s">${esc(f.qty || 'sem quantidade')}${f.subs?.length ? ` · ${f.subs.length} substituição${f.subs.length > 1 ? 'ões' : ''}` : ''}</div></span>
+        <span class="end">${ic('right')}</span></button>`).join('')}</div>`
+      : '<p class="hint">Nenhum alimento nesta opção.</p>'}
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="fd-add" data-v="${gid}:${oi}">+ Adicionar alimento</button>
+    <div class="field" style="margin-top:18px"><label>Observação da nutricionista</label>
+      <textarea name="notes" style="min-height:110px" placeholder="ex.: duas variedades de legumes, consumo livre, mínimo 100 g">${esc(o.notes || '')}</textarea></div>
+    <button type="button" class="btn soft block" data-act="opt-save" data-v="${gid}:${oi}">Salvar observação</button>
+    ${g.options.length > 1 ? `<button type="button" class="btn danger block" style="margin-top:12px" data-act="opt-del" data-v="${gid}:${oi}">Excluir esta opção</button>` : ''}`);
+}
+A['opt-edit'] = (v) => { const [gid, oi] = String(v).split(':'); optEditor(gid, +oi); };
+A['opt-save'] = (v) => {
+  const [gid, oi] = String(v).split(':'), g = findGroup(gid), o = g?.options[+oi];
+  if (!o) return;
+  o.notes = $('#sheet-body').notes.value.trim();
+  save(); render(); optEditor(gid, +oi);
+};
+A['opt-del'] = (v) => {
+  const [gid, oi] = String(v).split(':'), g = findGroup(gid);
+  if (!g || g.options.length < 2 || !confirm(`Excluir a Opção ${+oi + 1}?`)) return;
+  g.options.splice(+oi, 1);
+  /* o registro do dia apontava para um índice que mudou: limpa para não marcar a opção errada */
+  Object.values(state.dietLog).forEach((l) => { if (l.checked?.[gid] != null) delete l.checked[gid]; });
+  save(); render(); grpEditor(gid);
+};
+A['fd-add'] = (v) => { const [gid, oi] = String(v).split(':'); foodEditor(gid, +oi, -1); };
+
+/* um alimento: nome, quantidade e as substituições que a nutricionista indicou */
+function foodEditor(gid, oi, fi) {
+  const g = findGroup(gid), o = g?.options[oi];
+  if (!o) return grpEditor(gid);
+  const novo = fi < 0;
+  const f = novo ? { name: '', qty: '', subs: [] } : o.foods[fi];
+  if (!f) return optEditor(gid, oi);
+  sheet(`<div class="sheet-nav">
+      <button type="button" class="icon-btn" data-act="opt-edit" data-v="${gid}:${oi}" aria-label="Voltar">${ic('left')}</button>
+      <div><div class="kicker">${esc(g.name)} · Opção ${oi + 1}</div><h2 style="margin:0">${novo ? 'Novo alimento' : esc(f.name)}</h2></div>
+    </div>
+    <div class="field" style="margin-top:14px"><label>Alimento</label>
+      <input name="nome" value="${esc(f.name)}" placeholder="ex.: Peito de frango grelhado" required></div>
+    <div class="field"><label>Quantidade</label>
+      <input name="qtd" value="${esc(f.qty)}" placeholder="ex.: 150 g  ou  2 colheres de sopa ou 30 g"></div>
+    <p class="hint">Se o alimento estiver na nossa tabela, as substituições equivalentes aparecem sozinhas. Abaixo você acrescenta as que a nutricionista indicou.</p>
+    <div class="field" style="margin-top:14px"><label>Substituições da nutricionista (uma por linha)</label>
+      <textarea name="subs" style="min-height:90px" placeholder="Salada de frutas - 1 porção&#10;Mamão - 170 g">${esc((f.subs || []).map((s) => (s.qty ? `${s.name} - ${s.qty}` : s.name)).join('\n'))}</textarea></div>
+    <button type="button" class="btn block" data-act="fd-save" data-v="${gid}:${oi}:${fi}">Salvar alimento</button>
+    ${novo ? '' : `<button type="button" class="btn danger block" style="margin-top:12px" data-act="fd-del" data-v="${gid}:${oi}:${fi}">Excluir alimento</button>`}`);
+}
+A['fd-edit'] = (v) => { const [gid, oi, fi] = String(v).split(':'); foodEditor(gid, +oi, +fi); };
+A['fd-save'] = (v) => {
+  const [gid, oi, fi] = String(v).split(':'), g = findGroup(gid), o = g?.options[+oi];
+  if (!o) return;
+  const form = $('#sheet-body'), name = form.nome.value.trim();
+  if (!name) { alert('Dê um nome ao alimento.'); return; }
+  const subs = form.subs.value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+    .map((l) => { const p = splitFood(l); return { name: p.name, qty: p.qty }; });
+  const food = { name, qty: form.qtd.value.trim(), subs };
+  if (+fi < 0) o.foods.push(food); else o.foods[+fi] = food;
+  save(); render(); optEditor(gid, +oi);
+};
+A['fd-del'] = (v) => {
+  const [gid, oi, fi] = String(v).split(':'), g = findGroup(gid), o = g?.options[+oi];
+  if (!o || !confirm('Excluir este alimento?')) return;
+  o.foods.splice(+fi, 1);
+  save(); render(); optEditor(gid, +oi);
+};
+
 A['diet-day'] = (v) => {
   const d = keyToDate(state.ui.dietDay || todayKey()); d.setDate(d.getDate() + Number(v));
   const k = todayKey(d); state.ui.dietDay = k > todayKey() ? todayKey() : k; render();
@@ -1175,34 +1601,6 @@ A.reset = async () => {
   if (!confirm('Apagar TODOS os dados? Isso não pode ser desfeito.')) return;
   if (!confirm('Tem certeza? Faça um backup antes se quiser guardar.')) return;
   state = defaultState(); stopTimer(); save(); $('#sheet').close(); render();
-};
-
-/* ================= Suplementos ================= */
-A['supp-check'] = (id) => {
-  const log = dayLog(state.ui.dietDay || todayKey());
-  log.supps = log.supps || {};
-  if (log.supps[id]) delete log.supps[id]; else { log.supps[id] = Date.now(); buzz(); }
-  save(); render();
-};
-A['supp-edit'] = (id) => {
-  const sp = state.supps.find((x) => x.id === id) || { name: '', dose: '', time: '' };
-  sheet(`<h2>${id ? 'Editar suplemento' : 'Novo suplemento'}</h2><p class="lead">Use o que a sua nutricionista passou.</p>
-    <div class="field"><label>Nome</label><input name="name" value="${esc(sp.name)}" placeholder="ex.: Ômega 3" required></div>
-    <div class="two"><div class="field"><label>Dose</label><input name="dose" value="${esc(sp.dose)}" placeholder="ex.: 2 cápsulas"></div>
-      <div class="field"><label>Horário</label><input name="time" type="time" value="${esc(sp.time)}"></div></div>
-    ${id ? `<button type="button" class="btn danger block" data-act="supp-del" data-v="${id}">Excluir</button>` : ''}
-    ${sheetActions()}`, (f) => {
-    const name = f.name.value.trim();
-    if (!name) return false;
-    Object.assign(sp, { name, dose: f.dose.value.trim(), time: f.time.value });
-    if (!id) { sp.id = uid(); state.supps.push(sp); }
-    save(); render();
-  });
-};
-A['supp-del'] = (id) => {
-  if (!confirm('Excluir este suplemento?')) return;
-  state.supps = state.supps.filter((x) => x.id !== id);
-  $('#sheet').close(); save(); render();
 };
 
 /* ================= Lista de compras ================= */

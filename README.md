@@ -1,11 +1,11 @@
-# Treino & Dieta
+# Pilar
 
-App de celular (PWA) para acompanhar treino, alimentação e peso. Feito para Android: abra o link no Chrome e use "Adicionar à tela inicial".
+Seus dois pilares: treino e alimentação. App de celular (PWA) para acompanhar treino, alimentação e peso. Feito para Android: abra o link no Chrome e use "Adicionar à tela inicial".
 
 ## O que tem
 - **Hoje:** anéis do dia (treino, refeições, pesagem), próximo treino, próxima refeição.
 - **Treino:** plano para emagrecimento (gerado ou personalizado), registro de carga e repetições com a coluna "Anterior", timer de descanso.
-- **Dieta:** plano da nutricionista com opções, substituições e observações; suplementos; "fora do plano" com cálculo de calorias por foto (IA); lista de compras; receitas.
+- **Dieta:** plano da nutricionista, com cada opção de refeição em seu próprio card. Dentro da refeição: registrar, diário alimentar (foto) e humor; os alimentos com medida caseira e gramas; substituição para qualquer alimento, em tela própria, calculada por equivalência calórica; observações da nutricionista. Ainda: "fora do plano" com cálculo de calorias por foto (IA), lista de compras e receitas.
 - **Progresso:** peso, carga por exercício, histórico.
 - **Perfil:** dados pessoais, IMC com faixa saudável, configuração da IA, backup.
 

@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Pilar</title>
   <rect width="512" height="512" rx="112" fill="#0f1115"/>
-  <g fill="#4ade80">
-    <rect x="96" y="196" width="44" height="120" rx="14"/>
-    <rect x="372" y="196" width="44" height="120" rx="14"/>
-    <rect x="146" y="166" width="44" height="180" rx="14"/>
-    <rect x="322" y="166" width="44" height="180" rx="14"/>
-    <rect x="190" y="238" width="132" height="36" rx="10"/>
-  </g>
+  <!-- os dois pilares: treino (laranja) e dieta (verde) -->
+  <rect x="150" y="212" width="78" height="184" rx="39" fill="#ee5a2b"/>
+  <rect x="284" y="132" width="78" height="264" rx="39" fill="#1aa58c"/>
 </svg>

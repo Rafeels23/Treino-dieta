@@ -329,28 +329,6 @@ main { padding: 6px 16px 0; }
 .diet-sum .big small { font-size: 16px; color: var(--ink-2); font-weight: 700; font-stretch: 100%; }
 .diet-sum .s { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
 
-.timeline { position: relative; padding: 2px 0; }
-.tl-item { display: grid; grid-template-columns: 48px 40px 1fr; align-items: stretch; position: relative; }
-.tl-time { text-align: right; padding-top: 22px; font-size: 14px; font-weight: 750; color: var(--ink-3); font-stretch: 85%; font-variant-numeric: tabular-nums; }
-.tl-rail { position: relative; display: flex; justify-content: center; }
-.tl-rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--hair); }
-.tl-item:first-child .tl-rail::before { top: 30px; }
-.tl-item:last-child .tl-rail::before { bottom: auto; height: 30px; }
-.tl-dot {
-  position: relative; z-index: 1; margin-top: 15px; width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer;
-  display: grid; place-items: center; background: var(--bg); box-shadow: inset 0 0 0 2px var(--surface-3); color: transparent;
-}
-.tl-dot .i { width: 18px; height: 18px; stroke-width: 2.4; }
-.tl-item.done .tl-dot { background: var(--c-dieta); box-shadow: none; color: #fff; }
-.tl-item.done.just .tl-dot { animation: pop .35s cubic-bezier(.3,1.6,.5,1); }
-.tl-item.now .tl-dot { box-shadow: inset 0 0 0 2px var(--c-dieta), 0 0 0 6px color-mix(in srgb, var(--c-dieta) 22%, transparent); }
-.tl-card { margin: 6px 0; padding: 14px 16px; border-radius: 18px; border: 0; text-align: left; cursor: pointer; background: var(--surface); box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; min-width: 0; }
-.tl-card .body { flex: 1; min-width: 0; }
-.tl-card .t { font-weight: 750; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-.tl-card .s { color: var(--ink-2); font-size: 14px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tl-card .end { color: var(--ink-3); }
-.tl-item.now .tl-card { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c-dieta) 45%, transparent), var(--shadow); }
-.tl-item.done .tl-card .t { color: var(--ink-2); }
 .now-tag { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--c-dieta); background: var(--dieta-soft); padding: 3px 7px; border-radius: 99px; }
 
 .meal-row { display: flex; align-items: center; position: relative; }
@@ -482,3 +460,86 @@ dialog.sheet::backdrop { background: var(--scrim); animation: fade .25s ease; }
 .tabs .pill { width: 48px; height: 30px; border-radius: 15px; display: grid; place-items: center; transition: background .2s, color .2s; }
 .tabs button.active { color: var(--ink); }
 .tabs button.active .pill { background: var(--accent); color: #fff; }
+
+.sub-head { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 18px 0 8px; }
+.sub-head:first-child { margin-top: 0; }
+
+.add-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: 0; display: grid; place-items: center;
+  background: var(--surface); color: var(--accent); cursor: pointer; box-shadow: var(--shadow); padding: 0;
+}
+.add-btn .i { width: 20px; height: 20px; }
+/* secao sem conteudo: so o titulo e o +, sem o vazio do card */
+.section-title { align-items: center; }
+.section-title:last-child { padding-bottom: 0; }
+
+/* ----- detalhe da refeição: menu de 3 botões, como no app da nutricionista ----- */
+.meal-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 18px; }
+.meal-menu .mm {
+  border: 0; cursor: pointer; border-radius: 14px; padding: 14px 8px; background: var(--c-dieta); color: #fff;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; font: inherit; font-weight: 700;
+  font-size: 13px; line-height: 1.2; text-align: center;
+}
+.meal-menu .mm .i { width: 24px; height: 24px; }
+.meal-menu .mm.on { box-shadow: inset 0 0 0 3px rgba(255,255,255,.9); }
+.meal-menu .mm-face { font-size: 24px; line-height: 24px; }
+.diary-img { width: 100%; border-radius: 12px; display: block; margin-bottom: 10px; }
+.notes-open { margin-top: 18px; }
+.notes-open > div:last-child {
+  background: var(--surface-2); border-radius: 16px; padding: 14px 16px;
+  color: var(--ink-2); font-size: 15px; line-height: 1.5;
+}
+
+/* ----- tela própria das substituições ----- */
+.sheet-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.sheet-nav .kicker { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.subs-screen { margin-top: 8px; }
+.subs-screen .sub { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; }
+.subs-screen .sub .t { font-weight: 600; }
+.subs-screen .sub + .sub { margin-top: 8px; }
+
+/* ----- humor na refeição ----- */
+.mood-pick { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0; }
+.mood-pick .mood {
+  border: 0; cursor: pointer; border-radius: 14px; padding: 12px 4px; background: var(--surface-2);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; font: inherit; color: var(--ink-2);
+}
+.mood-pick .mood .face { font-size: 26px; line-height: 1; }
+.mood-pick .mood .s { font-size: 12px; font-weight: 600; }
+.mood-pick .mood.on { background: var(--dieta-soft); color: var(--c-dieta); box-shadow: inset 0 0 0 2px var(--c-dieta); }
+
+/* ----- lista de refeições no formato do app da nutricionista, com check ----- */
+.meal-list { display: flex; flex-direction: column; gap: 8px; }
+.meal-card {
+  display: flex; align-items: center; background: var(--surface); border-radius: 16px;
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.meal-main {
+  flex: 1; display: flex; align-items: center; gap: 12px; border: 0; background: none;
+  padding: 14px 4px 14px 14px; font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0;
+}
+.meal-card .mc-ic {
+  width: 36px; height: 36px; flex: none; border-radius: 10px; display: grid; place-items: center;
+  background: var(--dieta-soft); color: var(--c-dieta);
+}
+.meal-card .mc-ic .i { width: 20px; height: 20px; }
+.meal-main .body { min-width: 0; }
+.meal-main .t { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meal-tick {
+  flex: none; width: 52px; align-self: stretch; border: 0; cursor: pointer; background: none;
+  display: grid; place-items: center; color: var(--ink-3);
+}
+.meal-tick .i { width: 24px; height: 24px; }
+.meal-card.done { background: var(--dieta-soft); }
+.meal-card.done .meal-tick { color: var(--c-dieta); }
+.meal-card.done .meal-main .t { color: var(--c-dieta); }
+.meal-card.faded { opacity: .45; }
+.meal-card.now { box-shadow: var(--shadow), inset 0 0 0 2px var(--c-dieta); }
+.meal-card.just { animation: pop .3s ease; }
+
+/* ----- editor da alimentação ----- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips .chip {
+  border: 0; cursor: pointer; border-radius: 999px; padding: 9px 14px; font: inherit; font-size: 14px;
+  font-weight: 600; background: var(--surface-2); color: var(--ink);
+}

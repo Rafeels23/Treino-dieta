@@ -1,7 +1,7 @@
 {
-  "name": "Treino & Dieta",
-  "short_name": "Treino",
-  "description": "Controle de treino, alimentação e registro da manhã.",
+  "name": "Pilar",
+  "short_name": "Pilar",
+  "description": "Seus dois pilares: treino e alimentação, acompanhados todo dia.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
