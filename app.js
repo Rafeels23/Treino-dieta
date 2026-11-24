@@ -6,6 +6,8 @@
    ========================================================= */
 
 const STORE_KEY = 'treino-dieta-v1';
+/* mapa de acoes data-act; declarado cedo para que qualquer secao possa registrar a sua */
+const A = {};
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -102,7 +104,7 @@ function generatePlan(p) {
 const defaultState = () => {
   const profile = { objetivo: 'emagrecimento', dias: 3, nivel: 'iniciante' };
   return { version: 2, profile, plan: generatePlan(profile), sessions: [], active: null,
-    diet: { raw: '', groups: [] }, dietLog: {}, morning: [], activities: [], ui: { tab: 'hoje' },
+    diet: { raw: '', groups: [] }, dietLog: {}, morning: [], activities: [], routines: [], routineLog: {}, ui: { tab: 'hoje' },
     recipes: [], shopping: { checked: {}, extra: [], days: 7 } };
 };
 
@@ -115,7 +117,9 @@ function migrate(s) {
   if (!s.diet.groups) s.diet.groups = [];
   ['recipes'].forEach((k) => { if (!Array.isArray(s[k])) s[k] = []; });
   if (!s.shopping) s.shopping = { checked: {}, extra: [], days: 7 };
-  if (!['hoje', 'treino', 'dieta', 'progresso', 'perfil'].includes(s.ui?.tab)) s.ui = { ...(s.ui || {}), tab: 'hoje' };
+  if (!Array.isArray(s.routines)) s.routines = [];
+  if (!s.routineLog || typeof s.routineLog !== 'object') s.routineLog = {};
+  if (!['hoje', 'treino', 'dieta', 'rotina', 'progresso', 'perfil'].includes(s.ui?.tab)) s.ui = { ...(s.ui || {}), tab: 'hoje' };
   s.plan.workouts.forEach((w, k) => {
     if (!w.letter) {
       const m = w.name.match(/^([A-Z])\s*[—–-]\s*(.*)$/);
@@ -536,7 +540,10 @@ function nextMeal(log) {
   const timed = pending.filter((g) => toMin(g.time) != null).sort((a, b) => toMin(a.time) - toMin(b.time));
   return timed.find((g) => toMin(g.time) >= mins - 90) || timed[timed.length - 1] || pending[0];
 }
-const head = (kicker, title, action = '') => `<header class="head"><div><div class="kicker">${kicker}</div><h1>${title}</h1></div>${action}</header>`;
+/* o perfil mora no canto superior direito de toda tela, no lugar da aba */
+const avatarBtn = () => `<button class="avatar" data-act="goto" data-v="perfil" aria-label="Seu perfil">${state.profile.nome ? esc(initials(state.profile.nome)) : ic('user')}</button>`;
+const head = (kicker, title, action = '') => `<header class="head"><div><div class="kicker">${kicker}</div><h1>${title}</h1></div>
+  <div class="head-actions">${action}${avatarBtn()}</div></header>`;
 const section = (title, body, action = '') => `<section class="section"><div class="section-title"><span>${title}</span>${action}</div>${body}</section>`;
 const initials = (n) => n.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
 const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
@@ -560,15 +567,14 @@ views.hoje = () => {
 
   const vTreino = doneToday.length ? 1 : state.active ? 0.5 : 0;
   const vMeal = meals.length ? mealsDone / meals.length : 0;
-  const vPeso = m ? 1 : 0;
-  const pct = Math.round(((vTreino + vMeal + vPeso) / 3) * 100);
+  /* o dia é treino + refeições; o peso mora no Perfil, não é tarefa diária */
+  const pct = Math.round(((vTreino + vMeal) / 2) * 100);
   const summary = `<div class="section"><div class="group today-card">
-      ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }, { v: vPeso, color: 'var(--c-peso)' }])}
+      ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }])}
       <div style="flex:1;min-width:0"><div class="cap">Seu dia</div><div class="pct digits">${pct}<small>%</small></div>
         <ul class="legend">
           <li><i style="background:var(--c-treino)"></i>Treino<b>${doneToday.length ? 'Feito' : state.active ? 'Agora' : '—'}</b></li>
           <li><i style="background:var(--c-dieta)"></i>Refeições<b class="num">${meals.length ? `${mealsDone}/${meals.length}` : '—'}</b></li>
-          <li><i style="background:var(--c-peso)"></i>Pesagem<b class="num">${m ? `${br(m.peso)} kg` : '—'}</b></li>
         </ul></div></div></div>`;
 
   let workout;
@@ -605,10 +611,7 @@ views.hoje = () => {
   }
 
   const minsAct = acts.reduce((t, a) => t + (a.minutos || 0), 0);
-  const bento = `<div class="section bento">
-      <button class="tile peso" data-act="morning"><div class="top"><span class="lbl">Pesagem</span><span class="badge peso">${ic('scale')}</span></div>
-        ${m ? `<div class="val digits">${br(m.peso)}<small>kg</small></div><div class="sub num">${prev ? `${m.peso - prev.peso > 0 ? '+' : ''}${br(m.peso - prev.peso)} desde ${fmtDay(prev.date)}` : 'Primeira pesagem'}</div>`
-          : `<div class="cta">Registrar ${ic('right')}</div><div class="sub">Em jejum, de manhã</div>`}</button>
+  const bento = `<div class="section bento one">
       <button class="tile ativ" data-act="activity"><div class="top"><span class="lbl">Atividade</span><span class="badge ativ">${ic('pulse')}</span></div>
         ${acts.length ? `<div class="val digits">${minsAct || acts.length}<small>${minsAct ? 'min' : 'reg.'}</small></div><div class="sub">${esc(acts.map((a) => a.tipo).join(', '))}</div>`
           : `<div class="cta">${ic('plus')} Registrar</div><div class="sub">Caminhada, bike…</div>`}</button>
@@ -616,8 +619,7 @@ views.hoje = () => {
 
   const incomplete = !p.nome || !p.altura;
   return head(cap(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })),
-      greet() + (p.nome ? `, ${esc(p.nome.split(' ')[0])}` : ''),
-      `<button class="avatar" data-act="goto" data-v="perfil" aria-label="Perfil">${p.nome ? esc(initials(p.nome)) : ic('user')}</button>`)
+      greet() + (p.nome ? `, ${esc(p.nome.split(' ')[0])}` : ''))
     + (incomplete ? `<div class="section"><button class="row group" data-act="edit-profile">
         <span class="badge accent">${ic('user')}</span>
         <span class="body"><div class="t">Complete seu perfil</div><div class="s">Nome, altura, peso e meta</div></span>
@@ -629,23 +631,64 @@ views.hoje = () => {
     + section('Esta semana', weekStrip());
 };
 
-function weekStrip() {
+/* segunda-feira da semana mostrada; 0 = semana atual, -1 = anterior */
+function weekMonday(off = 0) {
   const now = new Date(); now.setHours(0, 0, 0, 0);
-  const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const m = new Date(now);
+  m.setDate(now.getDate() - ((now.getDay() + 6) % 7) + off * 7);
+  return m;
+}
+function weekStrip() {
+  const off = state.ui.weekOff || 0;
+  const monday = weekMonday(off), sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
   const trained = new Set(finished().map((s) => todayKey(new Date(s.start))));
   state.activities.forEach((a) => trained.add(a.date));
   const names = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
   let html = '';
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday); d.setDate(monday.getDate() + i);
-    const k = todayKey(d);
-    html += `<div><div class="d">${names[i]}</div><div class="dot ${trained.has(k) ? 'on' : ''} ${k === todayKey() ? 'today' : ''}">${d.getDate()}</div></div>`;
+    const k = todayKey(d), futuro = k > todayKey();
+    html += `<button class="wd" data-act="day" data-v="${k}" ${futuro ? 'disabled' : ''} aria-label="Ver ${fmtDayLong(k)}">
+      <span class="d">${names[i]}</span>
+      <span class="dot ${trained.has(k) ? 'on' : ''} ${k === todayKey() ? 'today' : ''}">${d.getDate()}</span></button>`;
   }
-  const count = finished().filter((s) => new Date(s.start) >= monday).length;
-  return `<div class="group"><div class="week">${html}</div>
+  const count = finished().filter((s) => { const t = new Date(s.start); return t >= monday && t < new Date(sunday.getTime() + 864e5); }).length;
+  const label = off === 0 ? 'Esta semana' : `${fmtDay(todayKey(monday))} – ${fmtDay(todayKey(sunday))}`;
+  return `<div class="group"><div class="week-nav">
+      <button class="icon-btn" data-act="week" data-v="-1" aria-label="Semana anterior">${ic('left')}</button>
+      <b>${label}</b>
+      <button class="icon-btn" data-act="week" data-v="1" aria-label="Próxima semana" ${off >= 0 ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button>
+    </div>
+    <div class="week">${html}</div>
     <div class="pad" style="padding-top:0" ><div class="hint">${count} de ${state.profile.dias} treinos da semana</div>
     <div class="bar"><i style="width:${Math.min(100, (count / state.profile.dias) * 100)}%;background:var(--accent)"></i></div></div></div>`;
 }
+A.week = (v) => { state.ui.weekOff = Math.min(0, (state.ui.weekOff || 0) + Number(v)); render(); };
+/* resumo de um dia: treino, refeições, rotina, atividades e peso */
+A.day = (k) => {
+  const log = state.dietLog[k] || { checked: {}, extras: [] };
+  const sess = finished().filter((s) => todayKey(new Date(s.start)) === k);
+  const acts = state.activities.filter((a) => a.date === k);
+  const m = state.morning.find((x) => x.date === k);
+  const meals = state.diet.groups, feitas = meals.filter((g) => mealCheck(log, g)).length;
+  const rot = state.routines || [], rlog = (state.routineLog || {})[k] || {};
+  const rFeitas = rot.filter((r) => rlog[r.id]).length;
+  const linha = (titulo, valor, cor) => `<div class="row plain"><span class="body"><div class="t">${titulo}</div></span>
+    <span class="end"><b class="num" ${cor ? `style="color:${cor}"` : ''}>${valor}</b></span></div>`;
+  sheet(`<h2>${cap(fmtDayLong(k))}</h2>
+    <p class="lead">${k === todayKey() ? 'Hoje' : 'Resumo do dia'}</p>
+    <div class="group">
+      ${linha('Treino', sess.length ? sess.map((s) => s.workoutName).join(', ') : '—', sess.length ? 'var(--c-treino)' : '')}
+      ${meals.length ? linha('Refeições', `${feitas}/${meals.length}`, feitas === meals.length ? 'var(--c-dieta)' : '') : ''}
+      ${rot.length ? linha('Rotina', `${rFeitas}/${rot.length}`, rFeitas === rot.length ? 'var(--c-dieta)' : '') : ''}
+      ${linha('Atividades', acts.length ? acts.map((a) => a.tipo).join(', ') : '—')}
+      ${linha('Peso', m?.peso != null ? `${br(m.peso)} kg` : '—')}
+      ${log.extras.length ? linha('Fora do plano', `${Math.round(extrasKcal(log))} kcal`) : ''}
+    </div>
+    ${sess.length ? `<div class="sub-head">Treinos</div><div class="group">${sess.map((s) => `<button type="button" class="row plain" data-act="session" data-v="${s.id}">
+      <span class="body"><div class="t">${esc(s.workoutName)}</div><div class="s">${Math.round((s.end - s.start) / 60000)} min · ${s.exercises.reduce((n, e) => n + e.sets.length, 0)} séries</div></span>
+      <span class="end">${ic('right')}</span></button>`).join('')}</div>` : ''}`);
+};
 
 /* ---------------- Tela: Treino ---------------- */
 views.treino = () => {
@@ -789,7 +832,9 @@ views.perfil = () => {
   const w = latestWeight();
   const fb = weightFeedback(w, p.altura);
   const kv = (label, value) => `<button class="row plain kv" data-act="edit-profile"><span class="body"><div class="t">${label}</div></span><span class="end">${value != null && value !== '' ? `<span class="v num">${value}</span>` : '<span>Adicionar</span>'}</span></button>`;
-  return `<header class="head profile-head"><div class="avatar big">${p.nome ? esc(initials(p.nome)) : ic('user')}</div>
+  return `<header class="head profile-head">
+      <button class="icon-btn" data-act="goto" data-v="hoje" aria-label="Voltar">${ic('left')}</button>
+      <div class="avatar big">${p.nome ? esc(initials(p.nome)) : ic('user')}</div>
       <div><div class="kicker">Seu perfil</div><h1>${esc(p.nome || 'Perfil')}</h1></div></header>`
     + (fb ? section('Seu peso', weightCard(fb)) : (w || p.altura ? `<div class="section"><div class="group empty">Informe ${w ? 'a altura' : 'o peso'} para ver se o seu peso está numa faixa saudável.</div></div>` : ''))
     + (w && p.meta ? `<div class="section"><div class="group pad row-between"><div><div class="hint">Até a meta de ${br(p.meta)} kg</div>
@@ -800,7 +845,11 @@ views.perfil = () => {
         ${kv('Idade', p.idade ? `${p.idade} anos` : '')}
         ${kv('Sexo', p.sexo ? (p.sexo === 'm' ? 'Masculino' : 'Feminino') : '')}
         ${kv('Altura', p.altura ? `${br(p.altura / 100, 2)} m` : '')}
-        ${kv('Peso atual', w != null ? `${br(w)} kg` : '')}
+        <div class="row plain kv split">
+          <button class="kv-main" data-act="peso"><span class="body"><div class="t">Peso atual</div></span>
+            <span class="end">${w != null ? `<span class="v num">${br(w)} kg</span>` : '<span>Atualizar</span>'}</span></button>
+          <button class="kv-side" data-act="peso-report" aria-label="Relatório de peso" title="Relatório de peso">${ic('chart')}</button>
+        </div>
         ${kv('Meta de peso', p.meta ? `${br(p.meta)} kg` : '')}
         ${kv('Nutricionista', p.nutri ? esc(p.nutri) : '')}
       </div>`, `<button class="text-btn" data-act="edit-profile">Editar</button>`)
@@ -818,6 +867,156 @@ views.perfil = () => {
       </div>
       <p class="hint" style="padding:10px 4px 0">Tudo fica salvo só neste celular. Em breve: atividades automáticas do relógio.</p>
       <div class="stack-btns"><button class="btn danger block" data-act="reset">Apagar todos os dados</button></div>`);
+};
+
+
+/* ================= Rotina =================
+   Mesma ideia da alimentação: você monta os itens e vai marcando no dia.
+   state.routines = [{id, name, time, dias:[0..6]|null, nota}]
+   state.routineLog = { 'AAAA-MM-DD': { idDoItem: timestamp } } */
+const routineLog = (k) => {
+  state.routineLog = state.routineLog || {};
+  if (!state.routineLog[k]) state.routineLog[k] = {};
+  return state.routineLog[k];
+};
+const DIAS_CURTO = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
+const DIAS_NOME = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+/* índice 0..6 começando na segunda, igual à faixa da semana */
+const weekIdx = (k) => (keyToDate(k).getDay() + 6) % 7;
+const routinesOf = (k) => (state.routines || []).filter((r) => !r.dias?.length || r.dias.includes(weekIdx(k)));
+const routineSorted = (k) => routinesOf(k).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+views.rotina = () => {
+  const key = state.ui.rotDay || todayKey();
+  const list = routineSorted(key), log = routineLog(key);
+  const done = list.filter((r) => log[r.id]).length;
+  return head('Seus hábitos', 'Rotina',
+      `<button class="icon-btn" data-act="rot-editor" aria-label="Montar rotina">${ic('sliders')}</button>`)
+    + `<div class="section"><div class="day-switch">
+        <button class="icon-btn" data-act="rot-day" data-v="-1" aria-label="Dia anterior">${ic('left')}</button>
+        <b>${key === todayKey() ? 'Hoje' : cap(fmtDayLong(key))}</b>
+        <button class="icon-btn" data-act="rot-day" data-v="1" aria-label="Próximo dia" ${key >= todayKey() ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button>
+      </div></div>`
+    + (list.length
+      ? `<div class="section"><div class="group diet-sum">${rings([{ v: done / list.length, color: 'var(--c-dieta)' }], 76, 10)}
+          <div><div class="big digits">${done}<small> de ${list.length}</small></div>
+          <div class="s">${done === list.length ? 'rotina completa' : list.length === 1 ? 'hábito' : 'hábitos'}</div></div></div></div>`
+        + section('Hábitos do dia', `<div class="meal-list">${list.map((r) => {
+            const ok = !!log[r.id];
+            return `<div class="meal-card ${ok ? 'done' : ''} ${justKey === r.id ? 'just' : ''}">
+              <button class="meal-main" data-act="rot-open" data-v="${r.id}">
+                <span class="mc-ic">${ic('check')}</span>
+                <span class="body"><div class="t">${r.time ? `${esc(r.time)} - ` : ''}${esc(r.name)}</div></span>
+              </button>
+              <button class="meal-tick" data-act="rot-tick" data-v="${r.id}" aria-pressed="${ok}" aria-label="Marcar ${esc(r.name)}">${ic('check')}</button>
+            </div>`;
+          }).join('')}</div>`)
+      : `<div class="section"><div class="group empty">Nenhum hábito para ${key === todayKey() ? 'hoje' : 'este dia'}.</div>
+          <div class="stack-btns"><button class="btn block" data-act="rot-editor">Montar minha rotina</button></div></div>`);
+};
+A['rot-day'] = (v) => {
+  const d = keyToDate(state.ui.rotDay || todayKey()); d.setDate(d.getDate() + Number(v));
+  const k = todayKey(d); state.ui.rotDay = k > todayKey() ? todayKey() : k; render();
+};
+A['rot-tick'] = (id) => {
+  const log = routineLog(state.ui.rotDay || todayKey());
+  if (log[id]) delete log[id]; else { log[id] = Date.now(); justKey = id; buzz(); }
+  save(); render();
+};
+/* detalhe do hábito: marcar, a nota e o quanto você tem mantido */
+A['rot-open'] = (id) => {
+  const r = (state.routines || []).find((x) => x.id === id);
+  if (!r) return;
+  const key = state.ui.rotDay || todayKey(), log = routineLog(key), ok = !!log[id];
+  /* quantos dos últimos 30 dias em que o hábito valia você cumpriu */
+  let prev = 0, tot = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = todayKey(d);
+    if (!routinesOf(k).some((x) => x.id === id)) continue;
+    tot++; if ((state.routineLog || {})[k]?.[id]) prev++;
+  }
+  sheet(`<h2>${r.time ? `<span class="num" style="color:var(--ink-3)">${esc(r.time)}</span> · ` : ''}${esc(r.name)}</h2>
+    <p class="lead">${r.dias?.length ? r.dias.map((i) => DIAS_NOME[i]).join(', ') : 'Todos os dias'}</p>
+    <div class="meal-menu" style="grid-template-columns:1fr">
+      <button type="button" class="mm ${ok ? 'on' : ''}" data-act="rot-tick" data-v="${r.id}">
+        ${ic('check')}<span>${ok ? 'Feito · toque para desfazer' : 'Marcar como feito'}</span></button>
+    </div>
+    ${r.nota ? `<div class="notes-open"><div class="sub-head">Nota</div><div>${esc(r.nota).replace(/\n/g, '<br>')}</div></div>` : ''}
+    <div class="sub-head">Nos últimos 30 dias</div>
+    <div class="group pad row-between"><div><div class="hint">Dias cumpridos</div>
+      <div class="stat num">${prev}<small> de ${tot}</small></div></div>
+      ${tot ? `<span class="tag ${prev / tot >= 0.7 ? 'ok' : ''}">${Math.round((prev / tot) * 100)}%</span>` : ''}</div>
+    <div class="stack-btns"><button type="button" class="text-btn" data-act="rot-edit" data-v="${r.id}">Editar hábito</button></div>`);
+};
+
+/* ----- montar a rotina ----- */
+const ROTINA_PRESETS = ['Ler', 'Beber 2 L de água', 'Tomar sol', 'Alongar', 'Meditar', 'Dormir até 23h', 'Estudar', 'Caminhar'];
+function rotEditor() {
+  const rs = state.routines || [];
+  sheet(`<h2>Sua rotina</h2>
+    <p class="lead">Monte os hábitos que você quer manter. Marque cada um no dia.</p>
+    ${rs.length ? `<div class="group">${rs.map((r) => `<button type="button" class="row plain" data-act="rot-edit" data-v="${r.id}">
+        <span class="body"><div class="t">${r.time ? `<span class="num" style="color:var(--ink-3);margin-right:8px">${esc(r.time)}</span>` : ''}${esc(r.name)}</div>
+        <div class="s">${r.dias?.length ? r.dias.map((i) => DIAS_CURTO[i]).join(' · ') : 'Todos os dias'}</div></span>
+        <span class="end">${ic('right')}</span></button>`).join('')}</div>`
+      : '<p class="hint">Nenhum hábito ainda. Comece pelas sugestões.</p>'}
+    <div class="sub-head">Sugestões</div>
+    <div class="chips">${ROTINA_PRESETS.filter((n) => !rs.some((r) => eqNorm(r.name) === eqNorm(n)))
+      .map((n) => `<button type="button" class="chip" data-act="rot-add" data-v="${esc(n)}">+ ${esc(n)}</button>`).join('')
+      || '<span class="hint">Todas as sugestões já estão na sua rotina.</span>'}</div>
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="rot-add" data-v="">+ Outro hábito</button>`);
+}
+A['rot-editor'] = () => rotEditor();
+A['rot-add'] = (v) => {
+  state.routines = state.routines || [];
+  const r = { id: uid(), name: String(v) || 'Novo hábito', time: '', dias: [], nota: '' };
+  state.routines.push(r); save(); render();
+  rotEdit(r.id);
+};
+function rotEdit(id) {
+  const r = (state.routines || []).find((x) => x.id === id);
+  if (!r) return rotEditor();
+  sheet(`<div class="sheet-nav">
+      <button type="button" class="icon-btn" data-act="rot-editor" aria-label="Voltar">${ic('left')}</button>
+      <div><div class="kicker">Hábito</div><h2 style="margin:0">${esc(r.name)}</h2></div>
+    </div>
+    <div class="two" style="margin-top:14px">
+      <div class="field"><label>Nome</label><input name="nome" value="${esc(r.name)}" placeholder="ex.: Ler 20 páginas"></div>
+      <div class="field"><label>Horário</label><input name="hora" type="time" value="${esc(r.time || '')}"></div>
+    </div>
+    <div class="field"><label>Dias da semana</label>
+      <div class="chips">${DIAS_NOME.map((n, i) => `<button type="button" class="chip day-chip ${r.dias?.includes(i) ? 'on' : ''}" data-act="rot-dia" data-v="${r.id}:${i}">${n.slice(0, 3)}</button>`).join('')}</div>
+      <p class="hint" style="margin-top:6px">Nenhum dia marcado = todos os dias.</p></div>
+    <div class="field"><label>Nota</label><textarea name="nota" style="min-height:80px" placeholder="opcional">${esc(r.nota || '')}</textarea></div>
+    <button type="button" class="btn block" data-act="rot-save" data-v="${r.id}">Salvar hábito</button>
+    <button type="button" class="btn danger block" style="margin-top:12px" data-act="rot-del" data-v="${r.id}">Excluir hábito</button>`);
+}
+A['rot-edit'] = (id) => rotEdit(id);
+A['rot-dia'] = (v) => {
+  const [id, i] = String(v).split(':'), r = (state.routines || []).find((x) => x.id === id);
+  if (!r) return;
+  r.dias = r.dias || [];
+  const n = Number(i);
+  if (r.dias.includes(n)) r.dias = r.dias.filter((x) => x !== n); else r.dias.push(n);
+  r.dias.sort((a, b) => a - b);
+  /* guarda o que já está digitado antes de redesenhar a folha */
+  const f = $('#sheet-body');
+  r.name = f.nome.value.trim() || r.name; r.time = f.hora.value; r.nota = f.nota.value.trim();
+  save(); render(); rotEdit(id);
+};
+A['rot-save'] = (id) => {
+  const r = (state.routines || []).find((x) => x.id === id), f = $('#sheet-body');
+  if (!r) return;
+  r.name = f.nome.value.trim() || r.name; r.time = f.hora.value; r.nota = f.nota.value.trim();
+  save(); render(); rotEditor();
+};
+A['rot-del'] = (id) => {
+  const r = (state.routines || []).find((x) => x.id === id);
+  if (!r || !confirm(`Excluir "${r.name}"?`)) return;
+  state.routines = state.routines.filter((x) => x.id !== id);
+  Object.values(state.routineLog || {}).forEach((l) => delete l[id]);
+  save(); render(); rotEditor();
 };
 
 /* ---------------- Tela: Progresso ---------------- */
@@ -871,7 +1070,8 @@ views.progresso = () => {
 };
 
 /* ---------------- Render ---------------- */
-const TABS = [['hoje', 'Hoje', 'home'], ['treino', 'Treino', 'dumbbell'], ['dieta', 'Dieta', 'meal'], ['progresso', 'Progresso', 'chart'], ['perfil', 'Perfil', 'user']];
+/* o Perfil saiu da barra: abre pelo avatar do canto superior direito */
+const TABS = [['hoje', 'Hoje', 'home'], ['treino', 'Treino', 'dumbbell'], ['dieta', 'Dieta', 'meal'], ['rotina', 'Rotina', 'check'], ['progresso', 'Progresso', 'chart']];
 function render() {
   const tab = state.ui.tab;
   $('#view').innerHTML = views[tab]();
@@ -943,7 +1143,6 @@ const sheetActions = (ok = 'Salvar') => `<div class="sheet-actions"><button clas
 const seg = (name, opts, cur) => `<input type="hidden" name="${name}" value="${esc(cur ?? '')}"><div class="seg" data-seg="${name}">${opts.map(([v, l]) => `<button type="button" data-act="seg" data-v="${esc(v)}" class="${String(v) === String(cur) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 
 /* ---------------- Ações ---------------- */
-const A = {};
 A.goto = (v) => go(v);
 A.seg = (v, el) => {
   const box = el.closest('[data-seg]');
@@ -1515,6 +1714,60 @@ A['ai-key'] = () => {
 };
 A['ai-key-del'] = () => { delete state.ai; save(); $('#sheet').close(); render(); };
 A['del-extra'] = (i) => { dayLog(state.ui.dietDay || todayKey()).extras.splice(+i, 1); save(); render(); };
+
+/* Peso: atualizar quando quiser, sem cobrança diária */
+A.peso = () => {
+  const key = todayKey(), m = state.morning.find((x) => x.date === key) || {};
+  const w = latestWeight(), p = state.profile;
+  sheet(`<h2>Atualizar peso</h2>
+    <p class="lead">${w != null ? `Hoje está em ${br(w)} kg. Atualize quando se pesar — não precisa ser todo dia.` : 'Informe seu peso de hoje. Atualize quando se pesar.'}</p>
+    <div class="field"><input class="big-input" name="peso" inputmode="decimal" value="${m.peso != null ? br(m.peso) : ''}" placeholder="0,0 kg" aria-label="Peso em kg" autofocus></div>
+    <div class="field"><label>Data</label><input name="data" type="date" value="${key}" max="${key}"></div>
+    ${p.meta ? `<p class="hint">Sua meta é ${br(p.meta)} kg.</p>` : ''}
+    ${sheetActions('Atualizar')}`, (f) => {
+    const peso = num(f.peso.value);
+    if (peso == null) { alert('Informe o peso.'); return false; }
+    const d = f.data.value || key;
+    const old = state.morning.find((x) => x.date === d);
+    /* preserva sono e disposição de um registro que já exista nessa data */
+    state.morning = state.morning.filter((x) => x.date !== d)
+      .concat({ date: d, peso, sono: old?.sono ?? null, disposicao: old?.disposicao ?? null });
+    buzz(); save(); render();
+  });
+};
+/* Relatório de peso: a linha ao longo do tempo e o histórico */
+A['peso-report'] = () => {
+  const ms = morningSorted().filter((x) => x.peso != null);
+  const p = state.profile;
+  if (!ms.length) {
+    sheet(`<h2>Relatório de peso</h2><p class="lead">Nenhum peso registrado ainda.</p>
+      <button type="button" class="btn block" data-act="peso">Informar meu peso</button>`);
+    return;
+  }
+  const pts = ms.slice(-60).map((x) => ({ y: x.peso, label: fmtDay(x.date) }));
+  const cur = ms[ms.length - 1], first = ms[0];
+  const dTotal = ms.length > 1 ? cur.peso - first.peso : null;
+  const fb = weightFeedback(cur.peso, p.altura);
+  sheet(`<h2>Relatório de peso</h2>
+    <p class="lead">${ms.length} ${ms.length === 1 ? 'registro' : 'registros'} · de ${fmtDay(first.date)} até ${fmtDay(cur.date)}</p>
+    <div class="group pad row-between" style="margin-bottom:12px">
+      <div><div class="hint">Peso atual</div><div class="stat num">${br(cur.peso)}<small> kg</small></div></div>
+      ${dTotal != null ? `<span class="tag delta num ${dTotal < 0 ? 'ok' : ''}">${dTotal > 0 ? '+' : ''}${br(dTotal)} kg no total</span>` : ''}
+    </div>
+    ${p.meta ? `<p class="hint" style="margin-bottom:12px">${Math.abs(cur.peso - p.meta) < 0.05 ? 'Você chegou na meta.' : `Faltam ${br(Math.abs(cur.peso - p.meta))} kg para a meta de ${br(p.meta)} kg.`}</p>` : ''}
+    ${ms.length > 1 ? `<div class="group" style="margin-bottom:12px">${chartSlot('peso-rep', pts, 'kg')}</div>`
+      : '<p class="hint">Registre pelo menos dois dias para ver a linha.</p>'}
+    ${fb ? `<div class="sub-head">Faixa saudável</div>${weightCard(fb)}` : ''}
+    <div class="sub-head">Histórico</div>
+    <div class="group">${ms.slice().reverse().slice(0, 30).map((x, i, arr) => {
+      const ant = arr[i + 1], d = ant ? x.peso - ant.peso : null;
+      return `<div class="row plain"><span class="body"><div class="t num">${br(x.peso)} kg</div>
+        <div class="s">${cap(fmtDayLong(x.date))}</div></span>
+        <span class="end">${d != null ? `<span class="num" style="color:${d < 0 ? 'var(--c-dieta)' : d > 0 ? 'var(--ink-2)' : 'var(--ink-3)'}">${d > 0 ? '+' : ''}${br(d)} kg</span>` : ''}</span></div>`;
+    }).join('')}</div>
+    <button type="button" class="btn block" style="margin-top:14px" data-act="peso">Atualizar peso</button>`);
+  $$('#sheet-body [data-chart]').forEach(drawChart);
+};
 
 /* Pesagem */
 A.morning = () => {
