@@ -701,3 +701,88 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 .sheet-wrap { position: relative; width: 100%; }
 .sheet { position: relative; background: var(--surface); color: var(--ink); border-radius: 28px 28px 0 0; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; }
 .sheet > .sheet-body { overflow: auto; max-height: 92vh; overscroll-behavior: contain; }
+
+/* ============================================================
+   Refinamento visual "calmo" (camada final — ganha das regras acima)
+   Princípios: cor só onde informa; interface que some e deixa o conteúdo;
+   mais respiro e menos caixas/sombras; movimento só em resposta ao toque.
+   ============================================================ */
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #f0eee9;
+  --surface-3: #e4e1da;
+  --hair: #e9e6df;
+  --ink: #15161a;
+  --ink-2: #60646b;
+  --ink-3: #9a9ea4;
+  --shadow: none;
+  --r: 20px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0d0f;
+    --surface: #15171a;
+    --surface-2: #1d2023;
+    --surface-3: #2a2e33;
+    --hair: #23262a;
+    --ink: #eeede9;
+    --ink-2: #9ea3aa;
+    --ink-3: #6c7178;
+  }
+}
+
+/* Tipografia: menos larga e menos pesada; sem caixa alta espaçada */
+.head { padding-top: calc(26px + env(safe-area-inset-top)); padding-bottom: 4px; }
+.head .kicker { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.head h1 { font-size: 30px; font-stretch: 100%; font-weight: 750; letter-spacing: -.022em; margin-top: 2px; }
+.section { margin-top: 30px; }
+.section-title {
+  text-transform: none; letter-spacing: -.005em; font-size: 15px; font-weight: 650;
+  color: var(--ink); padding: 0 4px 12px;
+}
+.sheet h2 { font-stretch: 100%; font-weight: 750; letter-spacing: -.02em; }
+.digits, .stat, .hero .big, .kcal { font-weight: 700; }
+.today-card .pct { font-size: 40px; }
+
+/* Superfícies: sem sombras, cantos um pouco menores */
+.group, .tile, .wk-card, .next-meal, .stat-tile, .tl-card, .day-switch, .icon-btn, .meal-card { box-shadow: none !important; }
+.icon-btn { background: var(--surface-2); color: var(--ink); }
+.btn { border-radius: 14px; font-weight: 650; }
+.badge { border-radius: 12px; }
+
+/* Cartão do treino: neutro; a cor fica no rótulo e na ação */
+.hero-workout { background: var(--surface); color: var(--ink); box-shadow: none; padding: 20px; }
+.hero-workout::after, .hero-workout .letter { display: none; }
+.hero-workout .kick { color: var(--c-treino); opacity: 1; text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 650; }
+.hero-workout .name { font-stretch: 100%; font-weight: 750; font-size: 24px; letter-spacing: -.02em; max-width: none; }
+.hero-workout .meta { color: var(--ink-2); opacity: 1; }
+.hero-workout .btn.light { background: var(--c-treino); color: #fff; }
+.hero-workout .btn:not(.light) { background: var(--surface-2) !important; color: var(--ink) !important; }
+.hero-workout.done .kick { color: var(--c-dieta); }
+
+/* Próxima refeição e afins: rótulos em texto normal */
+.next-meal::before { display: none; }
+.next-meal { padding: 16px 16px 16px 18px; }
+.next-meal .k { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 650; }
+.now-tag { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 650; }
+
+/* Sem animação em loop: o brilho e a borda girando saem; o que reage ao toque fica */
+.shine { animation: none !important; background: none !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; color: inherit !important; }
+.btn.glow::before { display: none; }
+.today-card.complete::before { animation: none; opacity: .55; }
+
+/* Avatar e abas em tons neutros: a cor fica para informação */
+.avatar { background: var(--surface-2); color: var(--ink); }
+.avatar.big { background: var(--surface-2); }
+.tabs {
+  box-shadow: 0 8px 28px rgba(0,0,0,.08), inset 0 0 0 1px var(--hair);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+.tabs button { color: var(--ink-3); font-weight: 600; }
+.tabs button.active { color: var(--ink); }
+.tabs button.active .pill { background: var(--surface-2); color: var(--ink); }
+
+/* Semana: círculos simples */
+.week .dot { border-radius: 50%; width: 34px; height: 34px; font-weight: 600; }
+.week .dot.today { box-shadow: 0 0 0 1.5px var(--ink); }
