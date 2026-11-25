@@ -6,43 +6,15 @@
   <meta name="theme-color" content="#f2f1ed" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0a0b0d" media="(prefers-color-scheme: dark)">
   <title>Pilar</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preload" href="./fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
-  <main id="view"></main>
-
-  <div id="timer" class="timer hidden" role="status" aria-live="polite">
-    <div class="timer-ring">
-      <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
-        <circle class="track" cx="42" cy="42" r="36" stroke-width="7"/>
-        <circle id="timer-arc" class="val" cx="42" cy="42" r="36" stroke-width="7" stroke-dasharray="226.2" stroke-dashoffset="0"/>
-      </svg>
-      <div id="timer-text" class="txt">0:00</div>
-    </div>
-    <div class="timer-main">
-      <div class="timer-label">Descanso</div>
-      <div id="timer-next" class="timer-next"></div>
-      <div class="timer-btns">
-        <button class="tbtn" data-act="timer-add" data-v="-15">−15</button>
-        <button class="tbtn" data-act="timer-add" data-v="15">+15</button>
-        <button class="tbtn go" data-act="timer-skip">Pular</button>
-      </div>
-    </div>
-  </div>
-
-  <nav class="tabs" id="tabs"></nav>
-
-  <dialog id="sheet" class="sheet">
-    <button type="button" class="sheet-x" data-act="sheet-close" aria-label="Fechar">
-      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-    </button>
-    <form method="dialog" id="sheet-body" class="sheet-body"></form>
-  </dialog>
-
-  <script src="app.js"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
