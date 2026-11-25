@@ -7,7 +7,7 @@ import {
   nextMeal, greet, weekMonday, routinesOf, routineLog, extrasKcal, save,
 } from '../lib/core.js';
 import { go } from '../lib/ui.js';
-import Illu from '../components/Illu.jsx';
+import Illu, { Anim } from '../components/Illu.jsx';
 import { celebrateDay } from '../lib/effects.js';
 import { openWorkout, startWorkout, openSession } from '../sheets/treino.jsx';
 import { openMeal, quickMeal } from '../sheets/dieta.jsx';
@@ -64,7 +64,7 @@ export default function Hoje() {
     const s = doneToday[doneToday.length - 1];
     workout = (
       <div className="hero-workout done"><div className="kick">Treino de hoje feito</div><div className="name">{s.workoutName}</div>
-        <div className="meta num" style={{ color: 'var(--ink-2)' }}>{sessMin(s)} min · {sessSets(s)} séries</div><div className="letter"><Icon n="check" /></div>
+        <div className="meta num" style={{ color: 'var(--ink-2)' }}>{sessMin(s)} min · {sessSets(s)} séries</div><div className="letter trophy"><Anim nome="trofeu" tamanho={72} /></div>
         <button className="btn soft" onClick={() => openSession(s.id)}>Ver resumo</button></div>
     );
   } else if (nw) {
@@ -114,7 +114,7 @@ export default function Hoje() {
   const incomplete = !p.nome || !p.altura;
   return (
     <>
-      <Head kicker={cap(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }))}
+      <Head emoji={new Date().getHours() < 12 ? 'manha' : new Date().getHours() < 18 ? 'tarde' : 'noite'} kicker={cap(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }))}
         title={greet() + (p.nome ? `, ${p.nome.split(' ')[0]}` : '')} />
       {incomplete && (
         <div className="section"><button className="row group" onClick={() => openEditProfile()}>

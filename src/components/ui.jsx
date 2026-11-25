@@ -1,5 +1,6 @@
 /* Peças de interface compartilhadas por todas as telas. */
 import { useEffect, useRef } from 'react';
+import { Anim } from './Illu.jsx';
 import { ICONS, br, initials, state } from '../lib/core.js';
 import { go } from '../lib/ui.js';
 import { reducedMotion } from '../lib/effects.js';
@@ -25,10 +26,10 @@ export function AvatarBtn() {
   );
 }
 
-export function Head({ kicker, title, action = null }) {
+export function Head({ kicker, title, action = null, emoji = null }) {
   return (
     <header className="head">
-      <div><div className="kicker">{kicker}</div><h1><BlurTitle text={title} /></h1></div>
+      <div><div className="kicker">{kicker}</div><h1><BlurTitle text={title} />{emoji ? <Anim nome={emoji} tamanho={34} className="hello-anim" /> : null}</h1></div>
       <div className="head-actions">{action}<AvatarBtn /></div>
     </header>
   );

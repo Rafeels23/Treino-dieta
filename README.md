@@ -31,3 +31,7 @@ A cada envio para a `main`, a Action **APK Android** (`.github/workflows/android
 - `npm run android:sync` monta o app com o Vite e copia o `dist/` para o projeto `android/`.
 - A assinatura usa os Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`. Sem eles o APK sai com chave temporária e não atualiza por cima.
 - Gerar manualmente: aba **Actions** › APK Android › **Run workflow**.
+
+## Créditos
+
+- Emojis animados: [Noto Animated Emoji](https://googlefonts.github.io/noto-emoji-animation/), Google — licença CC BY 4.0.

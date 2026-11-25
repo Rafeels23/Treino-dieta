@@ -130,7 +130,9 @@ const ptError = (e) => {
   if (/rate limit|too many|security purposes/i.test(m)) return 'Muitas tentativas. Espere um minuto e tente de novo.';
   if (/signups not allowed|not allowed for otp/i.test(m)) return 'Este e-mail não tem acesso ao Pilar.';
   if (/failed to fetch|network/i.test(m)) return 'Sem internet. Conecte-se para entrar.';
-  return m || 'Não deu certo. Tente de novo.';
+  if (/error sending|sending .*email|smtp/i.test(m)) return 'Não consegui enviar o e-mail com o código. Tente de novo daqui a pouco.';
+  /* nunca mostrar mensagem técnica em inglês */
+  return /[a-z]{3,} [a-z]{3,}/i.test(m) && !/[ãõçáéíóúâêô]/i.test(m) ? 'Não deu certo. Tente de novo.' : (m || 'Não deu certo. Tente de novo.');
 };
 
 /* login por código de 6 dígitos enviado por e-mail */

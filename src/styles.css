@@ -828,34 +828,22 @@ body:has(.login) { padding-bottom: 0; }
 .login-links .text-btn:disabled { opacity: .5; }
 .login-hint { text-align: center; margin-top: 10px; }
 
-/* ===== Ilustrações (unDraw) ===== */
-.illu { --illu-ink: #2b2d33; --illu-mid: #b9bcc2; --illu-soft: var(--surface-3); --illu-paper: var(--surface);
-  width: min(62%, 220px); margin: 4px auto 14px; }
-.illu svg { display: block; width: 100%; height: auto; max-height: 170px; }
-[data-theme="dark"] .illu { --illu-ink: #c9ccd2; --illu-mid: #4a4f56; --illu-soft: var(--surface-3); }
+/* ===== Ilustrações animadas (Noto Animated Emoji) ===== */
+.illu { display: flex; justify-content: center; margin: 4px auto 12px; }
+.anim { position: relative; display: inline-grid; place-items: center; width: var(--tam); height: var(--tam); flex: none; }
+.anim-box { position: absolute; inset: 0; }
+.anim-box svg { display: block; }
+.anim-emoji { font-size: calc(var(--tam) * .78); line-height: 1; }
+.anim:not(.pronto) .anim-box { opacity: 0; }
+.anim.pronto .anim-box { animation: anim-in .25s ease-out; }
+@keyframes anim-in { from { opacity: 0; } to { opacity: 1; } }
 .group.empty .illu { margin-top: 0; }
-.login-illu { width: min(70%, 250px); margin: 0 auto 6px; }
+.login-illu { margin: 0 auto 10px; }
 .day-party { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
-.day-party .illu { width: 96px; margin: 0; flex: none; }
+.day-party .illu { margin: 0; }
 .day-party .t { font-weight: 600; }
 .day-party .s { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+.hello-anim { vertical-align: -0.18em; margin-left: 6px; }
 @media (max-height: 640px) { .login-illu { display: none; } }
-
-/* ----- Ilustrações em movimento ----- */
-.illu.mexe .pt { animation: illu-in .5s ease-out both; animation-delay: calc(var(--d) + .1s); }
-.illu.mexe .pt.tw { transform-box: fill-box; transform-origin: center;
-  animation: illu-in .5s ease-out both, illu-pisca 2.4s ease-in-out infinite alternate;
-  animation-delay: calc(var(--d) + .1s), calc(var(--d) * 3 + 1s); }
-.illu.mexe svg { transform-origin: 50% 100%; animation-delay: 1.1s; animation-fill-mode: both; }
-.illu-flutua.mexe svg { animation-name: illu-flutua; animation-duration: 4.2s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; }
-.illu-respira.mexe svg { animation-name: illu-respira; animation-duration: 3.4s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; }
-.illu-plana.mexe svg { animation-name: illu-plana; animation-duration: 2.8s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; }
-.illu-pula.mexe svg { animation-name: illu-pula; animation-duration: 1.5s; animation-timing-function: cubic-bezier(.3,0,.4,1); animation-iteration-count: infinite; }
-@keyframes illu-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes illu-flutua { from { transform: translateY(0); } to { transform: translateY(-6px); } }
-@keyframes illu-respira { from { transform: scale(1, 1); } to { transform: scale(1.01, 1.025); } }
-@keyframes illu-plana { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(5px, -7px) rotate(-1.5deg); } }
-@keyframes illu-pula { 0%, 55%, 100% { transform: translateY(0) scale(1, 1); } 62% { transform: translateY(0) scale(1.02, .97); }
-  78% { transform: translateY(-9px) scale(.99, 1.02); } }
-@keyframes illu-pisca { from { opacity: 1; transform: scale(1); } to { opacity: .35; transform: scale(.6); } }
-@media (prefers-reduced-motion: reduce) { .illu .pt, .illu svg { animation: none !important; } }
+.hero-workout .letter.trophy { display: block; position: absolute; right: 12px; top: 12px; bottom: auto; font-size: 0; color: inherit; }
+.credits { text-align: center; padding: 4px 16px 24px; font-size: 12px; color: var(--ink-3); }

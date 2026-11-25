@@ -1,61 +1,59 @@
-/* Ilustrações do unDraw com as cores do tema (claro/escuro) e a cor da área.
-   Entrada em sequência e um movimento leve em loop (desliga com "reduzir movimento"). */
+/* Ilustrações animadas: emojis animados do Google (Noto Animated Emoji, CC BY 4.0).
+   As animações ficam em public/anim e só carregam quando aparecem na tela.
+   Pausam fora da tela; com "reduzir movimento" ficam paradas. */
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import morningWorkout from '../illus/morning-workout.svg?raw';
-import runnerStart from '../illus/runner-start.svg?raw';
-import breakfast from '../illus/breakfast.svg?raw';
-import meditation from '../illus/meditation.svg?raw';
-import growthCurve from '../illus/growth-curve.svg?raw';
-import celebrating from '../illus/celebrating.svg?raw';
-import messageSent from '../illus/message-sent.svg?raw';
-import emptyCart from '../illus/empty-cart.svg?raw';
-import accessDenied from '../illus/access-denied.svg?raw';
 
-const RAW = { login: morningWorkout, treino: runnerStart, dieta: breakfast, rotina: meditation, progresso: growthCurve, festa: celebrating,
-  codigo: messageSent, compras: emptyCart, bloqueado: accessDenied };
+const ANIM = {
+  login: ['ola', '👋'], codigo: ['carta', '💌'], bloqueado: ['cadeado', '🔒'],
+  treino: ['forca', '💪'], dieta: ['salada', '🥗'], rotina: ['broto', '🌱'], progresso: ['grafico', '📈'],
+  compras: ['carrinho', '🛒'], festa: ['festa', '🎉'], trofeu: ['trofeu', '🏆'],
+  manha: ['manha', '🌅'], tarde: ['tarde', '🌞'], noite: ['noite', '🌛'],
+};
 
-const COR = [
-  [/#(ff6584|6c63ff)\b/gi, 'var(--illu-accent)'],
-  [/#(090814|2f2e41|3f3d56)\b/gi, 'var(--illu-ink)'],
-  [/#(b3b3b3|cacaca|ccc)\b/gi, 'var(--illu-mid)'],
-  [/#(e6e6e6|e5e5e5|e4e4e4|d6d6e3|f0f0f0|f2f2f2)\b/gi, 'var(--illu-soft)'],
-  [/(fill|stroke)="#(090814|2f2e41|3f3d56)"/gi, '$1="var(--illu-ink)"'],
-  [/"#fff(fff)?"/gi, '"var(--illu-paper)"'],
-];
-/* Jeito de mexer de cada ilustração (em loop, bem suave) */
-const JEITO = { login: 'respira', rotina: 'respira', treino: 'respira', codigo: 'plana', festa: 'pula' };
+let lottieP = null;
+const carregaLottie = () => (lottieP ||= import('lottie-web/build/player/lottie_light').then((m) => m.default || m));
+const dados = {};
+const carregaDados = (arq) => (dados[arq] ||= fetch(`./anim/${arq}.json`).then((r) => { if (!r.ok) throw new Error(arq); return r.json(); }));
 
-const cache = {};
-function svgDe(nome) {
-  if (!cache[nome]) {
-    let s = RAW[nome].replace(/\s(id|data-name|style)="[^"]*"/g, '');
-    for (const [re, v] of COR) s = s.replace(re, v);
-    // entrada: cada parte aparece em sequência (só opacidade, para não mexer nas posições do desenho)
-    const total = (s.match(/<(path|circle|ellipse|rect|polygon|polyline|line)\b/g) || []).length || 1;
-    const passo = Math.min(28, 900 / total);
-    let i = 0;
-    s = s.replace(/<(path|circle|ellipse|rect|polygon|polyline|line)\b([^>]*?)(\/?)>/g, (m, tag, attrs, fecha) => {
-      const delay = Math.round(i++ * passo);
-      // bolinhas pequenas (confete, detalhes) piscam de leve
-      const r = /\sr="([\d.]+)"/.exec(attrs);
-      const pisca = tag === 'circle' && r && +r[1] <= 14 && !/transform=/.test(attrs);
-      return `<${tag}${attrs} class="pt${pisca ? ' tw' : ''}" style="--d:${delay}ms"${fecha}>`;
-    });
-    cache[nome] = s.replace('<svg', '<svg aria-hidden="true" focusable="false"');
-  }
-  return cache[nome];
+export function Anim({ nome, tamanho = 120, className = '', loop = true }) {
+  const box = useRef(null);
+  const reduz = useReducedMotion();
+  const [pronto, setPronto] = useState(false);
+  const [arq, emoji] = ANIM[nome] || [];
+
+  useEffect(() => {
+    if (!arq) return undefined;
+    let anim = null, vivo = true, io = null;
+    Promise.all([carregaLottie(), carregaDados(arq)]).then(([lottie, data]) => {
+      if (!vivo || !box.current) return;
+      anim = lottie.loadAnimation({ container: box.current, renderer: 'svg', loop, autoplay: false,
+        animationData: data, rendererSettings: { preserveAspectRatio: 'xMidYMid meet', progressiveLoad: true } });
+      anim.addEventListener('DOMLoaded', () => vivo && setPronto(true));
+      if (reduz) { anim.goToAndStop(Math.floor(anim.totalFrames / 2), true); return; }
+      io = new IntersectionObserver(([e]) => (e.isIntersecting ? anim.play() : anim.pause()), { threshold: 0.1 });
+      io.observe(box.current);
+    }).catch(() => {});
+    return () => { vivo = false; io?.disconnect(); anim?.destroy(); };
+  }, [arq, loop, reduz]);
+
+  return (
+    <span className={`anim ${pronto ? 'pronto' : ''} ${className}`} style={{ '--tam': `${tamanho}px` }} aria-hidden="true">
+      {!pronto && <span className="anim-emoji">{emoji}</span>}
+      <span className="anim-box" ref={box} />
+    </span>
+  );
 }
 
-export default function Illu({ nome, cor = 'var(--c-treino)', className = '', atraso = 0.05 }) {
+/* Bloco de ilustração (estados vazios, login, dia completo) com entrada suave */
+export default function Illu({ nome, className = '', atraso = 0.05, tamanho = 132 }) {
   const reduz = useReducedMotion();
   return (
-    <motion.div
-      className={`illu illu-${JEITO[nome] || 'flutua'} ${reduz ? '' : 'mexe'} ${className}`}
-      style={{ '--illu-accent': cor }}
-      initial={reduz ? false : { opacity: 0, y: 10, scale: 0.97 }}
+    <motion.div className={`illu ${className}`}
+      initial={reduz ? false : { opacity: 0, y: 10, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 170, damping: 22, delay: atraso }}
-      dangerouslySetInnerHTML={{ __html: svgDe(nome) }}
-    />
+      transition={{ type: 'spring', stiffness: 200, damping: 18, delay: atraso }}>
+      <Anim nome={nome} tamanho={tamanho} />
+    </motion.div>
   );
 }

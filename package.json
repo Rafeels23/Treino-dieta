@@ -20,6 +20,7 @@
     "@capacitor/core": "7.6.10",
     "@capacitor/ios": "7.6.10",
     "@supabase/supabase-js": "2.119.0",
+    "lottie-web": "5.13.0",
     "motion": "14.11.1",
     "react": "19.1.10",
     "react-dom": "19.1.10"
