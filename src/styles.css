@@ -928,3 +928,10 @@ body:has(.login) { padding-bottom: 0; }
 .pl-btns .btn .i { width: 20px; height: 20px; }
 .pl-pular { align-self: center; color: var(--ink-3); font-size: 14px; }
 .foco-btn { margin-top: 10px; }
+/* valores com 2 ou 3 dígitos não podem ficar cortados */
+.pl-step { padding: 12px 8px; }
+.pl-step-row { gap: 4px; }
+.pl-step-b { width: 34px; height: 34px; font-size: 20px; }
+.pl-step-v { gap: 2px; overflow: hidden; }
+.pl-step-v input { width: auto; flex: none; font-size: 26px; max-width: 5.2ch; }
+.pl-step-v span { font-size: 13px; flex: none; }

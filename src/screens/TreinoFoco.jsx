@@ -42,6 +42,7 @@ function Stepper({ label, unit, value, step, onChange, placeholder }) {
         <button type="button" className="pl-step-b" onClick={() => mudar(-step)} aria-label={`Diminuir ${label}`}>−</button>
         <label className="pl-step-v">
           <input inputMode="decimal" value={value === '' ? '' : String(value).replace('.', ',')} placeholder={placeholder || '0'}
+            style={{ width: `${Math.max(1, String(value === '' ? (placeholder || '0') : value).length) + 0.4}ch` }}
             onChange={(ev) => onChange(ev.target.value.replace(/[^\d.,]/g, ''))} aria-label={label} />
           {unit ? <span>{unit}</span> : null}
         </label>
