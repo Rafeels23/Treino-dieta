@@ -7,6 +7,8 @@ import {
 } from '../sheets/perfil.jsx';
 import { openPlanSettings } from '../sheets/treino.jsx';
 import { openDietEditor } from '../sheets/dieta.jsx';
+import { useSyncExternalStore } from 'react';
+import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
 
 function Kv({ label, value }) {
   return (
@@ -75,14 +77,32 @@ export default function Perfil() {
           <span className="end">{state.ai?.key ? <span className="tag ok">Ativo</span> : null}<Icon n="right" /></span></button></div>
       </Section>
 
+      <ContaSection />
+
       <Section title="Seus dados">
         <div className="group">
           <button className="row plain" onClick={exportBackup}><span className="body"><div className="t">Exportar backup</div><div className="s">Salva um arquivo com todos os seus dados</div></span></button>
           <button className="row plain" onClick={importBackup}><span className="body"><div className="t">Importar backup</div><div className="s">Restaura a partir de um arquivo</div></span></button>
         </div>
-        <p className="hint" style={{ padding: '10px 4px 0' }}>Tudo fica salvo só neste celular. Em breve: atividades automáticas do relógio.</p>
+        <p className="hint" style={{ padding: '10px 4px 0' }}>Fica salvo no celular e na sua conta. O backup é uma cópia extra em arquivo.</p>
         <div className="stack-btns"><button className="btn danger block" onClick={resetAll}>Apagar todos os dados</button></div>
       </Section>
     </>
+  );
+}
+
+const SYNC_TXT = { idle: 'Sincronizado', ok: 'Sincronizado', saving: 'Sincronizando…', offline: 'Sem internet: sincroniza quando voltar', error: 'Não sincronizou. Toque para tentar de novo' };
+function ContaSection() {
+  const acc = useSyncExternalStore(subscribeAccount, getAccount);
+  const sair = async () => { if (confirm('Sair da conta? Os dados ficam salvos na nuvem e voltam quando você entrar.')) await signOut(); };
+  return (
+    <Section title="Conta">
+      <div className="group">
+        <button className="row plain" onClick={pull}><span className="body"><div className="t">{acc.user?.email}</div>
+          <div className="s">{SYNC_TXT[acc.sync] || ''}</div></span>
+          <span className={`sync-dot ${acc.sync}`} aria-hidden="true" /></button>
+        <button className="row plain" onClick={sair}><span className="body"><div className="t" style={{ color: 'var(--danger)' }}>Sair da conta</div></span></button>
+      </div>
+    </Section>
   );
 }
