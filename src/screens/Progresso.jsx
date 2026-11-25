@@ -69,7 +69,7 @@ export default function Progresso() {
               <div className="s num">{cap(fmtDayLong(todayKey(new Date(s.start))))} · {Math.round((s.end - s.start) / 60000)} min · {s.exercises.reduce((n, e) => n + e.sets.length, 0)} séries</div></span>
               <span className="end"><Icon n="right" /></span></button>
           ))}</div>
-        ) : <div className="group empty"><Icon n="history" /><div>Seus treinos concluídos aparecem aqui.</div></div>}
+        ) : <div className="group empty"><Illu nome="historico" /><div>Seus treinos concluídos aparecem aqui.</div></div>}
       </Section>
       <Section title="Atividades extras" action={<button className="text-btn" onClick={() => openActivity()}>+ Adicionar</button>}>
         {activities.length ? (

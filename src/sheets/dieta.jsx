@@ -1,5 +1,6 @@
 /* Área Dieta: folha da refeição, substituições, diário, humor e registro.
    Contrato usado por outras telas: openMeal, quickMeal, openExtra, openDietEditor. */
+import { Anim } from '../components/Illu.jsx';
 import {
   state, save, todayKey, dayLog, mealCheck, mealLabel, foodQty, autoSubs, MOODS, pickImage, shrink,
 } from '../lib/core.js';
@@ -88,7 +89,7 @@ function MealSheet({ gid, oi }) {
         <button type="button" className={`mm ${diary ? 'on' : ''}`} onClick={() => mealDiary(g.id)}>
           <Icon n="camera" /><span>Diário alimentar</span></button>
         <button type="button" className={`mm ${mood ? 'on' : ''}`} onClick={() => openMood(g.id)}>
-          {mood ? <span className="mm-face">{MOODS.find((m) => m.k === mood)?.face || ''}</span> : <Icon n="pulse" />}<span>Humor na refeição</span></button>
+          {mood ? <span className="mm-face"><Anim nome={`humor-${mood}`} tamanho={26} /></span> : <Icon n="pulse" />}<span>Humor na refeição</span></button>
       </div>
       <div className="sub-head">Alimentos</div>
       {o.foods.length
@@ -156,7 +157,7 @@ function MoodSheet({ gid }) {
       <h2>Humor na refeição</h2><p className="lead">Como você se sentiu nesta refeição?</p>
       <div className="mood-pick">{MOODS.map((m) => (
         <button type="button" key={m.k} className={`mood ${cur === m.k ? 'on' : ''}`} onClick={() => moodSet(gid, m.k)}>
-          <span className="face">{m.face}</span><span className="s">{m.label}</span></button>
+          <span className="face"><Anim nome={`humor-${m.k}`} tamanho={36} /></span><span className="s">{m.label}</span></button>
       ))}</div>
       {cur ? <button type="button" className="text-btn block" onClick={() => moodSet(gid, '')}>Limpar</button> : null}
     </>

@@ -1,5 +1,5 @@
-Animações em WebP (pessoas, saudação, festa, fogo): Microsoft Fluent Emoji Animated
+Animações em WebP (pessoas, carinhas, saudação, festa, fogo, estrela, ampulheta): Microsoft Fluent Emoji Animated
 https://github.com/microsoft/fluentui-emoji-animated — licença MIT, © Microsoft Corporation.
 
-Animações em JSON/Lottie (salada, carrinho, gráfico, troféu, cadeado): Noto Animated Emoji, Google
+Animações em JSON/Lottie (carrinho, gráfico): Noto Animated Emoji, Google
 https://googlefonts.github.io/noto-emoji-animation/ — licença Creative Commons Atribuição 4.0 (CC BY 4.0).

@@ -1,15 +1,17 @@
 /* Ilustrações animadas:
-   - pessoas, saudação e festa: Microsoft Fluent Emoji Animated (MIT), em WebP animado
-   - objetos (salada, carrinho, gráfico, troféu, cadeado): Google Noto Animated Emoji (CC BY 4.0), em Lottie
+   - pessoas, carinhas, saudação, festa e estrela: Microsoft Fluent Emoji Animated (MIT), em WebP animado
+   - objetos (carrinho, gráfico): Google Noto Animated Emoji (CC BY 4.0), em Lottie
    As animações ficam em public/anim e só carregam quando aparecem na tela.
    Pausam fora da tela; com "reduzir movimento" ficam paradas. */
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 const ANIM = {
-  login: ['levantando.webp', '🏋️'], codigo: ['ola.webp', '👋'], bloqueado: ['cadeado', '🔒'],
-  treino: ['correndo.webp', '🏃'], dieta: ['salada', '🥗'], rotina: ['meditando.webp', '🧘'], progresso: ['grafico', '📈'],
-  compras: ['carrinho', '🛒'], festa: ['festa.webp', '🎉'], trofeu: ['trofeu', '🏆'], fogo: ['fogo.webp', '🔥'],
+  login: ['levantando.webp', '🏋️'], codigo: ['ola.webp', '👋'], bloqueado: ['ampulheta.webp', '⏳'], historico: ['ampulheta.webp', '⏳'],
+  treino: ['correndo.webp', '🏃'], dieta: ['delicia.webp', '😋'], rotina: ['meditando.webp', '🧘'], progresso: ['grafico', '📈'],
+  compras: ['carrinho', '🛒'], festa: ['festa.webp', '🎉'], trofeu: ['estrela.webp', '🌟'], fogo: ['fogo.webp', '🔥'],
+  'humor-otimo': ['humor-otimo.webp', '😄'], 'humor-bem': ['humor-bem.webp', '🙂'], 'humor-neutro': ['humor-neutro.webp', '😐'],
+  'humor-ruim': ['humor-ruim.webp', '😕'], 'humor-mal': ['humor-mal.webp', '😣'],
   manha: ['manha.webp', '🌞'], tarde: ['tarde.webp', '🌤️'], noite: ['noite.webp', '🌛'],
 };
 
