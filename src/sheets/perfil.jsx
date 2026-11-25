@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   state, save, replaceState, uid, todayKey, num, br, cap, fmtDay, fmtDayLong,
-  defaultState, migrate, weightFeedback, latestWeight, morningSorted,
+  defaultState, migrate, weightFeedback, latestWeight, morningSorted, keyToDate,
 } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { buzz } from '../lib/effects.js';
@@ -31,7 +31,9 @@ function PesoSheet() {
   const key = todayKey();
   const [ini] = useState(() => {
     const m = state.morning.find((x) => x.date === key) || {};
-    return { w: latestWeight(), peso: m.peso != null ? br(m.peso) : '' };
+    const ult = morningSorted().filter((x) => x.peso != null).pop();
+    const dias = ult ? Math.round((keyToDate(key) - keyToDate(ult.date)) / 864e5) : null;
+    return { w: latestWeight(), dias, peso: m.peso != null ? br(m.peso) : '' };
   });
   const [peso, setPeso] = useState(ini.peso);
   const [data, setData] = useState(key);
@@ -49,7 +51,9 @@ function PesoSheet() {
   return (
     <>
       <h2>Atualizar peso</h2>
-      <p className="lead">{ini.w != null ? `Hoje está em ${br(ini.w)} kg. Atualize quando se pesar — não precisa ser todo dia.` : 'Informe seu peso de hoje. Atualize quando se pesar.'}</p>
+      <p className="lead">{ini.w != null
+        ? `Último peso: ${br(ini.w)} kg${ini.dias ? `, há ${ini.dias} ${ini.dias === 1 ? 'dia' : 'dias'}` : ', hoje'}. Atualize uma vez por semana ou por mês, de preferência no mesmo horário.`
+        : 'Informe seu peso atual. Depois, atualize uma vez por semana ou por mês.'}</p>
       <div className="field"><input className="big-input" name="peso" inputMode="decimal" value={peso} onChange={(e) => setPeso(e.target.value)} placeholder="0,0 kg" aria-label="Peso em kg" autoFocus /></div>
       <div className="field"><label>Data</label><input name="data" type="date" value={data} max={key} onChange={(e) => setData(e.target.value)} /></div>
       {p.meta ? <p className="hint">Sua meta é {br(p.meta)} kg.</p> : null}
@@ -104,32 +108,6 @@ function PesoReportSheet() {
 }
 export function openPesoReport() { openSheet(() => <PesoReportSheet />); }
 
-/* ----- Pesagem da manhã ----- */
-function MorningSheet() {
-  const key = todayKey();
-  const [m] = useState(() => state.morning.find((x) => x.date === key) || {});
-  const [peso, setPeso] = useState(m.peso != null ? br(m.peso) : '');
-  const [sono, setSono] = useState(m.sono != null ? br(m.sono) : '');
-  const [disp, setDisp] = useState(m.disposicao ?? '');
-  const ok = () => {
-    const rec = { date: key, peso: num(peso), sono: num(sono), disposicao: num(disp) };
-    if (rec.peso == null) { alert('Informe o peso.'); return; }
-    state.morning = state.morning.filter((x) => x.date !== key).concat(rec);
-    save(); closeSheet();
-  };
-  return (
-    <>
-      <h2>Pesagem da manhã</h2><p className="lead">Em jejum, depois do banheiro.</p>
-      <div className="field"><input className="big-input" name="peso" inputMode="decimal" value={peso} onChange={(e) => setPeso(e.target.value)} placeholder="0,0 kg" aria-label="Peso em kg" autoFocus /></div>
-      <div className="field"><label>Horas de sono</label><input name="sono" inputMode="decimal" value={sono} onChange={(e) => setSono(e.target.value)} placeholder="ex.: 7" /></div>
-      <div className="field"><label>Disposição</label>
-        <Seg options={[[1, '1'], [2, '2'], [3, '3'], [4, '4'], [5, '5']]} value={disp} onChange={setDisp} toggle />
-        <p className="hint" style={{ marginTop: 6 }}>1 = muito cansado · 5 = cheio de energia</p></div>
-      <SheetActions onCancel={closeSheet} onOk={ok} />
-    </>
-  );
-}
-export function openMorning() { openSheet(() => <MorningSheet />); }
 
 /* ----- Atividades ----- */
 function ActivitySheet() {

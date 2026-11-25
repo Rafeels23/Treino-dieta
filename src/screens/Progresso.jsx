@@ -14,7 +14,7 @@ export default function Progresso() {
   const cur = ms[ms.length - 1], first = ms[0];
   const dw = cur && ms.length > 1 ? cur.peso - first.peso : null;
   const pesoHero = cur && (
-    <div className="hero"><div className="label">Peso atual</div>
+    <div className="hero"><div className="label">Peso atual · {fmtDay(cur.date)}</div>
       <div className="big">{br(cur.peso)}<small>kg</small></div>
       {dw != null && <span className={`tag delta num ${dw < 0 ? 'ok' : ''}`}>{dw > 0 ? '+' : ''}{br(dw)} kg desde {fmtDay(first.date)}</span>}</div>
   );
@@ -47,7 +47,7 @@ export default function Progresso() {
     <>
       <Head kicker="Seu progresso" title="Progresso" />
       {stats}
-      <Section title="Peso" action={<button className="text-btn" onClick={() => openPeso()}>+ Pesagem</button>}>
+      <Section title="Peso" action={<button className="text-btn" onClick={() => openPeso()}>Atualizar</button>}>
         <div className="group">{pesoHero}<Chart id="peso" points={wPts} unit="kg" /></div>
       </Section>
       <Section title="Carga por exercício">

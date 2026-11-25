@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
-import Illu from '../components/Illu.jsx';
+import { Anim } from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import {
   save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
@@ -21,8 +21,7 @@ function EmptyDiet({ state }) {
   const [raw, setRaw] = useState(state.diet.raw || '');
   return (
     <>
-      <Head kicker="Plano da nutricionista" title="Alimentação" />
-      <Illu nome="dieta" cor="var(--c-dieta)" />
+      <Head kicker="Plano da nutricionista" title="Alimentação" emoji="dieta" />
       <Section title="Adicionar plano">
         <div className="group pad">
           <p className="hint" style={{ marginBottom: 12 }}>Cole o texto do plano. Pode ter opções, substituições e observações, assim:</p>
@@ -63,7 +62,7 @@ export default function Dieta() {
 
   return (
     <>
-      <Head kicker="Plano da nutricionista" title="Alimentação"
+      <Head kicker="Plano da nutricionista" title="Alimentação" emoji="dieta"
         action={<button className="icon-btn" onClick={openDietEditor} aria-label="Adicionar refeição"><Icon n="plus" /></button>} />
       <div className="section"><div className="day-switch">
         <button className="icon-btn" onClick={() => setDietDay(state, -1)} aria-label="Dia anterior"><Icon n="left" /></button>
@@ -74,7 +73,8 @@ export default function Dieta() {
       <div className="section"><div className="group diet-sum">
         <Rings items={[{ v: done / groups.length, color: 'var(--c-dieta)' }]} size={76} sw={10} />
         <div><div className="big digits"><CountUp value={done} k="refeicoes" /><small> de {groups.length}</small></div>
-          <div className="s">refeições{xk ? ` · ${Math.round(xk)} kcal fora do plano` : ''}</div></div>
+          <div className="s">{done === groups.length ? 'todas as refeições feitas' : 'refeições'}{xk ? ` · ${Math.round(xk)} kcal fora do plano` : ''}</div></div>
+        {done === groups.length ? <Anim key={key} nome="palmas" tamanho={60} className="sum-anim" /> : null}
       </div></div>
       <Section title="Refeições">
         <div className="meal-list">{groups.flatMap((g) => g.options.map((o, oi) => {

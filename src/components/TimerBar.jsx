@@ -1,6 +1,7 @@
 /* Timer de descanso em anel, flutuando acima das abas */
 import { useSyncExternalStore } from 'react';
 import { fmtClock } from '../lib/core.js';
+import { Anim } from './Illu.jsx';
 import { subscribeTimer, getTimer, addTimer, stopTimer } from '../lib/timer.js';
 
 const ARC = 2 * Math.PI * 36;
@@ -19,7 +20,7 @@ export default function TimerBar() {
         <div className="txt">{(left < 0 ? '+' : '') + fmtClock(left)}</div>
       </div>
       <div className="timer-main">
-        <div className="timer-label">Descanso</div>
+        <div className="timer-label"><Anim nome="cronometro" tamanho={30} className="timer-anim" />Descanso</div>
         <div className="timer-next">{t.next}</div>
         <div className="timer-btns">
           <button className="tbtn" onClick={() => addTimer(-15)}>−15</button>

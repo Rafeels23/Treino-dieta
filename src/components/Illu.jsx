@@ -12,6 +12,7 @@ const ANIM = {
   compras: ['carrinho', '🛒'], festa: ['festa.webp', '🎉'], trofeu: ['estrela.webp', '🌟'], fogo: ['fogo.webp', '🔥'],
   'humor-otimo': ['humor-otimo.webp', '😄'], 'humor-bem': ['humor-bem.webp', '🙂'], 'humor-neutro': ['humor-neutro.webp', '😐'],
   'humor-ruim': ['humor-ruim.webp', '😕'], 'humor-mal': ['humor-mal.webp', '😣'],
+  cronometro: ['cronometro.webp', '⏲️'], relogio: ['relogio.webp', '⏰'], palmas: ['palmas.webp', '👏'], maos: ['maos.webp', '🙌'],
   manha: ['manha.webp', '🌞'], tarde: ['tarde.webp', '🌤️'], noite: ['noite.webp', '🌛'],
 };
 

@@ -25,7 +25,7 @@ export default function Chart({ id, points, unit, className = '' }) {
     } catch {}
   }, [w, points.length]);
 
-  if (points.length < 2) return <div className="empty"><Icon n="chart" /><div>Registre pelo menos dois dias para ver a linha.</div></div>;
+  if (points.length < 2) return <div className="empty"><Icon n="chart" /><div>Registre pelo menos duas vezes para ver a linha.</div></div>;
 
   const W = Math.max(0, w - 16), H = 180, P = { l: 6, r: 40, t: 30, b: 22 };
   const ys = points.map((p) => p.y);

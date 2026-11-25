@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
 import Illu from '../components/Illu.jsx';
+import { Anim } from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import { todayKey, routineSorted, cap, fmtDayLong } from '../lib/core.js';
 import { getJustKey, clearJustKey, rotDay, rotTick, openRoutine, openRotEditor } from '../sheets/rotina.jsx';
@@ -15,7 +16,7 @@ export default function Rotina() {
 
   return (
     <>
-      <Head kicker="Seus hábitos" title="Rotina"
+      <Head kicker="Seus hábitos" title="Rotina" emoji="relogio"
         action={<button className="icon-btn" onClick={openRotEditor} aria-label="Adicionar hábito"><Icon n="plus" /></button>} />
       <div className="section"><div className="day-switch">
         <button className="icon-btn" onClick={() => rotDay(-1)} aria-label="Dia anterior"><Icon n="left" /></button>
@@ -27,7 +28,8 @@ export default function Rotina() {
         <>
           <div className="section"><div className="group diet-sum"><Rings items={[{ v: done / list.length, color: 'var(--c-rotina)' }]} size={76} sw={10} />
             <div><div className="big digits"><CountUp value={done} k="rotina" /><small> de {list.length}</small></div>
-              <div className="s">{done === list.length ? 'rotina completa' : list.length === 1 ? 'hábito' : 'hábitos'}</div></div></div></div>
+              <div className="s">{done === list.length ? 'rotina completa' : list.length === 1 ? 'hábito' : 'hábitos'}</div></div>
+            {done === list.length ? <Anim key={key} nome="maos" tamanho={60} className="sum-anim" /> : null}</div></div>
           <Section title="Hábitos do dia">
             <div className="meal-list rot">{list.map((r) => {
               const ok = !!log[r.id];

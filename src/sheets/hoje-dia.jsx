@@ -30,7 +30,7 @@ function DaySheet({ k }) {
         {meals.length > 0 && <Linha titulo="Refeições" valor={`${feitas}/${meals.length}`} cor={feitas === meals.length ? 'var(--c-dieta)' : ''} />}
         {rot.length > 0 && <Linha titulo="Rotina" valor={`${rFeitas}/${rot.length}`} cor={rFeitas === rot.length ? 'var(--c-dieta)' : ''} />}
         <Linha titulo="Atividades" valor={acts.length ? acts.map((a) => a.tipo).join(', ') : '—'} />
-        <Linha titulo="Peso" valor={m?.peso != null ? `${br(m.peso)} kg` : '—'} />
+        {m?.peso != null && <Linha titulo="Peso" valor={`${br(m.peso)} kg`} />}
         {log.extras.length > 0 && <Linha titulo="Fora do plano" valor={`${Math.round(extrasKcal(log))} kcal`} />}
       </div>
       {sess.length > 0 && (
