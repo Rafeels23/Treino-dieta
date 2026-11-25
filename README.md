@@ -14,13 +14,20 @@ Seus dois pilares: treino e alimentação. App de celular (PWA) para acompanhar 
 - Funciona offline, exceto o cálculo de calorias com IA.
 - A IA usa a API da Anthropic com a chave que você coloca em **Perfil › Assistente IA**; a chave fica só no aparelho.
 
-## Arquivos
-`index.html`, `style.css`, `app.js` (todo o app), `sw.js` (offline), `manifest.webmanifest`, ícones e `fonts/` (Archivo, licença OFL em `fonts/OFL.txt`).
+## Como o projeto é montado
+- **React + Vite** (`src/`): telas em `src/screens`, janelas (folhas) em `src/sheets`, peças em `src/components`
+  e toda a regra do app (planos, leitura do plano da nutri, equivalências, compras, receitas, IA) em `src/lib/core.js`.
+- `npm install` e depois `npm run dev` para rodar no computador; `npm run build` gera `dist/`.
+- Os dados ficam no aparelho (`localStorage`, chave `treino-dieta-v1`), compatíveis com a versão antiga.
+- **Site / iPhone:** a Action "Site (GitHub Pages)" publica o `dist/`. No iPhone, abra o link no Safari e use
+  Compartilhar › Adicionar à Tela de Início.
+- **Android:** a Action "APK Android" gera o APK (Capacitor) e publica em Releases.
+- **iOS nativo:** o projeto está em `ios/` (Capacitor + Swift Package Manager); gerar o app exige Xcode e conta Apple.
 
 ## APK para Android
 A cada envio para a `main`, a Action **APK Android** (`.github/workflows/android.yml`) embala o app com o [Capacitor](https://capacitorjs.com) e publica o arquivo em **Releases**.
 
 - Baixar: aba **Releases** do repositório, arquivo `Pilar-1.0.N.apk`.
-- O app web continua na raiz (GitHub Pages); `npm run build` copia esses arquivos para `www/`, que o Capacitor coloca dentro do projeto `android/`.
+- `npm run android:sync` monta o app com o Vite e copia o `dist/` para o projeto `android/`.
 - A assinatura usa os Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`. Sem eles o APK sai com chave temporária e não atualiza por cima.
 - Gerar manualmente: aba **Actions** › APK Android › **Run workflow**.

@@ -786,3 +786,20 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 /* Semana: círculos simples */
 .week .dot { border-radius: 50%; width: 34px; height: 34px; font-weight: 600; }
 .week .dot.today { box-shadow: 0 0 0 1.5px var(--ink); }
+
+/* Calmo: ações da refeição em tom neutro (o ícone carrega a cor) */
+.meal-menu .mm { background: var(--surface-2) !important; color: var(--ink) !important; box-shadow: none !important; }
+.meal-menu .mm .i { color: var(--c-dieta); }
+.meal-menu .mm.on { background: var(--dieta-soft) !important; box-shadow: inset 0 0 0 1.5px var(--c-dieta) !important; }
+
+/* Calmo: item feito não pinta o cartão inteiro; o check colorido basta */
+.meal-card.done, .meal-list.rot .meal-card.done { background: var(--surface) !important; }
+.meal-card.done .meal-main .t, .meal-list.rot .meal-card.done .meal-main .t { color: var(--ink-2) !important; }
+.meal-card.done .meal-tick { color: var(--c-dieta); }
+.meal-list.rot .meal-card.done .meal-tick { color: var(--c-rotina) !important; }
+.meal-card.now { box-shadow: inset 0 0 0 1.5px var(--c-dieta) !important; }
+
+/* Calmo: preenchimento do gráfico mais leve */
+.chart .area-stop[offset="0"] { stop-opacity: .14; }
+.meal-list.rot .meal-card .mc-ic { background: var(--rotina-soft); color: var(--c-rotina); }
+.meal-list.rot .meal-card.now { box-shadow: inset 0 0 0 1.5px var(--c-rotina) !important; }
