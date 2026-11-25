@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { state, save, uid, num, shoppingItems, allRecipes } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { Icon, SheetActions } from '../components/ui.jsx';
+import Illu from '../components/Illu.jsx';
 
 /* ----- Lista de compras ----- */
 function ShopRow({ k, name, label, extraIdx }) {
@@ -46,7 +47,7 @@ function ShoppingSheet() {
           {items.map((it) => <ShopRow key={it.key} k={it.key} name={it.name} label={it.label} />)}
           {sh.extra.map((x, i) => <ShopRow key={'extra:' + i + x} k={'extra:' + x} name={x} label="" extraIdx={i} />)}
         </div>
-      ) : <div className="empty">Adicione o plano alimentar para gerar a lista.</div>}
+      ) : <div className="empty"><Illu nome="compras" cor="var(--c-dieta)" />Adicione o plano alimentar para gerar a lista.</div>}
       <div className="field" style={{ marginTop: 12, display: 'flex', gap: 8 }}>
         <input name="extra" placeholder="Adicionar item (ex.: azeite)" value={extra} onChange={(e) => setExtra(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} />

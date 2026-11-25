@@ -7,14 +7,19 @@ import breakfast from '../illus/breakfast.svg?raw';
 import meditation from '../illus/meditation.svg?raw';
 import growthCurve from '../illus/growth-curve.svg?raw';
 import celebrating from '../illus/celebrating.svg?raw';
+import messageSent from '../illus/message-sent.svg?raw';
+import emptyCart from '../illus/empty-cart.svg?raw';
+import accessDenied from '../illus/access-denied.svg?raw';
 
-const RAW = { login: morningWorkout, treino: runnerStart, dieta: breakfast, rotina: meditation, progresso: growthCurve, festa: celebrating };
+const RAW = { login: morningWorkout, treino: runnerStart, dieta: breakfast, rotina: meditation, progresso: growthCurve, festa: celebrating,
+  codigo: messageSent, compras: emptyCart, bloqueado: accessDenied };
 
 const COR = [
   [/#(ff6584|6c63ff)\b/gi, 'var(--illu-accent)'],
   [/#(090814|2f2e41|3f3d56)\b/gi, 'var(--illu-ink)'],
   [/#(b3b3b3|cacaca|ccc)\b/gi, 'var(--illu-mid)'],
-  [/#(e6e6e6|e4e4e4|d6d6e3|f0f0f0|f2f2f2)\b/gi, 'var(--illu-soft)'],
+  [/#(e6e6e6|e5e5e5|e4e4e4|d6d6e3|f0f0f0|f2f2f2)\b/gi, 'var(--illu-soft)'],
+  [/(fill|stroke)="#(090814|2f2e41|3f3d56)"/gi, '$1="var(--illu-ink)"'],
   [/"#fff(fff)?"/gi, '"var(--illu-paper)"'],
 ];
 const cache = {};

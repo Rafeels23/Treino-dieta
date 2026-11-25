@@ -50,7 +50,8 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-top">
-        {step === 'email' ? <Illu nome="login" cor="var(--c-treino)" className="login-illu" /> : <Logo />}
+        {step === 'email' ? <Illu nome="login" cor="var(--c-treino)" className="login-illu" />
+          : step === 'codigo' ? <Illu key="codigo" nome="codigo" cor="var(--c-dieta)" className="login-illu" /> : <Logo />}
         <h1>Pilar</h1>
         <p>{step === 'codigo' ? <>Enviamos um código de 6 números para <b>{email.trim()}</b>.</> : 'Treino e alimentação, um dia de cada vez.'}</p>
       </div>
@@ -102,7 +103,7 @@ export function NotMember({ email }) {
   return (
     <div className="login">
       <div className="login-top">
-        <Logo />
+        <Illu nome="bloqueado" cor="var(--c-treino)" className="login-illu" />
         <h1>Quase lá</h1>
         <p>A conta <b>{email}</b> ainda não está liberada no Pilar. Peça para liberar este e-mail e entre de novo.</p>
       </div>
