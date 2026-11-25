@@ -142,7 +142,7 @@ export async function shrink(file, max = 1024) {
 export const blobToB64 = (b) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.readAsDataURL(b); });
 
 /* ---------------- IA: estimativa de calorias ----------------
-   Google Gemini (chave "AIza...", tem uso grátis) ou Anthropic (chave "sk-ant-...").
+   Google Gemini (chave "AQ..." ou "AIza...", tem uso grátis) ou Anthropic (chave "sk-ant-...").
    A chave fica só neste aparelho (localStorage) e vai direto para o serviço escolhido. */
 export const aiProvider = (key = state.ai?.key || '') => (/^sk-ant-/.test(key.trim()) ? 'anthropic' : 'gemini');
 export const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.6.0/+esm';
