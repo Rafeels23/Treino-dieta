@@ -36,7 +36,12 @@
 
   <nav class="tabs" id="tabs"></nav>
 
-  <dialog id="sheet" class="sheet"><form method="dialog" id="sheet-body" class="sheet-body"></form></dialog>
+  <dialog id="sheet" class="sheet">
+    <button type="button" class="sheet-x" data-act="sheet-close" aria-label="Fechar">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <form method="dialog" id="sheet-body" class="sheet-body"></form>
+  </dialog>
 
   <script src="app.js"></script>
 </body>

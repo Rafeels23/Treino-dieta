@@ -24,6 +24,8 @@
   --c-dieta: #0e8c76;
   --c-peso: #2f6fdb;
   --c-ativ: #b07a00;
+  --c-rotina: #2f6fdb;
+  --rotina-soft: #e2ebfb;
   --treino-soft: #fbe8e0;
   --dieta-soft: #dcf1ec;
   --peso-soft: #e2ebfb;
@@ -55,6 +57,8 @@
     --c-dieta: #1aa58c;
     --c-peso: #5b7cfa;
     --c-ativ: #e0a52b;
+    --c-rotina: #5b7cfa;
+    --rotina-soft: #171f3d;
     --treino-soft: #33190f;
     --dieta-soft: #0f2a25;
     --peso-soft: #171f3d;
@@ -623,3 +627,17 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 @media (prefers-reduced-motion: reduce) {
   .meal-card.just .meal-tick, .meal-card.just .meal-tick .i path { animation: none; }
 }
+
+/* Rotina: mesma estrutura dos cartões de refeição, na cor azul da rotina */
+.meal-list.rot .meal-card.done { background: var(--rotina-soft); }
+.meal-list.rot .meal-card.done .meal-tick,
+.meal-list.rot .meal-card.done .meal-main .t { color: var(--c-rotina); }
+
+/* Folha: botão de fechar fixo no canto e espaço para ele no título */
+.sheet-x {
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2);
+}
+.sheet-x .i { width: 20px; height: 20px; }
+.sheet-body > h2:first-of-type { padding-right: 48px; }

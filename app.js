@@ -567,14 +567,19 @@ views.hoje = () => {
 
   const vTreino = doneToday.length ? 1 : state.active ? 0.5 : 0;
   const vMeal = meals.length ? mealsDone / meals.length : 0;
-  /* o dia é treino + refeições; o peso mora no Perfil, não é tarefa diária */
-  const pct = Math.round(((vTreino + vMeal) / 2) * 100);
+  const rotList = routinesOf(key), rotLog = routineLog(key);
+  const rotDone = rotList.filter((r) => rotLog[r.id]).length;
+  const vRot = rotList.length ? rotDone / rotList.length : 0;
+  /* o dia é treino + refeições + rotina (a rotina só conta se houver hábitos para hoje); o peso mora no Perfil */
+  const parts = [vTreino, vMeal].concat(rotList.length ? [vRot] : []);
+  const pct = Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
   const summary = `<div class="section"><div class="group today-card">
-      ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }])}
+      ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }, { v: vRot, color: 'var(--c-rotina)' }])}
       <div style="flex:1;min-width:0"><div class="cap">Seu dia</div><div class="pct digits"><span data-count="${pct}" data-count-key="pct-dia">${pct}</span><small>%</small></div>
         <ul class="legend">
           <li><i style="background:var(--c-treino)"></i>Treino<b>${doneToday.length ? 'Feito' : state.active ? 'Agora' : '—'}</b></li>
           <li><i style="background:var(--c-dieta)"></i>Refeições<b class="num">${meals.length ? `${mealsDone}/${meals.length}` : '—'}</b></li>
+          <li><i style="background:var(--c-rotina)"></i>Rotina<b class="num">${rotList.length ? `${rotDone}/${rotList.length}` : '—'}</b></li>
         </ul></div></div></div>`;
 
   let workout;
@@ -763,7 +768,7 @@ views.dieta = () => {
   const done = groups.filter((g) => mealCheck(log, g)).length;
   const nowMeal = nextMeal(log);
   return head('Plano da nutricionista', 'Alimentação',
-      `<button class="icon-btn" data-act="edit-diet" aria-label="Editar plano">${ic('pencil')}</button>`)
+      `<button class="icon-btn" data-act="diet-editor" aria-label="Adicionar refeição">${ic('plus')}</button>`)
     + `<div class="section"><div class="day-switch">
         <button class="icon-btn" data-act="diet-day" data-v="-1" aria-label="Dia anterior">${ic('left')}</button>
         <b>${key === todayKey() ? 'Hoje' : cap(fmtDayLong(key))}</b>
@@ -891,17 +896,17 @@ views.rotina = () => {
   const list = routineSorted(key), log = routineLog(key);
   const done = list.filter((r) => log[r.id]).length;
   return head('Seus hábitos', 'Rotina',
-      `<button class="icon-btn" data-act="rot-editor" aria-label="Montar rotina">${ic('sliders')}</button>`)
+      `<button class="icon-btn" data-act="rot-editor" aria-label="Adicionar hábito">${ic('plus')}</button>`)
     + `<div class="section"><div class="day-switch">
         <button class="icon-btn" data-act="rot-day" data-v="-1" aria-label="Dia anterior">${ic('left')}</button>
         <b>${key === todayKey() ? 'Hoje' : cap(fmtDayLong(key))}</b>
         <button class="icon-btn" data-act="rot-day" data-v="1" aria-label="Próximo dia" ${key >= todayKey() ? 'disabled style="opacity:.3"' : ''}>${ic('right')}</button>
       </div></div>`
     + (list.length
-      ? `<div class="section"><div class="group diet-sum">${rings([{ v: done / list.length, color: 'var(--c-dieta)' }], 76, 10)}
+      ? `<div class="section"><div class="group diet-sum">${rings([{ v: done / list.length, color: 'var(--c-rotina)' }], 76, 10)}
           <div><div class="big digits"><span data-count="${done}" data-count-key="rotina">${done}</span><small> de ${list.length}</small></div>
           <div class="s">${done === list.length ? 'rotina completa' : list.length === 1 ? 'hábito' : 'hábitos'}</div></div></div></div>`
-        + section('Hábitos do dia', `<div class="meal-list">${list.map((r) => {
+        + section('Hábitos do dia', `<div class="meal-list rot">${list.map((r) => {
             const ok = !!log[r.id];
             return `<div class="meal-card ${ok ? 'done' : ''} ${justKey === r.id ? 'just' : ''}">
               <button class="meal-main" data-act="rot-open" data-v="${r.id}">
@@ -1186,6 +1191,45 @@ function closeSheet() {
   setTimeout(() => { dlg.classList.remove('is-closing'); dlg.open && dlg.close(); }, SHEET_CLOSE_MS);
 }
 $('#sheet').addEventListener('click', (ev) => { if (ev.target.id === 'sheet') closeSheet(); });
+A['sheet-close'] = () => closeSheet();
+
+/* Arrastar para baixo fecha a folha: vale pela alça/topo, ou em qualquer ponto
+   quando o conteúdo já está rolado até o início. Soltou cedo? Ela volta. */
+(() => {
+  const dlg = $('#sheet'), body = $('#sheet-body');
+  let y0 = null, dy = 0, t0 = 0, arrastando = false;
+  const reset = () => { dlg.style.transition = ''; dlg.style.transform = ''; };
+  dlg.addEventListener('touchstart', (ev) => {
+    if (ev.touches.length !== 1 || ev.target.closest('input, textarea, select')) return;
+    const naAlca = ev.target.closest('.grab') || ev.touches[0].clientY - dlg.getBoundingClientRect().top < 56;
+    if (!naAlca && body.scrollTop > 0) return;
+    y0 = ev.touches[0].clientY; dy = 0; t0 = Date.now(); arrastando = false;
+  }, { passive: true });
+  dlg.addEventListener('touchmove', (ev) => {
+    if (y0 == null) return;
+    dy = ev.touches[0].clientY - y0;
+    if (!arrastando && dy > 8 && body.scrollTop <= 0) arrastando = true;
+    if (!arrastando) return;
+    if (dy < 0) dy = 0;
+    ev.preventDefault();
+    dlg.style.transition = 'none';
+    dlg.style.transform = `translateY(${dy}px)`;
+  }, { passive: false });
+  dlg.addEventListener('touchend', () => {
+    if (y0 == null) return;
+    const rapido = dy > 40 && dy / Math.max(1, Date.now() - t0) > 0.6;
+    if (arrastando && (dy > 120 || rapido)) {
+      dlg.style.transition = 'transform .2s ease-in';
+      dlg.style.transform = 'translateY(100%)';
+      setTimeout(() => { sheetLevel = 0; dlg.open && dlg.close(); reset(); }, 200);
+    } else if (arrastando) {
+      dlg.style.transition = 'transform .25s cubic-bezier(.2,.9,.25,1)';
+      dlg.style.transform = '';
+      setTimeout(reset, 260);
+    }
+    y0 = null; arrastando = false;
+  });
+})();
 const sheetActions = (ok = 'Salvar') => `<div class="sheet-actions"><button class="btn soft" value="cancel" formnovalidate>Cancelar</button><button class="btn" value="ok">${ok}</button></div>`;
 const seg = (name, opts, cur) => `<input type="hidden" name="${name}" value="${esc(cur ?? '')}"><div class="seg" data-seg="${name}">${opts.map(([v, l]) => `<button type="button" data-act="seg" data-v="${esc(v)}" class="${String(v) === String(cur) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
 
@@ -1547,7 +1591,8 @@ function dietEditor() {
     <div class="chips">${MEAL_PRESETS.filter((m) => !gs.some((g) => eqNorm(g.name) === eqNorm(m.name)))
       .map((m) => `<button type="button" class="chip" data-act="grp-add" data-v="${esc(m.name)}|${m.time}">+ ${esc(m.name)}</button>`).join('')
       || '<span class="hint">Todas as refeições sugeridas já estão no plano.</span>'}</div>
-    <button type="button" class="btn soft block" style="margin-top:12px" data-act="grp-add" data-v="|">+ Outra refeição</button>`, null, 1);
+    <button type="button" class="btn soft block" style="margin-top:12px" data-act="grp-add" data-v="|">+ Outra refeição</button>
+    <button type="button" class="text-btn" style="margin-top:14px" data-act="edit-diet">${ic('pencil')} Colar ou editar o plano em texto</button>`, null, 1);
 }
 A['diet-editor'] = () => dietEditor();
 A['grp-add'] = (v) => {
