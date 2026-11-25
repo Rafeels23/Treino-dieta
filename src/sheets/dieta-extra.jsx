@@ -7,7 +7,7 @@ import { Icon, SheetActions } from '../components/ui.jsx';
 const AI_LABEL = { idle: 'Calcular calorias com IA', busy: 'Calculando…', done: 'Calcular de novo', err: 'Tentar de novo' };
 
 function ExtraSheet() {
-  const hasKey = !!state.ai?.key;
+  const hasKey = true; // a IA do Pilar roda no servidor; a chave no celular é opcional
   const [text, setText] = useState('');
   const [kcal, setKcal] = useState('');
   const [hora, setHora] = useState(() => new Date().toTimeString().slice(0, 5));

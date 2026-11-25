@@ -75,8 +75,8 @@ export default function Perfil() {
 
       <Section title="Assistente IA">
         <div className="group"><button className="row plain" onClick={openAiKey}><span className="body"><div className="t">Cálculo de calorias por foto</div>
-          <div className="s">{state.ai?.key ? 'Ativado' : 'Toque para configurar'}</div></span>
-          <span className="end">{state.ai?.key ? <span className="tag ok">Ativo</span> : null}<Icon n="right" /></span></button></div>
+          <div className="s">{state.ai?.key ? 'Usando a chave deste celular' : 'Pela conta do Pilar, para vocês dois'}</div></span>
+          <span className="end"><span className="tag ok">Ativo</span><Icon n="right" /></span></button></div>
       </Section>
 
       <AparenciaSection />

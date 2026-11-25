@@ -217,7 +217,22 @@ async function estimateGemini({ blob, text }) {
   throw err;
 }
 
+/* Sem chave neste celular: usa a IA do Pilar (função pilar-ia no Supabase, chave guardada no servidor) */
+async function estimateServidor({ blob, text }) {
+  const { supabase } = await import('./cloud.js');
+  const { data, error } = await supabase.functions.invoke('pilar-ia', { body: { imagem: blob ? await blobToB64(blob) : undefined, texto: text || undefined } });
+  if (error) {
+    let corpo = null;
+    try { corpo = await error.context?.json?.(); } catch { /* sem corpo */ }
+    const err = new Error(corpo?.erro || (navigator.onLine ? 'Não consegui calcular agora. Tente de novo.' : 'Sem internet. A IA precisa de conexão.'));
+    err.status = error.context?.status; err.servidor = true;
+    throw err;
+  }
+  return data.resultado;
+}
+
 export async function estimateFood({ blob, text }) {
+  if (!state.ai?.key) return estimateServidor({ blob, text });
   if (aiProvider() === 'gemini') return estimateGemini({ blob, text });
   const client = await aiClient();
   const content = [];
@@ -579,6 +594,7 @@ export const sortGroups = () => state.diet.groups.sort((a, b) => (a.time || '99:
 export const extrasKcal = (log) => log.extras.reduce((t, x) => t + (x.kcal || 0), 0);
 
 export function aiErrorText(e) {
+  if (e?.servidor) return e.message; // a função do Pilar já devolve a mensagem em português
   const st = e?.status;
   if (st === 401) return 'Chave da IA inválida. Confira em Perfil › Assistente IA.';
   if (st === 402 || st === 403) return aiProvider() === 'gemini'
