@@ -64,7 +64,7 @@ export default function Hoje() {
     const s = doneToday[doneToday.length - 1];
     workout = (
       <div className="hero-workout done"><div className="kick">Treino de hoje feito</div><div className="name">{s.workoutName}</div>
-        <div className="meta num" style={{ color: 'var(--ink-2)' }}>{sessMin(s)} min · {sessSets(s)} séries</div><div className="letter trophy"><Anim nome="trofeu" tamanho={72} /></div>
+        <div className="meta num" style={{ color: 'var(--ink-2)' }}>{sessMin(s)} min · {sessSets(s)} séries</div><div className="letter trophy"><Anim nome="trofeu" tamanho={64} /></div>
         <button className="btn soft" onClick={() => openSession(s.id)}>Ver resumo</button></div>
     );
   } else if (nw) {

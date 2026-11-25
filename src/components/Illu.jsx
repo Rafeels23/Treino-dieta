@@ -5,10 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 const ANIM = {
-  login: ['maca', '🍎'], codigo: ['ola', '👋'], bloqueado: ['cadeado', '🔒'],
+  login: ['danca', '💃'], codigo: ['ola', '👋'], bloqueado: ['cadeado', '🔒'],
   treino: ['forca', '💪'], dieta: ['salada', '🥗'], rotina: ['broto', '🌱'], progresso: ['grafico', '📈'],
   compras: ['carrinho', '🛒'], festa: ['festa', '🎉'], trofeu: ['trofeu', '🏆'], fogo: ['fogo', '🔥'],
-  manha: ['manha', '🌅'], tarde: ['tarde', '🌞'], noite: ['noite', '🌛'],
+  manha: ['manha', '🌞'], tarde: ['tarde', '⛅'], noite: ['noite', '🌛'],
 };
 
 let lottieP = null;
@@ -46,7 +46,9 @@ export function Anim({ nome, tamanho = 120, className = '', loop = true }) {
 }
 
 /* Bloco de ilustração (estados vazios, login, dia completo) com entrada suave */
-export default function Illu({ nome, className = '', atraso = 0.05, tamanho = 132 }) {
+/* tamanho único para todas as ilustrações */
+export const TAM_ILLU = 96;
+export default function Illu({ nome, className = '', atraso = 0.05, tamanho = TAM_ILLU }) {
   const reduz = useReducedMotion();
   return (
     <motion.div className={`illu ${className}`}
