@@ -198,11 +198,13 @@ function AiKeySheet() {
     <>
       <h2>Assistente IA</h2>
       <p className="lead">A IA calcula as calorias dos alimentos fora do plano, por foto ou descrição.</p>
-      <div className="food"><div className="s">1. Crie uma chave em <b>console.anthropic.com</b> (menu API Keys) e adicione créditos.<br />
-        2. Cole a chave abaixo. Cada cálculo custa poucos centavos.<br />
-        3. A chave fica salva só neste celular e não vai no backup.</div></div>
+      <div className="food"><div className="s">Usa a IA do Google (Gemini), que é grátis dentro de um limite diário.<br /><br />
+        1. Abra <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer"><b>aistudio.google.com/apikey</b></a> e entre com sua conta Google.<br />
+        2. Toque em <b>Criar chave de API</b> e copie a chave (começa com <b>AIza</b>).<br />
+        3. Cole abaixo. Ela fica salva só neste celular e não vai no backup.</div></div>
       <div className="field" style={{ marginTop: 12 }}><label>Chave da API</label>
-        <input name="key" type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} placeholder="sk-ant-..." /></div>
+        <input name="key" type="password" autoComplete="off" autoCapitalize="off" spellCheck={false} value={key} onChange={(e) => setKey(e.target.value)} placeholder="AIza..." /></div>
+      <p className="hint" style={{ marginTop: -4 }}>Também aceita chave da Anthropic (sk-ant-…), que é paga à parte.</p>
       {state.ai?.key ? <button type="button" className="btn danger block" onClick={remover}>Remover chave</button> : null}
       <SheetActions onCancel={closeSheet} onOk={ok} />
     </>

@@ -141,8 +141,10 @@ export async function shrink(file, max = 1024) {
 }
 export const blobToB64 = (b) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.readAsDataURL(b); });
 
-/* ---------------- IA: estimativa de calorias (API da Anthropic) ----------------
-   A chave fica só neste aparelho (localStorage) e vai direto para a Anthropic. */
+/* ---------------- IA: estimativa de calorias ----------------
+   Google Gemini (chave "AIza...", tem uso grátis) ou Anthropic (chave "sk-ant-...").
+   A chave fica só neste aparelho (localStorage) e vai direto para o serviço escolhido. */
+export const aiProvider = (key = state.ai?.key || '') => (/^sk-ant-/.test(key.trim()) ? 'anthropic' : 'gemini');
 export const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.6.0/+esm';
 export let sdkPromise;
 export async function aiClient() {
@@ -166,17 +168,58 @@ export const FOOD_SCHEMA = {
   required: ['alimento', 'porcao', 'kcal', 'proteina_g', 'carboidrato_g', 'gordura_g', 'confianca', 'observacao'],
   additionalProperties: false,
 };
+const foodPrompt = (blob, text) => [
+  'Estime as calorias e os macronutrientes do que a pessoa comeu, fora do plano alimentar dela.',
+  blob ? 'Use a foto. Se aparecer embalagem ou tabela nutricional, use os valores dela.' : '',
+  text ? `Descrição da pessoa: "${text}"` : '',
+  'Se a quantidade não estiver clara, considere uma porção típica no Brasil e diga qual foi.',
+  'Escreva em português do Brasil.',
+].filter(Boolean).join('\n');
+
+/* esquema no formato do Gemini (tipos em maiúsculas, sem additionalProperties) */
+const GEMINI_SCHEMA = {
+  type: 'OBJECT',
+  properties: Object.fromEntries(Object.entries(FOOD_SCHEMA.properties).map(([k, v]) => [k,
+    { type: v.type.toUpperCase(), ...(v.enum ? { enum: v.enum } : {}), ...(v.description ? { description: v.description } : {}) }])),
+  required: FOOD_SCHEMA.required,
+  propertyOrdering: FOOD_SCHEMA.required,
+};
+const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash'];
+async function estimateGemini({ blob, text }) {
+  const key = state.ai?.key?.trim();
+  if (!key) throw new Error('Configure a chave da IA no Perfil.');
+  const parts = [];
+  if (blob) parts.push({ inline_data: { mime_type: 'image/jpeg', data: await blobToB64(blob) } });
+  parts.push({ text: foodPrompt(blob, text) });
+  const body = JSON.stringify({ contents: [{ role: 'user', parts }],
+    generationConfig: { responseMimeType: 'application/json', responseSchema: GEMINI_SCHEMA, temperature: 0.2 } });
+  let last;
+  for (const model of GEMINI_MODELS) {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 404) { last = data; continue; } // modelo indisponível: tenta o próximo
+    if (!res.ok) {
+      const msg = data?.error?.message || '';
+      const err = new Error(msg || 'Não consegui calcular agora.');
+      err.status = /API key not valid|API_KEY_INVALID/i.test(msg) ? 401 : res.status;
+      throw err;
+    }
+    const cand = data?.candidates?.[0];
+    if (!cand || cand.finishReason === 'SAFETY' || data?.promptFeedback?.blockReason) throw new Error('A IA não conseguiu analisar esse item.');
+    const txt = (cand.content?.parts || []).map((p) => p.text || '').join('').trim();
+    if (!txt) throw new Error('A IA não devolveu resultado. Tente de novo.');
+    return JSON.parse(txt);
+  }
+  throw new Error(last?.error?.message || 'O modelo de IA do Google não está disponível agora.');
+}
+
 export async function estimateFood({ blob, text }) {
+  if (aiProvider() === 'gemini') return estimateGemini({ blob, text });
   const client = await aiClient();
   const content = [];
   if (blob) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: await blobToB64(blob) } });
-  content.push({ type: 'text', text: [
-    'Estime as calorias e os macronutrientes do que a pessoa comeu, fora do plano alimentar dela.',
-    blob ? 'Use a foto. Se aparecer embalagem ou tabela nutricional, use os valores dela.' : '',
-    text ? `Descrição da pessoa: "${text}"` : '',
-    'Se a quantidade não estiver clara, considere uma porção típica no Brasil e diga qual foi.',
-    'Escreva em português do Brasil.',
-  ].filter(Boolean).join('\n') });
+  content.push({ type: 'text', text: foodPrompt(blob, text) });
   const res = await client.beta.messages.create({
     model: 'claude-opus-5-5',
     max_tokens: 4000,
@@ -535,8 +578,13 @@ export const extrasKcal = (log) => log.extras.reduce((t, x) => t + (x.kcal || 0)
 export function aiErrorText(e) {
   const st = e?.status;
   if (st === 401) return 'Chave da IA inválida. Confira em Perfil › Assistente IA.';
-  if (st === 402 || st === 403) return 'A conta da API não tem créditos ou permissão. Confira no console da Anthropic.';
-  if (st === 429) return 'Muitas consultas seguidas. Espere um pouco e tente de novo.';
+  if (st === 402 || st === 403) return aiProvider() === 'gemini'
+    ? 'A chave do Google não tem permissão. Confira no Google AI Studio.'
+    : 'A conta da API não tem créditos ou permissão. Confira no console da Anthropic.';
+  if (st === 429) return aiProvider() === 'gemini'
+    ? 'Chegou no limite grátis do Google por agora. Tente de novo mais tarde.'
+    : 'Muitas consultas seguidas. Espere um pouco e tente de novo.';
+  if (st === 400) return 'A IA não conseguiu ler esse pedido. Tente outra foto ou descreva o alimento.';
   if (!navigator.onLine) return 'Sem internet. A IA precisa de conexão.';
   return e?.message || 'Não consegui calcular agora. Tente de novo.';
 }
