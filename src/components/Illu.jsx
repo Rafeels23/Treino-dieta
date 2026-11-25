@@ -1,14 +1,16 @@
-/* Ilustrações animadas: emojis animados do Google (Noto Animated Emoji, CC BY 4.0).
+/* Ilustrações animadas:
+   - pessoas, saudação e festa: Microsoft Fluent Emoji Animated (MIT), em WebP animado
+   - objetos (salada, carrinho, gráfico, troféu, cadeado): Google Noto Animated Emoji (CC BY 4.0), em Lottie
    As animações ficam em public/anim e só carregam quando aparecem na tela.
    Pausam fora da tela; com "reduzir movimento" ficam paradas. */
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 const ANIM = {
-  login: ['forca', '💪'], codigo: ['ola', '👋'], bloqueado: ['cadeado', '🔒'],
-  treino: ['forca', '💪'], dieta: ['salada', '🥗'], rotina: ['broto', '🌱'], progresso: ['grafico', '📈'],
-  compras: ['carrinho', '🛒'], festa: ['festa', '🎉'], trofeu: ['trofeu', '🏆'], fogo: ['fogo', '🔥'],
-  manha: ['manha', '🌞'], tarde: ['tarde', '⛅'], noite: ['noite', '🌛'],
+  login: ['levantando.webp', '🏋️'], codigo: ['ola.webp', '👋'], bloqueado: ['cadeado', '🔒'],
+  treino: ['correndo.webp', '🏃'], dieta: ['salada', '🥗'], rotina: ['meditando.webp', '🧘'], progresso: ['grafico', '📈'],
+  compras: ['carrinho', '🛒'], festa: ['festa.webp', '🎉'], trofeu: ['trofeu', '🏆'], fogo: ['fogo.webp', '🔥'],
+  manha: ['manha.webp', '🌞'], tarde: ['tarde.webp', '🌤️'], noite: ['noite.webp', '🌛'],
 };
 
 let lottieP = null;
@@ -21,9 +23,10 @@ export function Anim({ nome, tamanho = 120, className = '', loop = true }) {
   const reduz = useReducedMotion();
   const [pronto, setPronto] = useState(false);
   const [arq, emoji] = ANIM[nome] || [];
+  const ehImg = arq?.endsWith('.webp');
 
   useEffect(() => {
-    if (!arq) return undefined;
+    if (!arq || ehImg) return undefined;
     let anim = null, vivo = true, io = null;
     Promise.all([carregaLottie(), carregaDados(arq)]).then(([lottie, data]) => {
       if (!vivo || !box.current) return;
@@ -35,7 +38,17 @@ export function Anim({ nome, tamanho = 120, className = '', loop = true }) {
       io.observe(box.current);
     }).catch(() => {});
     return () => { vivo = false; io?.disconnect(); anim?.destroy(); };
-  }, [arq, loop, reduz]);
+  }, [arq, ehImg, loop, reduz]);
+
+  if (ehImg) {
+    return (
+      <span className={`anim ${pronto ? 'pronto' : ''} ${className}`} style={{ '--tam': `${tamanho}px` }} aria-hidden="true">
+        {(!pronto || reduz) && <span className="anim-emoji">{emoji}</span>}
+        {!reduz && <img className="anim-box" src={`./anim/${arq}`} alt="" width={tamanho} height={tamanho}
+          decoding="async" onLoad={() => setPronto(true)} />}
+      </span>
+    );
+  }
 
   return (
     <span className={`anim ${pronto ? 'pronto' : ''} ${className}`} style={{ '--tam': `${tamanho}px` }} aria-hidden="true">

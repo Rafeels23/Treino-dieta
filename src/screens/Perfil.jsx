@@ -91,7 +91,7 @@ export default function Perfil() {
         <p className="hint" style={{ padding: '10px 4px 0' }}>Fica salvo no celular e na sua conta. O backup é uma cópia extra em arquivo.</p>
         <div className="stack-btns"><button className="btn danger block" onClick={resetAll}>Apagar todos os dados</button></div>
       </Section>
-      <p className="hint credits">Emojis animados: Google Noto Emoji, licença CC BY 4.0.</p>
+      <p className="hint credits">Animações: Microsoft Fluent Emoji (MIT) e Google Noto Emoji (CC BY 4.0).</p>
     </>
   );
 }
