@@ -184,7 +184,8 @@ const GEMINI_SCHEMA = {
   required: FOOD_SCHEMA.required,
   propertyOrdering: FOOD_SCHEMA.required,
 };
-const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash'];
+/* se um modelo estiver cheio ou fora do ar, tenta o próximo (cada um tem sua própria cota grátis) */
+const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'];
 async function estimateGemini({ blob, text }) {
   const key = state.ai?.key?.trim();
   if (!key) throw new Error('Configure a chave da IA no Perfil.');
@@ -198,7 +199,7 @@ async function estimateGemini({ blob, text }) {
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 404) { last = data; continue; } // modelo indisponível: tenta o próximo
+    if ([404, 429, 500, 503].includes(res.status)) { last = { status: res.status, data }; continue; } // indisponível ou cheio: tenta o próximo
     if (!res.ok) {
       const msg = data?.error?.message || '';
       const err = new Error(msg || 'Não consegui calcular agora.');
@@ -211,7 +212,9 @@ async function estimateGemini({ blob, text }) {
     if (!txt) throw new Error('A IA não devolveu resultado. Tente de novo.');
     return JSON.parse(txt);
   }
-  throw new Error(last?.error?.message || 'O modelo de IA do Google não está disponível agora.');
+  const err = new Error('A IA do Google está sobrecarregada agora. Tente de novo em instantes.');
+  err.status = last?.status === 429 ? 429 : 503;
+  throw err;
 }
 
 export async function estimateFood({ blob, text }) {
@@ -584,9 +587,12 @@ export function aiErrorText(e) {
   if (st === 429) return aiProvider() === 'gemini'
     ? 'Chegou no limite grátis do Google por agora. Tente de novo mais tarde.'
     : 'Muitas consultas seguidas. Espere um pouco e tente de novo.';
+  if (st === 503 || st === 500) return 'A IA está sobrecarregada agora. Tente de novo em instantes.';
   if (st === 400) return 'A IA não conseguiu ler esse pedido. Tente outra foto ou descreva o alimento.';
   if (!navigator.onLine) return 'Sem internet. A IA precisa de conexão.';
-  return e?.message || 'Não consegui calcular agora. Tente de novo.';
+  const m = e?.message || '';
+  /* mensagens técnicas em inglês viram um aviso em português */
+  return m && /[ãõçáéíóúâêô]/i.test(m) ? m : 'Não consegui calcular agora. Tente de novo.';
 }
 
 export const fmtGrams = (g) => (g >= 1000 ? `${br(g / 1000, 1)} kg` : `${Math.max(10, Math.round(g / 10) * 10)} g`);

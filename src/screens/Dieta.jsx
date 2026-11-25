@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
 import { Anim } from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
+import { openSheet, closeSheet } from '../lib/ui.js';
 import {
   save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
 } from '../lib/core.js';
@@ -63,7 +64,7 @@ export default function Dieta() {
   return (
     <>
       <Head kicker="Plano da nutricionista" title="Alimentação" emoji="dieta"
-        action={<button className="icon-btn" onClick={openDietEditor} aria-label="Adicionar refeição"><Icon n="plus" /></button>} />
+        action={<button className="icon-btn" onClick={openAdd} aria-label="Adicionar"><Icon n="plus" /></button>} />
       <div className="section"><div className="day-switch">
         <button className="icon-btn" onClick={() => setDietDay(state, -1)} aria-label="Dia anterior"><Icon n="left" /></button>
         <b>{key === today ? 'Hoje' : cap(fmtDayLong(key))}</b>
@@ -77,7 +78,7 @@ export default function Dieta() {
         {done === groups.length ? <Anim key={key} nome="palmas" tamanho={60} className="sum-anim" /> : null}
       </div></div>
       <Section title="Refeições">
-        <div className="meal-list">{groups.flatMap((g) => g.options.map((o, oi) => {
+        <div className="meal-list">{comExtras(groups, log.extras, (g) => g.options.map((o, oi) => {
           const c = mealCheck(log, g);
           const reg = !!c && c.opt === oi;        // esta opção é a registrada
           const other = !!c && c.opt !== oi;      // outra opção da mesma refeição foi registrada
@@ -92,19 +93,68 @@ export default function Dieta() {
               <button className="meal-tick" onClick={() => quickMeal(g.id, oi)} aria-pressed={reg} aria-label={`Marcar ${mealLabel(g, oi)}`}><Icon n="check" /></button>
             </div>
           );
-        }))}</div>
-      </Section>
-      <Section title={`Fora do plano${xk ? ` · ${Math.round(xk)} kcal` : ''}`}
-        action={<button className="add-btn" onClick={openExtra} aria-label="Registrar algo que comi fora do plano"><Icon n="plus" /></button>}>
-        {log.extras.length ? (
-          <div className="group">{log.extras.map((x, i) => (
-            <div key={i} className="row plain"><span className="body"><div className="t" style={{ fontWeight: 500 }}>{x.text}</div>
-              <div className="s num">{x.time}{x.kcal != null ? ` · ${Math.round(x.kcal)} kcal` : ''}{x.ai ? ' · estimado pela IA' : ''}</div></span>
-              <button className="text-btn" style={{ color: 'var(--ink-3)' }} onClick={() => deleteExtra(i)}>Remover</button></div>
-          ))}</div>
-        ) : null}
+        }), (x, i) => (
+          <div key={`extra:${i}`} className="meal-card extra">
+            <button className="meal-main" onClick={() => openExtraInfo(i)}>
+              <span className="mc-ic" aria-hidden="true">!</span>
+              <span className="body"><div className="t">{x.time ? `${x.time} - ` : ''}{x.text || 'Fora do plano'}</div>
+                <div className="s num">Fora do plano{x.kcal != null ? ` · ${Math.round(x.kcal)} kcal` : ''}{x.ai ? ' · estimado pela IA' : ''}</div></span>
+            </button>
+          </div>
+        ))}</div>
       </Section>
       <ToolsSection state={state} />
     </>
   );
 }
+
+/* Junta as refeições do plano com o que foi comido fora do plano, na ordem do horário.
+   Os itens fora do plano entram depois da última refeição com horário menor ou igual. */
+function comExtras(groups, extras, renderMeal, renderExtra) {
+  const out = [];
+  const pend = (extras || []).map((x, i) => ({ x, i })).sort((a, b) => (a.x.time || '').localeCompare(b.x.time || ''));
+  groups.forEach((g, gi) => {
+    while (pend.length && g.time && pend[0].x.time && pend[0].x.time < g.time) { const { x, i } = pend.shift(); out.push(renderExtra(x, i)); }
+    out.push(...renderMeal(g, gi));
+  });
+  pend.forEach(({ x, i }) => out.push(renderExtra(x, i)));
+  return out;
+}
+
+/* "+" do topo: escolher entre registrar algo fora do plano ou mexer no plano */
+function AddSheet() {
+  return (
+    <>
+      <h2>Adicionar</h2>
+      <div className="group" style={{ marginTop: 12 }}>
+        <button className="row plain" onClick={() => { closeSheet(); setTimeout(openExtra, 0); }}>
+          <span className="badge warn" aria-hidden="true">!</span>
+          <span className="body"><div className="t">Comi algo fora do plano</div><div className="s">Foto ou descrição; a IA estima as calorias</div></span>
+          <span className="end"><Icon n="right" /></span></button>
+        <button className="row plain" onClick={() => { closeSheet(); setTimeout(openDietEditor, 0); }}>
+          <span className="badge"><Icon n="meal" /></span>
+          <span className="body"><div className="t">Refeição do plano</div><div className="s">Adicionar ou editar refeições da nutricionista</div></span>
+          <span className="end"><Icon n="right" /></span></button>
+      </div>
+    </>
+  );
+}
+function openAdd() { openSheet(() => <AddSheet />); }
+
+function ExtraInfo({ i }) {
+  const state = useStore();
+  const x = dayLog(state.ui.dietDay || todayKey()).extras[i];
+  if (!x) return null;
+  return (
+    <>
+      <h2>Fora do plano</h2>
+      <p className="lead">{x.time ? `${x.time} · ` : ''}{x.text || 'Sem descrição'}</p>
+      <div className="group pad">
+        <div className="row-between"><span>Calorias</span><b className="num">{x.kcal != null ? `${Math.round(x.kcal)} kcal` : '—'}</b></div>
+        {x.ai ? <p className="hint" style={{ marginTop: 8 }}>Estimado pela IA.</p> : null}
+      </div>
+      <div className="stack-btns"><button className="btn danger block" onClick={() => { if (confirm('Remover este item?')) { deleteExtra(i); closeSheet(); } }}>Remover</button></div>
+    </>
+  );
+}
+function openExtraInfo(i) { openSheet(() => <ExtraInfo i={i} />); }
