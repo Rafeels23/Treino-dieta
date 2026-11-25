@@ -40,7 +40,20 @@ Deno.serve(async (req) => {
   if ((recentes ?? []).some((r) => r.enviado_em >= umMinuto)) return json(429, { erro: 'Espere um minuto para pedir outro código.' });
   if ((recentes ?? []).length >= 10) return json(429, { erro: 'Muitos códigos pedidos. Tente de novo mais tarde.' });
 
-  // 3) garante a conta (já confirmada) e gera o código
+  // 3) login no Gmail (porta 465; as portas 25 e 587 são bloqueadas nas funções do Supabase)
+  // a senha de app aparece no Google em blocos com espaços: tira os espaços
+  const user = Deno.env.get('GMAIL_USER')?.trim(), pass = Deno.env.get('GMAIL_APP_PASSWORD')?.replace(/\s+/g, '');
+  if (!user || !pass) return json(500, { erro: 'O envio de e-mail ainda não foi configurado.' });
+  const smtp = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user, pass } });
+  // testa o login no Gmail antes de gerar o código (assim o e-mail padrão do Supabase pode ser usado se falhar)
+  try { await smtp.verify(); } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const mascara = user.replace(/^(.{2}).*(@.*)$/, '$1***$2');
+    console.error(`gmail recusou o login (usuário ${mascara}, senha com ${pass.length} caracteres):`, msg.split('\n')[0]);
+    return json(503, { erro: 'O envio pelo Gmail não está configurado direito.' });
+  }
+
+  // 4) garante a conta (já confirmada), gera o código e envia
   const criado = await admin.auth.admin.createUser({ email, email_confirm: true });
   if (criado.error && !/already|registered|exists/i.test(criado.error.message)) {
     return json(500, { erro: 'Não consegui preparar sua conta.' });
@@ -49,12 +62,7 @@ Deno.serve(async (req) => {
   const codigo = link?.properties?.email_otp;
   if (eLink || !codigo) return json(500, { erro: 'Não consegui gerar o código. Tente de novo.' });
 
-  // 4) envia pelo Gmail (porta 465; as portas 25 e 587 são bloqueadas nas funções do Supabase)
-  // a senha de app aparece no Google em blocos com espaços: tira os espaços
-  const user = Deno.env.get('GMAIL_USER')?.trim(), pass = Deno.env.get('GMAIL_APP_PASSWORD')?.replace(/\s+/g, '');
-  if (!user || !pass) return json(500, { erro: 'O envio de e-mail ainda não foi configurado.' });
   try {
-    const smtp = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user, pass } });
     await smtp.sendMail({
       from: `"Pilar" <${user}>`,
       to: email,
