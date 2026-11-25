@@ -50,7 +50,8 @@ Deno.serve(async (req) => {
   if (eLink || !codigo) return json(500, { erro: 'Não consegui gerar o código. Tente de novo.' });
 
   // 4) envia pelo Gmail (porta 465; as portas 25 e 587 são bloqueadas nas funções do Supabase)
-  const user = Deno.env.get('GMAIL_USER'), pass = Deno.env.get('GMAIL_APP_PASSWORD');
+  // a senha de app aparece no Google em blocos com espaços: tira os espaços
+  const user = Deno.env.get('GMAIL_USER')?.trim(), pass = Deno.env.get('GMAIL_APP_PASSWORD')?.replace(/\s+/g, '');
   if (!user || !pass) return json(500, { erro: 'O envio de e-mail ainda não foi configurado.' });
   try {
     const smtp = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user, pass } });
@@ -67,7 +68,10 @@ Deno.serve(async (req) => {
       </div>`,
     });
   } catch (e) {
-    console.error('falha ao enviar e-mail', e instanceof Error ? e.message : e);
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('falha ao enviar e-mail', msg);
+    // Gmail recusou o login (senha de app errada): o app usa o e-mail padrão do Supabase
+    if (/535|Invalid login|auth/i.test(msg)) return json(503, { erro: 'O envio pelo Gmail não está configurado direito.' });
     return json(502, { erro: 'Não consegui enviar o e-mail agora. Tente de novo.' });
   }
 
