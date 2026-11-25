@@ -19,7 +19,7 @@ Seus dois pilares: treino e alimentação. App de celular (PWA) para acompanhar 
   e toda a regra do app (planos, leitura do plano da nutri, equivalências, compras, receitas, IA) em `src/lib/core.js`.
 - `npm install` e depois `npm run dev` para rodar no computador; `npm run build` gera `dist/`.
 - Os dados ficam no aparelho (`localStorage`, chave `treino-dieta-v1`), compatíveis com a versão antiga.
-- **Site / iPhone:** a Action "Site (GitHub Pages)" publica o `dist/`. No iPhone, abra o link no Safari e use
+- **Site / iPhone:** https://pilar-beryl.vercel.app (Vercel publica a cada envio para a `main`). Reserva: GitHub Pages pela Action "Site (GitHub Pages)". No iPhone, abra o link no Safari e use
   Compartilhar › Adicionar à Tela de Início.
 - **Android:** a Action "APK Android" gera o APK (Capacitor) e publica em Releases.
 - **iOS nativo:** o projeto está em `ios/` (Capacitor + Swift Package Manager); gerar o app exige Xcode e conta Apple.
