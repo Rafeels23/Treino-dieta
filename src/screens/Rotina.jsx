@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
+import Illu from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import { todayKey, routineSorted, cap, fmtDayLong } from '../lib/core.js';
 import { getJustKey, clearJustKey, rotDay, rotTick, openRoutine, openRotEditor } from '../sheets/rotina.jsx';
@@ -43,7 +44,7 @@ export default function Rotina() {
           </Section>
         </>
       ) : (
-        <div className="section"><div className="group empty">Nenhum hábito para {key === todayKey() ? 'hoje' : 'este dia'}.</div>
+        <div className="section"><div className="group empty"><Illu nome="rotina" cor="var(--c-rotina)" />Nenhum hábito para {key === todayKey() ? 'hoje' : 'este dia'}.</div>
           <div className="stack-btns"><button className="btn block" onClick={openRotEditor}>Montar minha rotina</button></div></div>
       )}
     </>

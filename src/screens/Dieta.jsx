@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
+import Illu from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import {
   save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
@@ -21,6 +22,7 @@ function EmptyDiet({ state }) {
   return (
     <>
       <Head kicker="Plano da nutricionista" title="Alimentação" />
+      <Illu nome="dieta" cor="var(--c-dieta)" />
       <Section title="Adicionar plano">
         <div className="group pad">
           <p className="hint" style={{ marginBottom: 12 }}>Cole o texto do plano. Pode ter opções, substituições e observações, assim:</p>

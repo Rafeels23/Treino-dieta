@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Head, Section, Icon } from '../components/ui.jsx';
 import { useStore, useTick } from '../lib/hooks.js';
 import { state, save, fmtClock, br, num, LEVEL_LABEL, estMinutes, nextWorkout, lastPerformance } from '../lib/core.js';
+import Illu from '../components/Illu.jsx';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
 import { openWorkout, openPlanSettings, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
@@ -129,7 +130,7 @@ export default function Treino() {
               );
             })}
           </div>
-        ) : <div className="group empty"><Icon n="dumbbell" /><div>Nenhum treino no plano.</div></div>}
+        ) : <div className="group empty"><Illu nome="treino" cor="var(--c-treino)" /><div>Nenhum treino no plano.</div></div>}
       </Section>
       {state.plan.source === 'personalizado' ? <p className="hint" style={{ padding: '10px 4px 0' }}>Plano editado por você.</p> : null}
     </>

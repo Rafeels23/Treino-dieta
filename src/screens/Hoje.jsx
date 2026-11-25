@@ -7,6 +7,7 @@ import {
   nextMeal, greet, weekMonday, routinesOf, routineLog, extrasKcal, save,
 } from '../lib/core.js';
 import { go } from '../lib/ui.js';
+import Illu from '../components/Illu.jsx';
 import { celebrateDay } from '../lib/effects.js';
 import { openWorkout, startWorkout, openSession } from '../sheets/treino.jsx';
 import { openMeal, quickMeal } from '../sheets/dieta.jsx';
@@ -122,6 +123,8 @@ export default function Hoje() {
           <span className="end"><Icon n="right" /></span></button></div>
       )}
       {summary}
+      {pct === 100 ? <div className="section"><div className="group day-party"><Illu nome="festa" cor="var(--c-rotina)" atraso={0.5} />
+        <div><div className="t">Dia completo</div><div className="s">Treino, refeições e rotina em dia. Bom trabalho.</div></div></div></div> : null}
       <div className="section">{workout}</div>
       <div className="section">{meal}</div>
       {bento}

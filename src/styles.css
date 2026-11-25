@@ -827,3 +827,16 @@ body:has(.login) { padding-bottom: 0; }
 .login-links .text-btn { color: var(--ink-2); }
 .login-links .text-btn:disabled { opacity: .5; }
 .login-hint { text-align: center; margin-top: 10px; }
+
+/* ===== Ilustrações (unDraw) ===== */
+.illu { --illu-ink: #2b2d33; --illu-mid: #b9bcc2; --illu-soft: var(--surface-3); --illu-paper: var(--surface);
+  width: min(62%, 220px); margin: 4px auto 14px; }
+.illu svg { display: block; width: 100%; height: auto; max-height: 170px; }
+[data-theme="dark"] .illu { --illu-ink: #c9ccd2; --illu-mid: #4a4f56; --illu-soft: var(--surface-3); }
+.group.empty .illu { margin-top: 0; }
+.login-illu { width: min(70%, 250px); margin: 0 auto 6px; }
+.day-party { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.day-party .illu { width: 96px; margin: 0; flex: none; }
+.day-party .t { font-weight: 600; }
+.day-party .s { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+@media (max-height: 640px) { .login-illu { display: none; } }

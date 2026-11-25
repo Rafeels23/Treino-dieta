@@ -1,5 +1,6 @@
 /* Entrada no Pilar: e-mail → código de 6 dígitos. Senha fica como plano B. */
 import { useEffect, useRef, useState } from 'react';
+import Illu from './Illu.jsx';
 import { sendCode, verifyCode, signIn, signOut } from '../lib/cloud.js';
 
 function Logo() {
@@ -49,7 +50,7 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-top">
-        <Logo />
+        {step === 'email' ? <Illu nome="login" cor="var(--c-treino)" className="login-illu" /> : <Logo />}
         <h1>Pilar</h1>
         <p>{step === 'codigo' ? <>Enviamos um código de 6 números para <b>{email.trim()}</b>.</> : 'Treino e alimentação, um dia de cada vez.'}</p>
       </div>

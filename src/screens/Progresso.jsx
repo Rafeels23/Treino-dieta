@@ -1,5 +1,6 @@
 /* Tela Progresso: números de 30 dias, peso, carga por exercício, treinos recentes e atividades extras. */
 import { Head, Section, Icon } from '../components/ui.jsx';
+import Illu from '../components/Illu.jsx';
 import Chart from '../components/Chart.jsx';
 import { useStore } from '../lib/hooks.js';
 import { morningSorted, fmtDay, fmtDayLong, todayKey, keyToDate, br, num, cap, finished, mealCheck, save } from '../lib/core.js';
@@ -59,7 +60,7 @@ export default function Progresso() {
             {lPts.length > 0 && <div className="hero" style={{ paddingTop: 12 }}><div className="label">Maior carga recente</div><div className="big">{br(lPts[lPts.length - 1].y)}<small>kg</small></div></div>}
             <Chart key={sel} id="carga" points={lPts} unit="kg" className="treino" />
           </div>
-        ) : <div className="group empty"><Icon n="chart" /><div>Depois de alguns treinos, a evolução de cada exercício aparece aqui.</div></div>}
+        ) : <div className="group empty"><Illu nome="progresso" cor="var(--c-rotina)" /><div>Depois de alguns treinos, a evolução de cada exercício aparece aqui.</div></div>}
       </Section>
       <Section title="Treinos recentes">
         {recent.length ? (
