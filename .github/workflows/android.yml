@@ -29,7 +29,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -38,7 +38,7 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Copiar o app para dentro do projeto Android
+      - name: Montar o app (Vite) e copiar para o projeto Android
         run: npm run android:sync
 
       - name: Preparar a chave de assinatura

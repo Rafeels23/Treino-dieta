@@ -1,8 +1,12 @@
 {
   "appId": "com.rafeels23.pilar",
   "appName": "Pilar",
-  "webDir": "www",
+  "webDir": "dist",
   "android": {
     "backgroundColor": "#0a0b0d"
+  },
+  "ios": {
+    "backgroundColor": "#0a0b0d",
+    "contentInset": "never"
   }
 }

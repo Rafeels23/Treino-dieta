@@ -1,6 +1,7 @@
 // Cache do app para funcionar offline (ex.: academia sem sinal).
-const CACHE = 'pilar-v8';
-const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'fonts/archivo.woff2'];
+const CACHE = 'pilar-v9';
+// Os arquivos do app (assets/*.js e *.css, com nome que muda a cada versão) entram no cache na primeira visita.
+const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'fonts/archivo.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
