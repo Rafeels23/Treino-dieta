@@ -775,8 +775,8 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 .today-card.complete::before { animation: none; opacity: .55; }
 
 /* Avatar e abas em tons neutros: a cor fica para informação */
-.avatar { background: var(--surface-2); color: var(--ink); }
-.avatar.big { background: var(--surface-2); }
+.avatar { background: var(--c-treino); color: #fff; }
+.avatar.big { background: var(--c-treino); }
 .tabs {
   box-shadow: 0 8px 28px rgba(0,0,0,.08), inset 0 0 0 1px var(--hair);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
