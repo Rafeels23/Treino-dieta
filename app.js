@@ -2042,4 +2042,6 @@ document.addEventListener('input', (ev) => {
 if (state.active) keepAwake(true);
 render();
 animateView();
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+// No APK (Capacitor) o app já vem embalado no celular: o modo offline do navegador não é usado.
+const isNativeApp = !!window.Capacitor?.isNativePlatform?.();
+if ('serviceWorker' in navigator && !isNativeApp) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

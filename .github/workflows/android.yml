@@ -1,0 +1,82 @@
+# Gera o APK do Pilar a cada envio para a main (ou manualmente, na aba Actions).
+# O APK fica para download em Releases e também como "artifact" da execução.
+name: APK Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-android
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Copiar o app para dentro do projeto Android
+        run: npm run android:sync
+
+      - name: Preparar a chave de assinatura
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/pilar.jks"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/pilar.jks" >> "$GITHUB_ENV"
+            echo "Assinando com a chave fixa dos Secrets."
+          else
+            echo "::warning::Sem a chave nos Secrets: o APK sai com chave temporária e NÃO atualiza por cima de outra versão."
+          fi
+
+      - name: Gerar o APK
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/Pilar-$VERSION_NAME.apk"
+
+      - name: Guardar o APK na execução
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pilar-${{ env.VERSION_NAME }}
+          path: Pilar-${{ env.VERSION_NAME }}.apk
+
+      - name: Publicar em Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION_NAME }}
+          name: Pilar ${{ env.VERSION_NAME }}
+          body: |
+            APK gerado automaticamente a partir de ${{ github.sha }}.
+            Para instalar: baixe o arquivo .apk abaixo no celular e abra.
+          files: Pilar-${{ env.VERSION_NAME }}.apk
+          make_latest: true

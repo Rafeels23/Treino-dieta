@@ -16,3 +16,11 @@ Seus dois pilares: treino e alimentação. App de celular (PWA) para acompanhar 
 
 ## Arquivos
 `index.html`, `style.css`, `app.js` (todo o app), `sw.js` (offline), `manifest.webmanifest`, ícones e `fonts/` (Archivo, licença OFL em `fonts/OFL.txt`).
+
+## APK para Android
+A cada envio para a `main`, a Action **APK Android** (`.github/workflows/android.yml`) embala o app com o [Capacitor](https://capacitorjs.com) e publica o arquivo em **Releases**.
+
+- Baixar: aba **Releases** do repositório, arquivo `Pilar-1.0.N.apk`.
+- O app web continua na raiz (GitHub Pages); `npm run build` copia esses arquivos para `www/`, que o Capacitor coloca dentro do projeto `android/`.
+- A assinatura usa os Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` e `ANDROID_KEY_PASSWORD`. Sem eles o APK sai com chave temporária e não atualiza por cima.
+- Gerar manualmente: aba **Actions** › APK Android › **Run workflow**.

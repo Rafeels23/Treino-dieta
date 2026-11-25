@@ -4,3 +4,9 @@
 .claude/
 skills-lock.json
 transitions/
+
+# Android (Capacitor)
+node_modules/
+www/
+*.jks
+*.keystore
