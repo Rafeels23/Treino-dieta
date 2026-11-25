@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 const ANIM = {
-  login: ['danca', '💃'], codigo: ['ola', '👋'], bloqueado: ['cadeado', '🔒'],
+  login: ['forca', '💪'], codigo: ['ola', '👋'], bloqueado: ['cadeado', '🔒'],
   treino: ['forca', '💪'], dieta: ['salada', '🥗'], rotina: ['broto', '🌱'], progresso: ['grafico', '📈'],
   compras: ['carrinho', '🛒'], festa: ['festa', '🎉'], trofeu: ['trofeu', '🏆'], fogo: ['fogo', '🔥'],
   manha: ['manha', '🌞'], tarde: ['tarde', '⛅'], noite: ['noite', '🌛'],
