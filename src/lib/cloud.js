@@ -134,9 +134,27 @@ const ptError = (e) => {
 };
 
 /* login por código de 6 dígitos enviado por e-mail */
+/* O código sai pelo Gmail, via função pilar-codigo no Supabase (só e-mails da lista do Pilar).
+   Se o envio pelo Gmail ainda não estiver configurado, usa o e-mail padrão do Supabase. */
 export async function sendCode(email) {
-  const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true } });
-  if (error) throw new Error(ptError(error));
+  const addr = email.trim().toLowerCase();
+  let erro = null, semGmail = false;
+  try {
+    const { error } = await supabase.functions.invoke('pilar-codigo', { body: { email: addr } });
+    if (error) {
+      let body = null;
+      try { body = await error.context?.json?.(); } catch { /* sem corpo */ }
+      erro = body?.erro || null;
+      semGmail = !erro || /configurad/i.test(erro);
+    }
+  } catch { semGmail = true; }
+  if (!erro && !semGmail) return;
+  if (semGmail) {
+    const { error } = await supabase.auth.signInWithOtp({ email: addr, options: { shouldCreateUser: true } });
+    if (error) throw new Error(ptError(error));
+    return;
+  }
+  throw new Error(erro);
 }
 export async function verifyCode(email, token) {
   const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: String(token).trim(), type: 'email' });
