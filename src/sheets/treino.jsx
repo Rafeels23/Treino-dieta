@@ -45,7 +45,9 @@ export function startWorkout(id) {
     id: uid(), workoutId: w.id, workoutLetter: w.letter, workoutName: w.name, start: Date.now(),
     exercises: w.exercises.map((e) => ({ name: e.name, tipo: e.tipo, reps: e.reps, rest: e.rest, notes: e.notes,
       sets: Array.from({ length: e.sets }, () => ({ kg: '', reps: '', done: false })) })),
+    foco: 0,
   };
+  state.ui.treinoLista = false; // abre na tela de um exercício por vez
   save(); keepAwake(true); go('treino');
 }
 

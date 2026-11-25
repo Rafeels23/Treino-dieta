@@ -5,7 +5,7 @@ import { ICONS, br, initials, state } from '../lib/core.js';
 import { go } from '../lib/ui.js';
 import { reducedMotion } from '../lib/effects.js';
 
-const EXTRA = { x: '<path d="M6 6l12 12M18 6 6 18"/>' };
+const EXTRA = { x: '<path d="M6 6l12 12M18 6 6 18"/>', pause: '<path d="M9 6v12M15 6v12"/>' };
 export function Icon({ n, className = 'i' }) {
   return <svg className={className} viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: ICONS[n] || EXTRA[n] || '' }} />;
 }

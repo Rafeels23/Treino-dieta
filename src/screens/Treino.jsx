@@ -3,9 +3,11 @@ import { Head, Section, Icon } from '../components/ui.jsx';
 import { useStore, useTick } from '../lib/hooks.js';
 import { state, save, fmtClock, br, num, LEVEL_LABEL, estMinutes, nextWorkout, lastPerformance } from '../lib/core.js';
 import Illu from '../components/Illu.jsx';
+import TreinoFoco from './TreinoFoco.jsx';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
-import { openWorkout, openPlanSettings, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
+import { openWorkout, startWorkout, openPlanSettings, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
+import { buzzOnly } from '../lib/effects.js';
 
 /* série recém-marcada (animação `just`); limpa depois do render, como no antigo */
 let justKey = null;
@@ -63,6 +65,7 @@ function ActiveView({ s }) {
             <div className="s num"><Elapsed start={s.start} /> · {done} de {total} séries</div></div>
           <button className="btn sm" onClick={finishWorkout}>Concluir</button>
         </div>
+        <button className="btn soft block foco-btn" onClick={() => { state.ui.treinoLista = false; save(); }}>Um exercício por vez</button>
         <div className="prog"><i style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
       </div>
       {s.exercises.map((e, ei) => {
@@ -109,7 +112,9 @@ function ActiveView({ s }) {
 
 export default function Treino() {
   const state = useStore();
-  if (state.active) return <ActiveView s={state.active} />;
+  if (state.active) return state.ui.treinoLista
+    ? <ActiveView s={state.active} />
+    : <TreinoFoco s={state.active} onLista={() => { state.ui.treinoLista = true; save(); }} />;
   const nw = nextWorkout();
   const ws = state.plan.workouts;
   return (
@@ -122,7 +127,7 @@ export default function Treino() {
             {ws.map((w) => {
               const isNext = nw && w.id === nw.id;
               return (
-                <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} onClick={() => openWorkout(w.id)}>
+                <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} {...segurar(() => openWorkout(w.id), () => startWorkout(w.id))}>
                   <span className="lt">{w.letter}</span>
                   <span className="body"><div className="t">{w.name}</div><div className="s">{w.exercises.length} exercícios · ~{estMinutes(w)} min</div></span>
                   <span className="end">{isNext ? <span className="tag accent">Próximo</span> : null}<Icon n="right" /></span>
@@ -132,7 +137,21 @@ export default function Treino() {
           </div>
         ) : <div className="group empty"><Illu nome="treino" cor="var(--c-treino)" /><div>Nenhum treino no plano.</div></div>}
       </Section>
-      {state.plan.source === 'personalizado' ? <p className="hint" style={{ padding: '10px 4px 0' }}>Plano editado por você.</p> : null}
+      {ws.length ? <p className="hint" style={{ padding: '10px 4px 0' }}>Toque para começar. Segure para ver a lista ou editar.</p> : null}
+      {state.plan.source === 'personalizado' ? <p className="hint" style={{ padding: '4px 4px 0' }}>Plano editado por você.</p> : null}
     </>
   );
+}
+
+/* toque começa o treino; segurar ~0,5 s abre a lista do treino (com Editar) */
+function segurar(onHold, onTap) {
+  let t = null, x0 = 0, y0 = 0, segurou = false;
+  const parar = () => { clearTimeout(t); t = null; };
+  return {
+    onPointerDown: (e) => { segurou = false; x0 = e.clientX; y0 = e.clientY; parar(); t = setTimeout(() => { segurou = true; t = null; buzzOnly(15); onHold(); }, 480); },
+    onPointerMove: (e) => { if (t && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) parar(); },
+    onPointerUp: parar, onPointerLeave: parar, onPointerCancel: parar,
+    onContextMenu: (e) => e.preventDefault(),
+    onClick: (e) => { if (segurou) { e.preventDefault(); segurou = false; return; } onTap(); },
+  };
 }

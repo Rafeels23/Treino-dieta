@@ -1,0 +1,2 @@
+Fotos dos exercícios: Free Exercise DB (https://github.com/yuhonas/free-exercise-db)
+Domínio público (The Unlicense). Cada animação alterna as fotos de início e fim do movimento.

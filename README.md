@@ -34,4 +34,5 @@ A cada envio para a `main`, a Action **APK Android** (`.github/workflows/android
 
 ## Créditos
 
+- Fotos dos exercícios: [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (domínio público).
 - Animações: [Microsoft Fluent Emoji Animated](https://github.com/microsoft/fluentui-emoji-animated) (MIT) e [Google Noto Animated Emoji](https://googlefonts.github.io/noto-emoji-animation/) (CC BY 4.0).
