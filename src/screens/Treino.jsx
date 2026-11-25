@@ -114,7 +114,7 @@ export default function Treino() {
   const ws = state.plan.workouts;
   return (
     <>
-      <Head kicker={`${state.profile.dias}x por semana · ${LEVEL_LABEL[state.profile.nivel]}`} title="Treino"
+      <Head emoji={state.plan.workouts.length ? 'fogo' : null} kicker={`${state.profile.dias}x por semana · ${LEVEL_LABEL[state.profile.nivel]}`} title="Treino"
         action={<button className="icon-btn" onClick={openPlanSettings} aria-label="Ajustar plano"><Icon n="sliders" /></button>} />
       <Section title="Seus treinos" action={<button className="text-btn" onClick={addWorkout}>+ Novo</button>}>
         {ws.length ? (
