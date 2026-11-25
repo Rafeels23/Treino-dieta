@@ -859,3 +859,10 @@ body:has(.login) { padding-bottom: 0; }
 .meal-card.extra .meal-main { padding-right: 14px; }
 .meal-card.extra .s { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
 .badge.warn { background: color-mix(in srgb, var(--c-treino) 14%, transparent); color: var(--c-treino); font-weight: 800; font-size: 18px; display: grid; place-items: center; }
+/* segurar em cima da refeição: sem menu do sistema nem seleção de texto */
+.meal-main { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.danger-text { color: var(--danger); }
+/* título com emoji sempre na mesma linha */
+.head > div:first-child { min-width: 0; }
+.head h1 { white-space: nowrap; font-size: clamp(25px, 7.2vw, 30px); }
+.head h1 .hello-anim { --tam: 30px !important; margin-left: 4px; }

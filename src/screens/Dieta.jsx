@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Head, Section, Rings, CountUp, Icon } from '../components/ui.jsx';
 import { Anim } from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import {
-  save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
+  state as st, save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
 } from '../lib/core.js';
 import {
   openMeal, quickMeal, openExtra, openDietEditor, openShopping, openRecipes, deleteExtra, dietJustKey, clearDietJust,
 } from '../sheets/dieta.jsx';
-import { saveDietText } from '../sheets/dieta-editor.jsx';
+import { saveDietText, openGrpEditor } from '../sheets/dieta-editor.jsx';
+import { buzzOnly } from '../lib/effects.js';
 
 const PLACEHOLDER = '07:30 - Café da manhã\nIogurte desnatado - 170 g\nAveia em flocos - 30 g\nMorango - 10 unidades ou 120 g\nSubstituição: Salada de frutas - 1 porção\n\n07:30 - Café da manhã - Opção 2\nPão integral - 2 fatias\n\n12:00 - Almoço\nArroz branco cozido - 125 g\nPeito de frango grelhado - 150 g\nObservação: legumes e folhas à vontade';
 
@@ -86,7 +87,7 @@ export default function Dieta() {
           const cls = ['meal-card', reg && 'done', other && 'faded', isNow && 'now', just === `${g.id}:${oi}` && 'just'].filter(Boolean).join(' ');
           return (
             <div key={`${g.id}:${o.id || oi}`} className={cls}>
-              <button className="meal-main" onClick={() => openMeal(g.id, oi)}>
+              <button className="meal-main" {...segurar(() => openMealActions(g.id, oi), () => openMeal(g.id, oi))}>
                 <span className="mc-ic"><Icon n="meal" /></span>
                 <span className="body"><div className="t">{mealTitle(g, oi)}</div>{isNow ? <span className="now-tag">Agora</span> : null}</span>
               </button>
@@ -95,7 +96,7 @@ export default function Dieta() {
           );
         }), (x, i) => (
           <div key={`extra:${i}`} className="meal-card extra">
-            <button className="meal-main" onClick={() => openExtraInfo(i)}>
+            <button className="meal-main" {...segurar(() => openExtraInfo(i), () => openExtraInfo(i))}>
               <span className="mc-ic" aria-hidden="true">!</span>
               <span className="body"><div className="t">{x.time ? `${x.time} - ` : ''}{x.text || 'Fora do plano'}</div>
                 <div className="s num">Fora do plano{x.kcal != null ? ` · ${Math.round(x.kcal)} kcal` : ''}{x.ai ? ' · estimado pela IA' : ''}</div></span>
@@ -158,3 +159,53 @@ function ExtraInfo({ i }) {
   );
 }
 function openExtraInfo(i) { openSheet(() => <ExtraInfo i={i} />); }
+
+/* Segurar o dedo ~0,5 s em cima de um item abre as opções (excluir etc.); toque normal abre o item.
+   Retorna os handlers para espalhar no botão. */
+function segurar(onHold, onTap) {
+  let t = null, x0 = 0, y0 = 0, segurou = false;
+  const parar = () => { clearTimeout(t); t = null; };
+  return {
+    onPointerDown: (e) => {
+      segurou = false; x0 = e.clientX; y0 = e.clientY; parar();
+      t = setTimeout(() => { segurou = true; t = null; buzzOnly(15); onHold(); }, 480);
+    },
+    onPointerMove: (e) => { if (t && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) parar(); },
+    onPointerUp: parar, onPointerLeave: parar, onPointerCancel: parar,
+    onContextMenu: (e) => e.preventDefault(),
+    onClick: (e) => { if (segurou) { e.preventDefault(); segurou = false; return; } onTap(); },
+  };
+}
+
+/* Opções de uma refeição do plano (ao segurar) */
+function limpaRegistro(gid) { Object.values(st.dietLog).forEach((l) => { if (l.checked?.[gid] != null) delete l.checked[gid]; }); }
+function MealActions({ gid, oi }) {
+  useStore();
+  const g = st.diet.groups.find((x) => x.id === gid);
+  if (!g) return null;
+  const variasOpcoes = g.options.length > 1;
+  const excluirOpcao = () => {
+    if (!confirm(`Excluir "${mealLabel(g, oi)}"?`)) return;
+    g.options.splice(oi, 1); limpaRegistro(gid); save(); closeSheet();
+  };
+  const excluirRefeicao = () => {
+    if (!confirm(`Excluir "${g.name}"${variasOpcoes ? ' e todas as suas opções' : ''}?`)) return;
+    st.diet.groups = st.diet.groups.filter((x) => x.id !== gid); limpaRegistro(gid); save(); closeSheet();
+  };
+  return (
+    <>
+      <h2>{mealTitle(g, oi)}</h2>
+      <div className="group" style={{ marginTop: 12 }}>
+        <button className="row plain" onClick={() => { closeSheet(); setTimeout(() => openMeal(gid, oi), 0); }}>
+          <span className="body"><div className="t">Abrir refeição</div></span><span className="end"><Icon n="right" /></span></button>
+        <button className="row plain" onClick={() => { closeSheet(); setTimeout(() => openGrpEditor(gid), 0); }}>
+          <span className="body"><div className="t">Editar refeição</div><div className="s">Nome, horário e opções</div></span><span className="end"><Icon n="right" /></span></button>
+      </div>
+      <div className="stack-btns">
+        {variasOpcoes ? <button className="btn soft block danger-text" onClick={excluirOpcao}>Excluir só esta opção</button> : null}
+        <button className="btn danger block" onClick={excluirRefeicao}>Excluir refeição</button>
+      </div>
+    </>
+  );
+}
+function openMealActions(gid, oi) { openSheet(() => <MealActions gid={gid} oi={oi} />); }
