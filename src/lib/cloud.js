@@ -28,6 +28,9 @@ const writeMeta = (m) => { try { localStorage.setItem(META_KEY, JSON.stringify(m
 let meta = readMeta();          // { userId, localAt, remoteAt }
 
 const forCloud = () => { const { ai, ...rest } = state; return { ...rest, active: rest.active ?? null }; };
+/* "assinatura" dos dados de verdade: trocar de aba ou abrir uma tela (state.ui) não conta como mudança */
+const assinatura = () => { const { ai, ui, ...rest } = state; return JSON.stringify(rest); };
+let ultimaAssinatura = null;
 
 /* aplicar dados vindos da nuvem sem disparar um novo envio */
 let applying = false;
@@ -37,6 +40,7 @@ function applyRemote(dados) {
   const s = migrate(Object.assign(defaultState(), dados || {}));
   if (ai) s.ai = ai;
   replaceState(s);
+  ultimaAssinatura = assinatura();
   applying = false;
 }
 
@@ -65,6 +69,9 @@ function schedulePush() {
 /* cada save() local carimba a hora e agenda o envio */
 subscribe(() => {
   if (applying || !acc.user) return;
+  const a = assinatura();
+  if (a === ultimaAssinatura) return;            // só mudou a tela/aba: não envia nada
+  ultimaAssinatura = a;
   meta = { ...meta, localAt: Date.now() }; writeMeta(meta);
   schedulePush();
 });
