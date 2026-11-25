@@ -641,3 +641,54 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 }
 .sheet-x .i { width: 20px; height: 20px; }
 .sheet-body > h2:first-of-type { padding-right: 48px; }
+
+/* ============================================================
+   Efeitos (escritos para o Pilar)
+   ============================================================ */
+
+/* Faíscas no toque */
+.spark { position: fixed; z-index: 50; width: 0; height: 0; pointer-events: none; }
+.spark i {
+  position: absolute; left: -1.5px; top: -5px; width: 3px; height: 10px; border-radius: 3px;
+  transform: rotate(var(--a)) translateY(-6px); opacity: 1;
+  animation: spark-fly .55s cubic-bezier(.15,.7,.3,1) forwards;
+}
+@keyframes spark-fly {
+  to { transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scaleY(.2); opacity: 0; }
+}
+
+/* Título que surge do desfoque, palavra por palavra (só ao entrar na tela) */
+#view.enter .head h1 .w {
+  display: inline-block; animation: blur-in .7s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: calc(var(--i) * 90ms + 60ms);
+}
+@keyframes blur-in { from { opacity: 0; filter: blur(10px); transform: translateY(8px); } to { opacity: 1; filter: none; transform: none; } }
+
+/* Brilho passando pelo texto */
+.shine {
+  background: linear-gradient(110deg, rgba(255,255,255,.72) 35%, #fff 50%, rgba(255,255,255,.72) 65%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent !important;
+  animation: shine 3.2s linear infinite;
+}
+@keyframes shine { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* Borda luminosa girando no botão principal */
+@property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.btn.glow { position: relative; isolation: isolate; }
+.btn.glow::before {
+  content: ""; position: absolute; inset: -3px; border-radius: 19px; z-index: -1;
+  background: conic-gradient(from var(--ang), transparent 0 62%, #ffd27a 78%, #fff 84%, transparent 96%);
+  animation: spin-ang 2.8s linear infinite;
+}
+@keyframes spin-ang { to { --ang: 360deg; } }
+
+/* Dia completo: cartão com brilho suave nas três cores */
+.today-card.complete { position: relative; isolation: isolate; overflow: visible; }
+.today-card.complete::before {
+  content: ""; position: absolute; inset: -2px; border-radius: calc(var(--r) + 2px); z-index: -1;
+  background: conic-gradient(from var(--ang), var(--c-treino), var(--c-dieta), var(--c-rotina), var(--c-treino));
+  animation: spin-ang 6s linear infinite; opacity: .9;
+}
+.today-card.complete::after {
+  content: ""; position: absolute; inset: 0; border-radius: var(--r); z-index: -1; background: var(--surface);
+}

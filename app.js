@@ -529,7 +529,47 @@ function rings(items, size = 128, sw = 12) {
       + (v > 0 ? `<circle class="val" cx="${c}" cy="${c}" r="${r}" stroke-width="${sw}" style="stroke:${it.color};stroke-dasharray:${len.toFixed(1)};--len:${len.toFixed(1)};--off:${(len * (1 - v)).toFixed(1)}"/>` : '');
   }).join('')}</svg>`;
 }
-const buzz = (ms = 12) => { try { navigator.vibrate?.(ms); } catch {} };
+/* ----- Efeitos (escritos para o Pilar; ideias inspiradas em efeitos de interface populares) ----- */
+let lastTap = null;
+document.addEventListener('pointerdown', (e) => { lastTap = { x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
+const AREA_COLOR = { treino: '--c-treino', dieta: '--c-dieta', rotina: '--c-rotina' };
+const cssVar = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+/* Faíscas saindo de um ponto da tela */
+function spark(x, y, colors, n = 10, dist = 26) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div');
+  box.className = 'spark'; box.style.left = x + 'px'; box.style.top = y + 'px';
+  for (let i = 0; i < n; i++) {
+    const r = document.createElement('i');
+    r.style.setProperty('--a', `${(360 / n) * i + Math.random() * 12}deg`);
+    r.style.setProperty('--d', `${dist + Math.random() * dist * 0.4}px`);
+    r.style.background = colors[i % colors.length];
+    box.appendChild(r);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 700);
+}
+const buzz = (ms = 12) => {
+  try { navigator.vibrate?.(ms); } catch {}
+  if (lastTap && Date.now() - lastTap.t < 1200) spark(lastTap.x, lastTap.y, [cssVar(AREA_COLOR[state.ui.tab] || '--c-dieta')]);
+};
+/* Dia 100%: explosão nas três cores, uma vez por dia */
+function celebrateDay() {
+  const k = todayKey();
+  if (state.ui.celebrated === k) return;
+  state.ui.celebrated = k; save();
+  setTimeout(() => {
+    const r = $('.today-card .rings')?.getBoundingClientRect();
+    if (!r) return;
+    const cols = ['--c-treino', '--c-dieta', '--c-rotina'].map(cssVar);
+    spark(r.left + r.width / 2, r.top + r.height / 2, cols, 18, 70);
+    setTimeout(() => spark(r.left + r.width / 2, r.top + r.height / 2, cols, 14, 110), 160);
+    buzzOnly([20, 60, 30]);
+  }, 900);
+}
+const buzzOnly = (p) => { try { if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(p); } catch {} };
+/* Título que surge palavra por palavra, saindo do desfoque */
+const blurWords = (t) => (/[<&]/.test(t) ? t : t.split(' ').map((w, i) => `<span class="w" style="--i:${i}">${w}</span>`).join(' '));
 let justKey = null;
 const toMin = (t) => (t ? (+t.slice(0, 2)) * 60 + (+t.slice(3, 5)) : null);
 /* Próxima refeição pendente: a que está na hora (até 90 min de atraso) ou a seguinte. */
@@ -542,7 +582,7 @@ function nextMeal(log) {
 }
 /* o perfil mora no canto superior direito de toda tela, no lugar da aba */
 const avatarBtn = () => `<button class="avatar" data-act="goto" data-v="perfil" aria-label="Seu perfil">${state.profile.nome ? esc(initials(state.profile.nome)) : ic('user')}</button>`;
-const head = (kicker, title, action = '') => `<header class="head"><div><div class="kicker">${kicker}</div><h1>${title}</h1></div>
+const head = (kicker, title, action = '') => `<header class="head"><div><div class="kicker">${kicker}</div><h1>${blurWords(title)}</h1></div>
   <div class="head-actions">${action}${avatarBtn()}</div></header>`;
 const section = (title, body, action = '') => `<section class="section"><div class="section-title"><span>${title}</span>${action}</div>${body}</section>`;
 const initials = (n) => n.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
@@ -573,7 +613,8 @@ views.hoje = () => {
   /* o dia é treino + refeições + rotina (a rotina só conta se houver hábitos para hoje); o peso mora no Perfil */
   const parts = [vTreino, vMeal].concat(rotList.length ? [vRot] : []);
   const pct = Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
-  const summary = `<div class="section"><div class="group today-card">
+  if (pct === 100) celebrateDay();
+  const summary = `<div class="section"><div class="group today-card ${pct === 100 ? 'complete' : ''}">
       ${rings([{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }, { v: vRot, color: 'var(--c-rotina)' }])}
       <div style="flex:1;min-width:0"><div class="cap">Seu dia</div><div class="pct digits"><span data-count="${pct}" data-count-key="pct-dia">${pct}</span><small>%</small></div>
         <ul class="legend">
@@ -594,9 +635,9 @@ views.hoje = () => {
       <div class="meta num" style="color:var(--ink-2)">${Math.round((s.end - s.start) / 60000)} min · ${sets} séries</div><div class="letter">${ic('check')}</div>
       <button class="btn soft" data-act="session" data-v="${s.id}">Ver resumo</button></div>`;
   } else if (nw) {
-    workout = `<div class="hero-workout"><div class="kick">Próximo treino</div><div class="name">${esc(nw.name)}</div>
+    workout = `<div class="hero-workout"><div class="kick shine">Próximo treino</div><div class="name">${esc(nw.name)}</div>
       <div class="meta">${nw.exercises.length} exercícios · ~${estMinutes(nw)} min</div><div class="letter">${esc(nw.letter)}</div>
-      <div class="row-btns" style="justify-content:flex-start;gap:10px"><button class="btn light" data-act="start" data-v="${nw.id}">${ic('play')} Começar</button>
+      <div class="row-btns" style="justify-content:flex-start;gap:10px"><button class="btn light glow" data-act="start" data-v="${nw.id}">${ic('play')} Começar</button>
       <button class="btn" style="background:rgba(255,255,255,.16);color:#fff;margin-top:18px" data-act="workout" data-v="${nw.id}">Ver exercícios</button></div></div>`;
   } else {
     workout = `<button class="next-meal" data-act="goto" data-v="treino"><span class="body"><div class="k" style="color:var(--c-treino)">Treino</div><div class="t">Monte seu plano</div></span>${ic('right')}</button>`;
