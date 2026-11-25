@@ -17,7 +17,7 @@ export default function Rotina() {
   return (
     <>
       <Head kicker="Seus hábitos" title="Rotina" emoji="relogio"
-        action={<button className="icon-btn" onClick={openRotEditor} aria-label="Adicionar hábito"><Icon n="plus" /></button>} />
+        action={<button className="icon-btn destaque" style={{ '--cor': 'var(--c-rotina)' }} onClick={openRotEditor} aria-label="Adicionar hábito"><Icon n="plus" /></button>} />
       <div className="section"><div className="day-switch">
         <button className="icon-btn" onClick={() => rotDay(-1)} aria-label="Dia anterior"><Icon n="left" /></button>
         <b>{key === todayKey() ? 'Hoje' : cap(fmtDayLong(key))}</b>

@@ -65,7 +65,7 @@ export default function Dieta() {
   return (
     <>
       <Head kicker="Plano da nutricionista" title="Alimentação" emoji="dieta"
-        action={<button className="icon-btn" onClick={openAdd} aria-label="Adicionar"><Icon n="plus" /></button>} />
+        action={<button className="icon-btn destaque" style={{ '--cor': 'var(--c-dieta)' }} onClick={openAdd} aria-label="Adicionar"><Icon n="plus" /></button>} />
       <div className="section"><div className="day-switch">
         <button className="icon-btn" onClick={() => setDietDay(state, -1)} aria-label="Dia anterior"><Icon n="left" /></button>
         <b>{key === today ? 'Hoje' : cap(fmtDayLong(key))}</b>
