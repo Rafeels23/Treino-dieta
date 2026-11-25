@@ -9,6 +9,8 @@ import { openPlanSettings } from '../sheets/treino.jsx';
 import { openDietEditor } from '../sheets/dieta.jsx';
 import { useSyncExternalStore } from 'react';
 import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
+import { Seg } from '../components/ui.jsx';
+import { getThemePref, setThemePref, subscribeTheme } from '../lib/theme.js';
 
 function Kv({ label, value }) {
   return (
@@ -77,6 +79,8 @@ export default function Perfil() {
           <span className="end">{state.ai?.key ? <span className="tag ok">Ativo</span> : null}<Icon n="right" /></span></button></div>
       </Section>
 
+      <AparenciaSection />
+
       <ContaSection />
 
       <Section title="Seus dados">
@@ -103,6 +107,16 @@ function ContaSection() {
           <span className={`sync-dot ${acc.sync}`} aria-hidden="true" /></button>
         <button className="row plain" onClick={sair}><span className="body"><div className="t" style={{ color: 'var(--danger)' }}>Sair da conta</div></span></button>
       </div>
+    </Section>
+  );
+}
+
+function AparenciaSection() {
+  const pref = useSyncExternalStore(subscribeTheme, getThemePref);
+  return (
+    <Section title="Aparência">
+      <Seg options={[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Escuro']]} value={pref} onChange={setThemePref} />
+      <p className="hint" style={{ padding: '8px 4px 0' }}>Automático segue o modo do celular.</p>
     </Section>
   );
 }

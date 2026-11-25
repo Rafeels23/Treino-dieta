@@ -127,10 +127,21 @@ const ptError = (e) => {
   if (/email not confirmed/i.test(m)) return 'Confirme seu e-mail pelo link que enviamos e tente de novo.';
   if (/already registered|already exists/i.test(m)) return 'Esse e-mail já tem conta. Use "Entrar".';
   if (/password should be at least/i.test(m)) return 'A senha precisa ter pelo menos 6 caracteres.';
-  if (/rate limit|too many/i.test(m)) return 'Muitas tentativas. Espere um pouco e tente de novo.';
+  if (/rate limit|too many|security purposes/i.test(m)) return 'Muitas tentativas. Espere um minuto e tente de novo.';
+  if (/signups not allowed|not allowed for otp/i.test(m)) return 'Este e-mail não tem acesso ao Pilar.';
   if (/failed to fetch|network/i.test(m)) return 'Sem internet. Conecte-se para entrar.';
   return m || 'Não deu certo. Tente de novo.';
 };
+
+/* login por código de 6 dígitos enviado por e-mail */
+export async function sendCode(email) {
+  const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true } });
+  if (error) throw new Error(ptError(error));
+}
+export async function verifyCode(email, token) {
+  const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: String(token).trim(), type: 'email' });
+  if (error) throw new Error(/expired|invalid/i.test(error.message) ? 'Código inválido ou vencido. Confira ou peça outro.' : ptError(error));
+}
 
 export async function signIn(email, password) {
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });

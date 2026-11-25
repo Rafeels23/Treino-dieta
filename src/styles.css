@@ -43,8 +43,8 @@
   --font: "Archivo", system-ui, Roboto, sans-serif;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+/* tema escuro (automático ou escolhido) */
+:root[data-theme="dark"] {
     --bg: #0a0b0d;
     --surface: #141619;
     --surface-2: #1c1f23;
@@ -69,7 +69,7 @@
     --shadow: none;
     color-scheme: dark;
   }
-}
+
 
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); }
@@ -308,7 +308,9 @@ main { padding: 6px 16px 0; }
   box-shadow: 0 14px 40px rgba(0,0,0,.35); display: flex; align-items: center; gap: 14px;
   animation: rise .3s cubic-bezier(.2,.8,.2,1);
 }
-@media (prefers-color-scheme: dark) { .timer { background: #1f2226; box-shadow: 0 14px 40px rgba(0,0,0,.6), inset 0 0 0 1px #2b2f34; } }
+/* tema escuro (automático ou escolhido) */
+[data-theme="dark"] .timer { background: #1f2226; box-shadow: 0 14px 40px rgba(0,0,0,.6), inset 0 0 0 1px #2b2f34; }
+
 .timer-ring { position: relative; width: 84px; height: 84px; flex: none; }
 .timer-ring svg { display: block; transform: rotate(-90deg); }
 .timer-ring .track { fill: none; stroke: rgba(255,255,255,.12); }
@@ -719,8 +721,8 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
   --shadow: none;
   --r: 20px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
+/* tema escuro (automático ou escolhido) */
+:root[data-theme="dark"] {
     --bg: #0c0d0f;
     --surface: #15171a;
     --surface-2: #1d2023;
@@ -730,7 +732,7 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
     --ink-2: #9ea3aa;
     --ink-3: #6c7178;
   }
-}
+
 
 /* Tipografia: menos larga e menos pesada; sem caixa alta espaçada */
 .head { padding-top: calc(26px + env(safe-area-inset-top)); padding-bottom: 4px; }
@@ -820,3 +822,8 @@ body:has(.login) { padding-bottom: 0; }
 .sync-dot.saving { background: var(--ink-3); }
 .sync-dot.offline { background: var(--c-ativ); }
 .sync-dot.error { background: var(--danger); }
+.code-input { font-size: 30px; letter-spacing: .5em; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; padding: 16px 0 16px .5em; }
+.login-links { display: flex; justify-content: space-between; margin-top: 10px; }
+.login-links .text-btn { color: var(--ink-2); }
+.login-links .text-btn:disabled { opacity: .5; }
+.login-hint { text-align: center; margin-top: 10px; }
