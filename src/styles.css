@@ -942,3 +942,14 @@ body:has(.login) { padding-bottom: 0; }
 .pl-frames .f1 { animation: pl-troca 1.8s steps(1, end) infinite; }
 @keyframes pl-troca { 0% { opacity: 0; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pl-frames .f1 { animation: none; opacity: 0; } }
+
+/* ----- Progresso ----- */
+.prog-stats { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; }
+.const-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.const-h { font-size: 11px; font-weight: 600; color: var(--ink-3); text-align: center; }
+.const-d { aspect-ratio: 1; border: 0; border-radius: 10px; cursor: pointer; padding: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--c-dieta) calc(var(--v) * 85%), var(--surface-2));
+  color: var(--ink-2); font-size: 12px; font-weight: 600; }
+.const-d.hoje { box-shadow: inset 0 0 0 2px var(--ink); }
+.const-grid.semana .const-d { border-radius: 12px; font-size: 14px; }
+.row.segura { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
