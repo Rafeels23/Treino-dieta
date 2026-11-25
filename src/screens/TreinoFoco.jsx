@@ -90,7 +90,7 @@ export default function TreinoFoco({ s, onLista }) {
   const val = sugestao(e, Math.max(0, atual));
   const pv = lastPerformance(e.name);
   const ultimo = ei === total - 1;
-  const demo = demoDe(e.name);
+  const demo = demoDe(e.name, e.demo);
   const carga = e.tipo === 'carga', cardio = e.tipo === 'cardio';
   const feitas = s.exercises.reduce((n, x) => n + x.sets.filter((y) => y.done).length, 0);
   const todas = s.exercises.reduce((n, x) => n + x.sets.length, 0);
@@ -140,7 +140,10 @@ export default function TreinoFoco({ s, onLista }) {
         {descansando ? <Descanso /> : (
           <AnimatePresence mode="wait">
             <motion.div key={ei} className="pl-demo" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.22 }}>
-              {demo ? <img src={demo} alt={`Demonstração: ${e.name}`} /> : <div className="pl-sem-demo"><Anim nome="login" tamanho={120} /></div>}
+              {demo?.src ? <img src={demo.src} alt={`Demonstração: ${e.name}`} />
+                : demo?.frames ? <div className="pl-frames" role="img" aria-label={`Demonstração: ${e.name}`}>
+                  {demo.frames.map((f, i) => <img key={f} src={f} alt="" loading="eager" decoding="async" className={`f${i}`} />)}</div>
+                : <div className="pl-sem-demo"><Anim nome="login" tamanho={120} /></div>}
             </motion.div>
           </AnimatePresence>
         )}

@@ -36,9 +36,16 @@ const MAPA = [
   [/flex[aã]o/, 'Pushups'],
   [/esteira|caminhada|trote|corrida|correr/, 'Walking_Treadmill'],
 ];
-const sem = (s) => s.toLowerCase();
-export function demoDe(nome = '') {
-  const n = sem(nome);
-  const hit = MAPA.find(([re]) => re.test(n));
-  return hit ? `./ex/${hit[1]}.webp` : null;
+/* demonstrações que já vêm com o app (public/ex) */
+const NO_APP = new Set(['Air_Bike','Barbell_Curl','Barbell_Glute_Bridge','Barbell_Squat','Bent_Over_Two-Dumbbell_Row','Bicycling_Stationary','Butterfly','Crunches','Dumbbell_Bench_Press','Dumbbell_Lunges','Dumbbell_Shoulder_Press','Elliptical_Trainer','Flat_Bench_Lying_Leg_Raise','Freehand_Jump_Squat','Goblet_Squat','Leg_Extensions','Leg_Press','Leverage_Incline_Chest_Press','Lying_Leg_Curls','Mountain_Climbers','Plank','Pushups','Seated_Cable_Rows','Side_Bridge','Side_Lateral_Raise','Smith_Machine_Squat','Standing_Calf_Raises','Stiff-Legged_Dumbbell_Deadlift','Superman','Thigh_Abductor','Triceps_Pushdown_-_Rope_Attachment','Walking_Treadmill','Wide-Grip_Lat_Pulldown']);
+const CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/';
+
+/* Devolve { src } (animação que vem com o app) ou { frames: [início, fim] } (fotos carregadas na hora), ou null.
+   demo: id do Free Exercise DB escolhido pela IA; sem ele, tenta pelo nome em português. */
+export function demoDe(nome = '', demo = '') {
+  const id = demo || MAPA.find(([re]) => re.test(nome.toLowerCase()))?.[1];
+  if (!id) return null;
+  if (NO_APP.has(id)) return { src: `./ex/${id}.webp` };
+  const base = CDN + encodeURIComponent(id).replace(/%2F/g, '/');
+  return { frames: [`${base}/0.jpg`, `${base}/1.jpg`] };
 }

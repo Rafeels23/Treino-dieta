@@ -43,7 +43,7 @@ export function startWorkout(id) {
   closeSheet();
   state.active = {
     id: uid(), workoutId: w.id, workoutLetter: w.letter, workoutName: w.name, start: Date.now(),
-    exercises: w.exercises.map((e) => ({ name: e.name, tipo: e.tipo, reps: e.reps, rest: e.rest, notes: e.notes,
+    exercises: w.exercises.map((e) => ({ name: e.name, tipo: e.tipo, reps: e.reps, rest: e.rest, notes: e.notes, demo: e.demo,
       sets: Array.from({ length: e.sets }, () => ({ kg: '', reps: '', done: false })) })),
     foco: 0,
   };
@@ -149,7 +149,7 @@ export function openPlanSettings() { openSheet(() => <PlanSheet />); }
 /* ----- editor de treino (exEditor / openEditor) ----- */
 const TIPOS = [['carga', 'Carga'], ['tempo', 'Tempo'], ['cardio', 'Cardio']];
 const toDraft = (e) => ({ id: e.id || uid(), name: e.name ?? '', sets: String(e.sets ?? ''), reps: String(e.reps ?? ''),
-  rest: String(e.rest ?? ''), tipo: e.tipo || 'carga', notes: e.notes ?? '' });
+  rest: String(e.rest ?? ''), tipo: e.tipo || 'carga', notes: e.notes ?? '', demo: e.demo || '', nome0: e.name ?? '' });
 
 function ExEditor({ e, onChange, onDelete, nameRef }) {
   const f = (k) => ({ value: e[k], onChange: (ev) => onChange({ ...e, [k]: ev.target.value }) });
@@ -192,6 +192,8 @@ function EditorSheet({ w, isNew }) {
       rest: Math.max(0, parseInt(e.rest, 10) || 0),
       tipo: e.tipo,
       notes: e.notes.trim(),
+      /* a demonstração escolhida pela IA só vale enquanto o nome não muda */
+      ...(e.demo && e.name.trim() === e.nome0 ? { demo: e.demo } : {}),
     })).filter((e) => e.name);
     if (isNew) state.plan.workouts.push(w);
     state.plan.source = 'personalizado';
@@ -216,8 +218,103 @@ function EditorSheet({ w, isNew }) {
 }
 function openEditor(w, isNew) { openSheet(() => <EditorSheet w={w} isNew={isNew} />); }
 export function editWorkout(id) { const w = state.plan.workouts.find((x) => x.id === id); if (w) openEditor(w, false); }
-export function addWorkout() {
+function addManual() {
   openEditor({ id: uid(), letter: String.fromCharCode(65 + state.plan.workouts.length), name: '', exercises: [] }, true);
+}
+
+/* "+ Novo": montar com IA ou sozinho */
+function NovoTreinoSheet() {
+  return (
+    <>
+      <h2>Novo treino</h2>
+      <p className="lead">Como você quer montar?</p>
+      <div className="group">
+        <button type="button" className="row plain" onClick={() => openSheet(() => <TreinoIASheet />, 1)}>
+          <span className="badge ia" aria-hidden="true">✦</span>
+          <span className="body"><div className="t">Montar com IA</div><div className="s">Descreva o treino ou cole o que seu personal passou</div></span>
+          <span className="end"><Icon n="right" /></span></button>
+        <button type="button" className="row plain" onClick={addManual}>
+          <span className="badge"><Icon n="pencil" /></span>
+          <span className="body"><div className="t">Montar sozinho</div><div className="s">Escolha nome, exercícios, séries e descanso</div></span>
+          <span className="end"><Icon n="right" /></span></button>
+      </div>
+    </>
+  );
+}
+export function addWorkout() { openSheet(() => <NovoTreinoSheet />); }
+
+const EXEMPLOS = [
+  'Treino ABC para hipertrofia, 4x por semana, foco em pernas e glúteos',
+  'Treino de 40 minutos para emagrecer, corpo todo, com cardio no final',
+  'Peito e tríceps: supino reto 4x10, crucifixo 3x12, tríceps corda 3x15',
+];
+function TreinoIASheet() {
+  const [texto, setTexto] = useState('');
+  const [estado, setEstado] = useState('');        // '' | 'busy' | mensagem de erro
+  const [res, setRes] = useState(null);
+  const montar = async () => {
+    if (texto.trim().length < 5) { setEstado('Descreva o treino que você quer montar.'); return; }
+    setEstado('busy'); setRes(null);
+    try { setRes(await montarTreinoIA(texto)); setEstado(''); } catch (e) { setEstado(e.message || 'Não consegui montar agora. Tente de novo.'); }
+  };
+  const salvar = (substituir) => {
+    if (substituir && !confirm('Trocar todos os treinos do plano por estes?')) return;
+    const novos = res.treinos.filter((t) => t.exercicios?.length).map((t) => ({
+      id: uid(), letter: '', name: t.nome || 'Treino',
+      exercises: t.exercicios.map((e) => ({
+        id: uid(), name: e.nome, sets: Math.max(1, e.series || 3), reps: String(e.reps || '12'),
+        rest: Math.max(0, e.descanso ?? 90), tipo: ['carga', 'tempo', 'cardio'].includes(e.tipo) ? e.tipo : 'carga',
+        notes: e.obs || '', ...(e.demo ? { demo: e.demo } : {}),
+      })),
+    }));
+    state.plan.workouts = substituir ? novos : state.plan.workouts.concat(novos);
+    state.plan.workouts.forEach((w, k) => { w.letter = String.fromCharCode(65 + k); });
+    state.plan.source = 'personalizado';
+    save(); closeSheet();
+  };
+  return (
+    <>
+      <h2>Montar com IA</h2>
+      <p className="lead">Conte o treino que você quer, ou cole o treino que você já tem. A IA organiza com séries, repetições, descanso e a demonstração de cada exercício.</p>
+      <div className="field"><textarea value={texto} onChange={(e) => setTexto(e.target.value)} style={{ minHeight: 120 }}
+        placeholder="ex.: treino ABC, 4x por semana, foco em pernas" /></div>
+      {!texto ? <div className="chips">{EXEMPLOS.map((x) => <button key={x} type="button" className="chip" onClick={() => setTexto(x)}>{x}</button>)}</div> : null}
+      <button type="button" className="btn block" style={{ marginTop: 12 }} disabled={estado === 'busy'} onClick={montar}>
+        {estado === 'busy' ? 'Montando…' : res ? 'Montar de novo' : 'Montar treino'}</button>
+      {estado && estado !== 'busy' ? <p className="hint" style={{ color: 'var(--danger)', marginTop: 10 }}>{estado}</p> : null}
+      {res?.treinos?.length ? (
+        <>
+          {res.treinos.map((t, ti) => (
+            <div key={ti}>
+              <div className="sub-head">{String.fromCharCode(65 + (state.plan.workouts.length + ti) % 26)} · {t.nome}</div>
+              <div className="group" style={{ background: 'var(--surface-2)' }}>{(t.exercicios || []).map((e, i) => (
+                <div key={i} className="row plain" style={{ minHeight: 50 }}>
+                  <span className="body"><div className="t" style={{ fontWeight: 500 }}>{e.nome}</div>
+                    {e.obs ? <div className="s">{e.obs}</div> : null}</span>
+                  <span className="end num">{e.tipo === 'cardio' ? e.reps : `${e.series} × ${e.reps}`}</span>
+                </div>
+              ))}</div>
+            </div>
+          ))}
+          <div className="stack-btns">
+            <button type="button" className="btn block" onClick={() => salvar(false)}>Adicionar ao meu plano</button>
+            {state.plan.workouts.length ? <button type="button" className="btn soft block" onClick={() => salvar(true)}>Trocar meu plano por estes</button> : null}
+          </div>
+        </>
+      ) : null}
+    </>
+  );
+}
+async function montarTreinoIA(texto) {
+  const { supabase } = await import('../lib/cloud.js');
+  const { data, error } = await supabase.functions.invoke('pilar-ia', { body: { tipo: 'treino', texto } });
+  if (error) {
+    let corpo = null;
+    try { corpo = await error.context?.json?.(); } catch { /* sem corpo */ }
+    throw new Error(corpo?.erro || (navigator.onLine ? 'Não consegui montar agora. Tente de novo.' : 'Sem internet. A IA precisa de conexão.'));
+  }
+  if (!data?.resultado?.treinos?.length) throw new Error('A IA não montou nenhum treino. Tente descrever de outro jeito.');
+  return data.resultado;
 }
 export function deleteWorkout(id) {
   if (!confirm('Excluir este treino do plano?')) return;
