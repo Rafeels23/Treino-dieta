@@ -1,5 +1,6 @@
 /* Tela Hoje: resumo do dia (anéis), treino, próxima refeição, atividade e a semana. */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { apkDesatualizado, baixarApk, dispensarAviso } from '../lib/versao.js';
 import { Head, Section, Icon, Rings, CountUp } from '../components/ui.jsx';
 import { useStore } from '../lib/hooks.js';
 import {
@@ -34,6 +35,8 @@ function numerosDoTreino(s) {
 export default function Hoje() {
   const state = useStore();
   const ringsRef = useRef(null);
+  const [apk, setApk] = useState(null);
+  useEffect(() => { apkDesatualizado().then(setApk); }, []);
   const key = todayKey();
   state.ui.dietDay = undefined;
   const nw = nextWorkout();
@@ -151,6 +154,15 @@ export default function Hoje() {
     <>
       <Head emoji={new Date().getHours() < 12 ? 'manha' : new Date().getHours() < 18 ? 'tarde' : 'noite'} kicker={cap(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }))}
         title={greet()} titulos={p.nome ? nomesSaudacao(p.nome).map((n) => `${greet()}, ${n}`) : null} />
+      {apk ? (
+        <div className="section"><div className="group pad aviso-apk">
+          <div className="t">Nova versão do app</div>
+          <p className="hint">Tem melhorias nos lembretes ou na pulseira. Baixe e instale por cima: nada se perde.</p>
+          <div className="row-btns" style={{ justifyContent: 'flex-start', gap: 10, marginTop: 12 }}>
+            <button type="button" className="btn" onClick={baixarApk}>Baixar</button>
+            <button type="button" className="btn soft" onClick={() => { dispensarAviso(apk.minimo); setApk(null); }}>Agora não</button>
+          </div></div></div>
+      ) : null}
       {incomplete && (
         <div className="section"><button className="row group" onClick={() => openEditProfile()}>
           <span className="badge accent"><Icon n="user" /></span>

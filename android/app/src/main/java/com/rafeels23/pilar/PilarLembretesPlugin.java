@@ -22,6 +22,18 @@ public class PilarLembretesPlugin extends Plugin {
 
     private boolean precisaPermissao() { return Build.VERSION.SDK_INT >= 33; }
 
+    /** Versão instalada do APK (para avisar quando sair uma versão nova da parte nativa). */
+    @PluginMethod
+    public void versao(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            android.content.pm.PackageInfo pi = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0);
+            r.put("codigo", Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode);
+            r.put("nome", pi.versionName);
+        } catch (Exception e) { r.put("codigo", 0); }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void estado(PluginCall call) {
         JSObject r = new JSObject();

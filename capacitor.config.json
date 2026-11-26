@@ -8,5 +8,9 @@
   "ios": {
     "backgroundColor": "#0a0b0d",
     "contentInset": "never"
+  },
+  "server": {
+    "url": "https://pilar-treino.vercel.app",
+    "errorPath": "offline.html"
   }
 }

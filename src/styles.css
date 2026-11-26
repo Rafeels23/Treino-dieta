@@ -1126,3 +1126,6 @@ html, body { overflow-x: clip; }
 .feito-pr { margin-top: 12px; font-size: 14px; font-weight: 650; color: var(--ink); background: var(--treino-soft); border-radius: 12px; padding: 8px 12px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row .end.ex-mini { color: var(--c-treino); }
 .prog-comp { margin-top: 8px; }
+.aviso-apk .t { font-weight: 750; font-size: 17px; }
+.aviso-apk .hint { margin-top: 4px; }
+.aviso-apk .row-btns .btn { margin-top: 0; }
