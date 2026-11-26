@@ -1,5 +1,5 @@
 /* Peças de interface compartilhadas por todas as telas. */
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Anim } from './Illu.jsx';
 import { ICONS, br, initials, state } from '../lib/core.js';
 import { go } from '../lib/ui.js';
@@ -26,10 +26,23 @@ export function AvatarBtn() {
   );
 }
 
-export function Head({ kicker, title, action = null, emoji = null }) {
+/* `titulos`: versões do título da maior para a menor; usa a primeira que cabe na linha */
+export function Head({ kicker, title, titulos = null, action = null, emoji = null }) {
+  const lista = titulos?.length ? titulos : [title];
+  const [nivel, setNivel] = useState(0);
+  const h1 = useRef(null);
+  const chave = lista.join('|');
+  useEffect(() => { setNivel(0); }, [chave]);
+  useLayoutEffect(() => {
+    const el = h1.current;
+    if (!el || nivel >= lista.length - 1) return;
+    const sobra = [...el.children].some((c) => c.scrollWidth > c.clientWidth + 1)
+      || [...el.children].reduce((t, c) => t + c.getBoundingClientRect().width, 0) > el.clientWidth + 1;
+    if (sobra) setNivel((n) => n + 1);
+  });
   return (
     <header className="head">
-      <div><div className="kicker">{kicker}</div><h1><BlurTitle text={title} />{emoji ? <Anim nome={emoji} tamanho={34} className="hello-anim" /> : null}</h1></div>
+      <div><div className="kicker">{kicker}</div><h1 ref={h1}><BlurTitle text={lista[Math.min(nivel, lista.length - 1)]} />{emoji ? <Anim nome={emoji} tamanho={34} className="hello-anim" /> : null}</h1></div>
       <div className="head-actions">{action}<AvatarBtn /></div>
     </header>
   );

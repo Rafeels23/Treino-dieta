@@ -676,11 +676,12 @@ export const getVersion = () => version;
 /* muda o estado e salva: commit((s) => { s.algo = 1; }) */
 export function commit(fn) { if (fn) fn(state); return save(); }
 
-/* nome curto para a saudação: "João Pedro Silva" → "João P."; "Maria da Silva" → "Maria S."; "Ana" → "Ana" */
-export function nomeCurto(nome) {
+/* nomes para a saudação, do maior para o menor: "João Pedro Silva" → ["João Pedro", "João P.", "João"] */
+export function nomesSaudacao(nome) {
   const partes = String(nome || '').trim().split(/\s+/).filter(Boolean);
-  if (!partes.length) return '';
-  const resto = partes.slice(1).filter((x) => !/^(d[aeo]s?|e)$/i.test(x));
-  const primeiro = partes[0][0].toUpperCase() + partes[0].slice(1);
-  return resto.length ? `${primeiro} ${resto[0][0].toUpperCase()}.` : primeiro;
+  if (!partes.length) return [];
+  const cap1 = (x) => x[0].toUpperCase() + x.slice(1);
+  const primeiro = cap1(partes[0]);
+  const segundo = partes.slice(1).find((x) => !/^(d[aeo]s?|e)$/i.test(x));
+  return segundo ? [`${primeiro} ${cap1(segundo)}`, `${primeiro} ${segundo[0].toUpperCase()}.`, primeiro] : [primeiro];
 }
