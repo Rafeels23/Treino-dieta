@@ -1084,3 +1084,45 @@ html, body { overflow-x: clip; }
 @media (max-width: 380px) { .pl-btns .btn { font-size: 16px; gap: 4px; } }
 /* tela baixa (iPhone SE e afins): demonstração menor para Pausa e Próximo aparecerem sem rolar */
 @media (max-height: 720px) { .pl-media { aspect-ratio: auto; height: 27vh; min-height: 140px; } .foco { gap: 10px; } }
+
+/* ---------- Progresso: comparação, bolinhas, passos e minigráficos ---------- */
+.delta-mini { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.delta-mini.sobe { color: var(--ok, #16a34a); }
+.delta-mini.desce { color: var(--ink-3); }
+.delta-mini.igual { color: var(--ink-3); font-weight: 600; }
+.prog-comp { margin: -2px 4px 0; }
+.dots-semana { display: flex; gap: 5px; margin-top: 8px; }
+.dots-semana i { width: 9px; height: 9px; border-radius: 50%; background: var(--surface-3); }
+.dots-semana i.on { background: var(--c-treino); }
+.stat-tile .dots-semana + .delta-mini { margin-top: 6px; }
+.passos-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.passos-nums .l { font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.passos-nums .v { font-size: 22px; margin-top: 4px; }
+.passos-nums .v.fraco { color: var(--ink-3); }
+.passos-barras { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 16px; height: 110px; }
+.pb { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.pb-col { flex: 1; width: 100%; max-width: 30px; position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.pb-col i { display: block; width: 45%; border-radius: 4px 4px 2px 2px; min-height: 2px; transform-origin: bottom; animation: sobe .7s cubic-bezier(.2, .8, .2, 1) both; }
+.pb-col .ant { background: var(--surface-3); }
+.pb-col .atu { background: var(--c-rotina); }
+.pb.futuro .atu { opacity: 0; }
+.pb span { font-size: 11px; color: var(--ink-3); font-weight: 700; }
+.pb.hoje span { color: var(--ink); }
+@keyframes sobe { from { transform: scaleY(0); } }
+.ex-lista { border-top: 1px solid var(--hair); }
+.ex-linha .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ex-linha .body { min-width: 0; }
+.ex-linha .s .sobe { color: var(--ok, #16a34a); }
+.ex-linha .s .desce { color: var(--ink-3); }
+.ex-linha.on { background: var(--treino-soft); }
+.ex-linha.on .t { color: var(--c-treino); }
+.ex-mini { color: var(--c-treino); flex: none; }
+.ex-mais { margin: 4px 16px 12px; }
+/* Hoje: card do treino feito com números */
+.feito-nums { display: flex; gap: 22px; margin-top: 10px; }
+.feito-nums div { display: flex; flex-direction: column; }
+.feito-nums b { font-size: 24px; font-weight: 750; line-height: 1.1; color: var(--ink); }
+.feito-nums span { font-size: 12px; color: var(--ink-2); font-weight: 600; margin-top: 2px; }
+.feito-pr { margin-top: 12px; font-size: 14px; font-weight: 650; color: var(--ink); background: var(--treino-soft); border-radius: 12px; padding: 8px 12px; display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .end.ex-mini { color: var(--c-treino); }
+.prog-comp { margin-top: 8px; }

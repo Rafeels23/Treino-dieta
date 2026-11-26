@@ -1,5 +1,6 @@
 /* Tela Progresso: resumo da semana ou do mês, constância dia a dia, peso, carga por exercício,
    e os últimos treinos e atividades (o histórico completo abre numa folha, sem lista gigante). */
+import { useState } from 'react';
 import { Head, Section, Icon, Seg } from '../components/ui.jsx';
 import Illu from '../components/Illu.jsx';
 import Chart from '../components/Chart.jsx';
@@ -12,6 +13,7 @@ import { buzzOnly } from '../lib/effects.js';
 import { openSession } from '../sheets/treino.jsx';
 import { openPeso, deleteActivity } from '../sheets/perfil.jsx';
 import { openDay } from '../sheets/hoje-dia.jsx';
+import { saude } from '../lib/pulseira.js';
 
 const emOrdem = () => finished().slice().sort((a, b) => a.start - b.start);
 const DIAS_SEMANA = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
@@ -83,23 +85,96 @@ function HistoricoSheet({ tipo }) {
 }
 const openHistorico = (tipo) => openSheet(() => <HistoricoSheet tipo={tipo} />);
 
+
+/* números de um período (para comparar com o período anterior) */
+function resumo(state, dias, sessoes) {
+  const desde = keyToDate(dias[0]).getTime(), ate = keyToDate(dias[dias.length - 1]).getTime() + 864e5;
+  const sess = sessoes.filter((s) => s.start >= desde && s.start < ate);
+  const ativs = state.activities.filter((a) => a.date >= dias[0] && a.date <= dias[dias.length - 1]);
+  const min = sess.reduce((t, s) => t + (s.end - s.start) / 60000, 0) + ativs.reduce((t, a) => t + (num(a.minutos) || 0), 0);
+  const gs = state.diet.groups;
+  const dieta = gs.length ? dias.filter((k) => state.dietLog[k] && gs.every((g) => mealCheck(state.dietLog[k], g))).length : null;
+  let tot = 0, feitos = 0;
+  dias.forEach((k) => { const rot = routinesOf(k), rlog = (state.routineLog || {})[k] || {}; tot += rot.length; feitos += rot.filter((r) => rlog[r.id]).length; });
+  return { sess, treinos: sess.length, min, dieta, hab: tot ? Math.round((feitos / tot) * 100) : null };
+}
+
+/* setinha de comparação com o período anterior: ▲ melhorou, ▼ piorou */
+function Delta({ v, unidade = '', casas = 0 }) {
+  if (v == null || Number.isNaN(v)) return null;
+  const r = casas ? Math.round(v * 10) / 10 : Math.round(v);
+  if (!r) return <span className="delta-mini igual">= anterior</span>;
+  return <span className={`delta-mini ${r > 0 ? 'sobe' : 'desce'}`}>{r > 0 ? '▲' : '▼'} {br(Math.abs(r), casas)}{unidade}</span>;
+}
+
+/* minigráfico de linha */
+function Mini({ pts, w = 72, h = 26 }) {
+  if (pts.length < 2) return <svg className="mini" width={w} height={h} aria-hidden="true" />;
+  const min = Math.min(...pts), max = Math.max(...pts), amp = max - min || 1;
+  const xy = pts.map((v, i) => `${((i / (pts.length - 1)) * (w - 4) + 2).toFixed(1)},${(h - 3 - ((v - min) / amp) * (h - 6)).toFixed(1)}`);
+  const ult = xy[xy.length - 1].split(',');
+  return (
+    <svg className="mini" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <polyline points={xy.join(' ')} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={ult[0]} cy={ult[1]} r="3" fill="currentColor" />
+    </svg>
+  );
+}
+
+/* passos: semana atual (seg a dom) contra a semana passada */
+function Passos() {
+  const sd = saude();
+  if (!sd.conectado || !sd.dias || !Object.keys(sd.dias).length) return null;
+  const hoje = keyToDate(todayKey());
+  const seg = new Date(hoje); seg.setDate(seg.getDate() - ((hoje.getDay() + 6) % 7));
+  const semana = Array.from({ length: 7 }, (_, i) => { const d = new Date(seg); d.setDate(d.getDate() + i); return todayKey(d); });
+  const passada = semana.map((k) => { const d = keyToDate(k); d.setDate(d.getDate() - 7); return todayKey(d); });
+  const val = (k) => sd.dias[k]?.passos || 0;
+  const hk = todayKey();
+  const ate = semana.filter((k) => k <= hk);
+  const media = (ks) => { const v = ks.map(val).filter((x) => x > 0); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0; };
+  const mAtual = media(ate), mPassada = media(passada);
+  const topo = Math.max(1, ...semana.map(val), ...passada.map(val));
+  const fmt = (n) => n.toLocaleString('pt-BR');
+  return (
+    <Section title="Passos">
+      <div className="group pad passos">
+        <div className="passos-nums">
+          <div><div className="l">Hoje</div><div className="v digits">{fmt(val(hk))}</div></div>
+          <div><div className="l">Média da semana</div><div className="v digits">{fmt(mAtual)}</div>
+            {mPassada ? <Delta v={((mAtual - mPassada) / mPassada) * 100} unidade="%" /> : null}</div>
+          <div><div className="l">Semana passada</div><div className="v digits fraco">{fmt(mPassada)}</div></div>
+        </div>
+        <div className="passos-barras" role="img" aria-label={`Passos por dia nesta semana. Média ${fmt(mAtual)}.`}>
+          {semana.map((k, i) => (
+            <div key={k} className={`pb ${k === hk ? 'hoje' : ''} ${k > hk ? 'futuro' : ''}`}>
+              <div className="pb-col"><i className="ant" style={{ height: `${(val(passada[i]) / topo) * 100}%` }} /><i className="atu" style={{ height: `${(val(k) / topo) * 100}%` }} /></div>
+              <span>{DIAS_SEMANA[i]}</span>
+            </div>
+          ))}
+        </div>
+        <p className="hint" style={{ marginTop: 8 }}>Barra cheia: esta semana. Barra clara: o mesmo dia da semana passada.</p>
+      </div>
+    </Section>
+  );
+}
+
 export default function Progresso() {
   const state = useStore();
+  const [todosEx, setTodosEx] = useState(false);
   const periodo = state.ui.progPeriodo === 30 ? 30 : 7;
   const dias = diasDoPeriodo(periodo);
   const desde = keyToDate(dias[0]).getTime();
   const fim = todayKey();
 
-  /* resumo do período */
-  const sess = emOrdem().filter((s) => s.start >= desde);
-  const treinosPorDia = new Set(emOrdem().map((s) => todayKey(new Date(s.start))));
-  const ativs = state.activities.filter((a) => a.date >= dias[0] && a.date <= fim);
-  const minAtivos = sess.reduce((t, s) => t + (s.end - s.start) / 60000, 0) + ativs.reduce((t, a) => t + (num(a.minutos) || 0), 0);
-  const gs = state.diet.groups;
-  const dietaOk = gs.length ? dias.filter((k) => state.dietLog[k] && gs.every((g) => mealCheck(state.dietLog[k], g))).length : null;
-  let habTotal = 0, habFeitos = 0;
-  dias.forEach((k) => { const rot = routinesOf(k), rlog = (state.routineLog || {})[k] || {}; habTotal += rot.length; habFeitos += rot.filter((r) => rlog[r.id]).length; });
-  const habPct = habTotal ? Math.round((habFeitos / habTotal) * 100) : null;
+  /* resumo do período e do período anterior, para comparar */
+  const todas = emOrdem();
+  const atual = resumo(state, dias, todas);
+  const diasAnt = dias.map((k) => { const d = keyToDate(k); d.setDate(d.getDate() - periodo); return todayKey(d); });
+  const ant = resumo(state, diasAnt, todas);
+  const { sess, min: minAtivos, dieta: dietaOk, hab: habPct } = atual;
+  const treinosPorDia = new Set(todas.map((s) => todayKey(new Date(s.start))));
+  const temAnterior = todas.some((s) => s.start < desde) || state.activities.some((a) => a.date < dias[0]);
 
   /* constância: cada dia mais forte quanto mais foi cumprido */
   const notas = dias.map((k) => ({ k, v: cumprido(state, k, treinosPorDia) }));
@@ -114,7 +189,10 @@ export default function Progresso() {
 
   /* carga por exercício */
   const names = [...new Set(emOrdem().flatMap((s) => s.exercises.filter((e) => e.tipo === 'carga' && e.sets.some((x) => num(x.kg))).map((e) => e.name)))];
+  const ultimaVez = (n) => { for (let i = todas.length - 1; i >= 0; i--) if (todas[i].exercises.some((e) => e.name === n)) return i; return -1; };
+  names.sort((a, b) => ultimaVez(b) - ultimaVez(a));
   const sel = names.includes(state.ui.progressEx) ? state.ui.progressEx : names[0];
+  const serie = (n) => todas.map((s) => { const e = s.exercises.find((x) => x.name === n); const kgs = e ? e.sets.map((x) => num(x.kg)).filter((v) => v != null) : []; return kgs.length ? Math.max(...kgs) : null; }).filter((v) => v != null);
   const lPts = sel ? emOrdem().map((s) => {
     const e = s.exercises.find((x) => x.name === sel);
     const kgs = e ? e.sets.map((x) => num(x.kg)).filter((v) => v != null) : [];
@@ -131,13 +209,22 @@ export default function Progresso() {
       <div className="section"><Seg options={[[7, 'Semana'], [30, 'Mês']]} value={periodo} onChange={(v) => { state.ui.progPeriodo = v; save(); }} /></div>
 
       <div className="section stats prog-stats">
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-treino)' }}>{sess.length}</div><div className="l">{sess.length === 1 ? 'treino' : 'treinos'}</div></div>
+        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-treino)' }}>{sess.length}</div><div className="l">{sess.length === 1 ? 'treino' : 'treinos'}</div>
+          {periodo === 7 ? <div className="dots-semana" aria-label={`Treinou em ${dias.filter((k) => treinosPorDia.has(k)).length} dos 7 dias`}>
+            {dias.map((k) => <i key={k} className={treinosPorDia.has(k) ? 'on' : ''} title={fmtDay(k)} />)}</div> : null}
+          {temAnterior ? <Delta v={atual.treinos - ant.treinos} /> : null}</div>
         <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-treino)' }}>{minAtivos >= 60
           ? <>{br(minAtivos / 60, 1)}<small style={{ fontSize: 14 }}> h</small></>
-          : <>{Math.round(minAtivos)}<small style={{ fontSize: 14 }}> min</small></>}</div><div className="l">ativos</div></div>
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-dieta)' }}>{dietaOk ?? '—'}<small style={{ fontSize: 14 }}>/{periodo}</small></div><div className="l">dias de dieta completa</div></div>
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-rotina)' }}>{habPct ?? '—'}{habPct != null ? <small style={{ fontSize: 14 }}>%</small> : null}</div><div className="l">dos hábitos</div></div>
+          : <>{Math.round(minAtivos)}<small style={{ fontSize: 14 }}> min</small></>}</div><div className="l">ativos</div>
+          {temAnterior ? <Delta v={atual.min - ant.min} unidade=" min" /> : null}</div>
+        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-dieta)' }}>{dietaOk ?? '—'}<small style={{ fontSize: 14 }}>/{periodo}</small></div><div className="l">dias de dieta completa</div>
+          {temAnterior && dietaOk != null ? <Delta v={atual.dieta - ant.dieta} /> : null}</div>
+        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-rotina)' }}>{habPct ?? '—'}{habPct != null ? <small style={{ fontSize: 14 }}>%</small> : null}</div><div className="l">dos hábitos</div>
+          {temAnterior && habPct != null && ant.hab != null ? <Delta v={atual.hab - ant.hab} unidade=" pts" /> : null}</div>
       </div>
+      <p className="hint prog-comp">{periodo === 7 ? 'Setas: comparado com os 7 dias anteriores.' : 'Setas: comparado com os 30 dias anteriores.'}</p>
+
+      <Passos />
 
       <Section title={`Constância · ${media}%`}>
         <div className="group pad">
@@ -168,12 +255,22 @@ export default function Progresso() {
       <Section title="Carga por exercício">
         {names.length ? (
           <div className="group">
-            <div className="pad" style={{ paddingBottom: 0 }}>
-              <select aria-label="Exercício" value={sel} onChange={(e) => { state.ui.progressEx = e.target.value; save(); }}>
-                {names.map((n) => <option key={n} value={n}>{n}</option>)}
-              </select></div>
-            {lPts.length > 0 && <div className="hero" style={{ paddingTop: 12 }}><div className="label">Maior carga recente</div><div className="big">{br(lPts[lPts.length - 1].y)}<small>kg</small></div></div>}
+            {lPts.length > 0 && <div className="hero" style={{ paddingTop: 14 }}><div className="label">{sel} · maior carga recente</div><div className="big">{br(lPts[lPts.length - 1].y)}<small>kg</small></div></div>}
             <Chart key={sel} id="carga" points={lPts} unit="kg" className="treino" />
+            <div className="ex-lista">
+              {(todosEx ? names : names.slice(0, 5)).map((n) => {
+                const pts = serie(n), dif = pts.length > 1 ? pts[pts.length - 1] - pts[0] : 0;
+                return (
+                  <button key={n} type="button" className={`row plain ex-linha ${n === sel ? 'on' : ''}`} aria-pressed={n === sel}
+                    onClick={() => { state.ui.progressEx = n; save(); }}>
+                    <span className="body"><div className="t">{n}</div>
+                      <div className="s num">{pts.length} {pts.length === 1 ? 'treino' : 'treinos'} · {br(pts[pts.length - 1])} kg{dif ? <span className={dif > 0 ? 'sobe' : 'desce'}> · {dif > 0 ? '+' : '−'}{br(Math.abs(dif))} kg</span> : null}</div></span>
+                    <span className="end ex-mini"><Mini pts={pts.slice(-12)} /></span>
+                  </button>
+                );
+              })}
+            </div>
+            {names.length > 5 ? <button type="button" className="text-btn ex-mais" onClick={() => setTodosEx((v) => !v)}>{todosEx ? 'Mostrar menos' : `Ver todos os exercícios (${names.length})`}</button> : null}
           </div>
         ) : <div className="group empty"><Illu nome="progresso" cor="var(--c-rotina)" /><div>Depois de alguns treinos, a evolução de cada exercício aparece aqui.</div></div>}
       </Section>

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { Head, Section, Icon, Rings, CountUp } from '../components/ui.jsx';
 import { useStore } from '../lib/hooks.js';
 import {
-  todayKey, fmtDay, fmtDayLong, cap, finished, nextWorkout, dayLog, estMinutes, mealCheck,
+  todayKey, br, fmtDay, fmtDayLong, cap, finished, nextWorkout, dayLog, estMinutes, mealCheck,
   nextMeal, greet, weekMonday, routinesOf, routineLog, extrasKcal, save,
   nomesSaudacao,
 } from '../lib/core.js';
@@ -16,7 +16,20 @@ import { openActivity, openEditProfile } from '../sheets/perfil.jsx';
 import { openDay } from '../sheets/hoje-dia.jsx';
 
 const sessMin = (s) => Math.round((s.end - s.start) / 60000);
-const sessSets = (s) => s.exercises.reduce((n, e) => n + e.sets.length, 0);
+const sessSets = (s) => s.exercises.reduce((n, e) => n + e.sets.filter((x) => x.done !== false).length, 0);
+const kgN = (v) => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
+/* volume do treino (carga × repetições) e recordes: exercícios em que a maior carga passou a de todos os treinos anteriores */
+function numerosDoTreino(s) {
+  const carga = s.exercises.filter((e) => e.tipo === 'carga' || e.tipo == null);
+  const volume = carga.reduce((t, e) => t + e.sets.filter((x) => x.done !== false).reduce((a, x) => a + kgN(x.kg) * kgN(x.reps), 0), 0);
+  const antes = finished().filter((x) => x.id !== s.id && x.start < s.start);
+  const recordes = carga.filter((e) => {
+    const agora = Math.max(0, ...e.sets.map((x) => kgN(x.kg)));
+    const melhor = Math.max(0, ...antes.flatMap((x) => x.exercises.filter((y) => y.name === e.name).flatMap((y) => y.sets.map((z) => kgN(z.kg)))));
+    return agora > 0 && melhor > 0 && agora > melhor;
+  }).map((e) => e.name);
+  return { volume: Math.round(volume), recordes };
+}
 
 export default function Hoje() {
   const state = useStore();
@@ -62,10 +75,17 @@ export default function Hoje() {
         <button className="btn light" onClick={continuarTreino}><Icon n="play" /> Continuar</button></div>
     );
   } else if (doneToday.length) {
-    const s = doneToday[doneToday.length - 1];
+    const s = doneToday.reduce((a, b) => (b.start > a.start ? b : a));
+    const feito = numerosDoTreino(s);
     workout = (
       <div className="hero-workout done"><div className="kick">Treino de hoje feito</div><div className="name">{s.workoutName}</div>
-        <div className="meta num" style={{ color: 'var(--ink-2)' }}>{sessMin(s)} min · {sessSets(s)} séries</div><div className="letter trophy"><Anim nome="trofeu" tamanho={64} /></div>
+        <div className="letter trophy"><Anim nome="trofeu" tamanho={64} /></div>
+        <div className="feito-nums num">
+          <div><b>{sessMin(s)}</b><span>min</span></div>
+          <div><b>{sessSets(s)}</b><span>séries</span></div>
+          {feito.volume ? <div><b>{feito.volume >= 1000 ? br(feito.volume / 1000, 1) : feito.volume}</b><span>{feito.volume >= 1000 ? 't levantadas' : 'kg levantados'}</span></div> : null}
+        </div>
+        {feito.recordes.length ? <div className="feito-pr">🏅 {feito.recordes.length === 1 ? `Recorde em ${feito.recordes[0]}` : `${feito.recordes.length} recordes: ${feito.recordes.join(', ')}`}</div> : null}
         <button className="btn soft" onClick={() => openSession(s.id)}>Ver resumo</button></div>
     );
   } else if (nw) {
