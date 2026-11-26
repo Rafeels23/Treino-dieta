@@ -6,28 +6,42 @@ const mq = matchMedia('(prefers-color-scheme: dark)');
 
 export const getThemePref = () => { try { return localStorage.getItem(KEY) || 'auto'; } catch { return 'auto'; } };
 
-/* cor principal do app (botões, destaques, aba ativa, treino): [nome, tom claro, tom escuro] */
+/* cor principal do app (botões, destaques, aba ativa, treino): nome, tom claro, tom escuro.
+   Quando a cor principal é igual à de uma área, essa área muda de cor para não confundir
+   (verde → a Dieta fica laranja; azul → a Rotina fica roxa). */
 export const CORES = {
-  laranja: ['Laranja', null, null],          // padrão: usa as cores do styles.css
+  verde: ['Verde', '#2b9348', '#3dbb63', { dieta: ['#d9480f', '#f08c45'] }],
+  laranja: ['Laranja', '#d44e22', '#ee5a2b'],
   vermelho: ['Vermelho', '#d6303a', '#f2545b'],
   rosa: ['Rosa', '#d1366f', '#f06595'],
   roxo: ['Roxo', '#7048e8', '#9b7bff'],
-  azul: ['Azul', '#1f6fd1', '#4f9ff5'],
+  azul: ['Azul', '#1f6fd1', '#4f9ff5', { rotina: ['#7048e8', '#9b7bff'] }],
 };
+export const COR_PADRAO = 'verde';
 const KEY_COR = 'pilar-cor';
-export const getCor = () => { try { const c = localStorage.getItem(KEY_COR); return CORES[c] ? c : 'laranja'; } catch { return 'laranja'; } };
+export const getCor = () => { try { const c = localStorage.getItem(KEY_COR); return CORES[c] ? c : COR_PADRAO; } catch { return COR_PADRAO; } };
 export function setCor(c) {
   try { localStorage.setItem(KEY_COR, c); } catch {}
   applyTheme();
   listeners.forEach((f) => f());
 }
+const suave = (cor, dark) => `color-mix(in srgb, ${cor} ${dark ? 22 : 14}%, ${dark ? '#141619' : '#ffffff'})`;
 function applyCor(root, dark) {
-  const [, claro, escuro] = CORES[getCor()];
+  const [, claro, escuro, areas = {}] = CORES[getCor()];
   const cor = dark ? escuro : claro;
-  if (!cor) { ['--c-treino', '--treino-soft', '--accent-ink'].forEach((v) => root.style.removeProperty(v)); return; }
   root.style.setProperty('--c-treino', cor);
-  root.style.setProperty('--treino-soft', `color-mix(in srgb, ${cor} ${dark ? 22 : 14}%, ${dark ? '#141619' : '#ffffff'})`);
+  root.style.setProperty('--treino-soft', suave(cor, dark));
   root.style.setProperty('--accent-ink', '#ffffff');
+  for (const area of ['dieta', 'rotina']) {
+    if (areas[area]) {
+      const c = dark ? areas[area][1] : areas[area][0];
+      root.style.setProperty(`--c-${area}`, c);
+      root.style.setProperty(`--${area}-soft`, suave(c, dark));
+    } else {
+      root.style.removeProperty(`--c-${area}`);
+      root.style.removeProperty(`--${area}-soft`);
+    }
+  }
 }
 
 export function applyTheme() {

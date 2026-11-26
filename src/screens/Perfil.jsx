@@ -117,7 +117,7 @@ function AparenciaSection() {
         {Object.entries(CORES).map(([k, [nome, claro]]) => (
           <button key={k} type="button" role="radio" aria-checked={cor === k} aria-label={nome} title={nome}
             className={`cor-op ${cor === k ? 'on' : ''}`} onClick={() => setCor(k)}>
-            <span className="cor-bola" style={{ background: claro || '#d44e22' }} />{nome}</button>
+            <span className="cor-bola" style={{ background: claro }} />{nome}</button>
         ))}
       </div>
     </Section>
