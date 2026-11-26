@@ -5,6 +5,7 @@ import { useStore } from '../lib/hooks.js';
 import {
   todayKey, fmtDay, fmtDayLong, cap, finished, nextWorkout, dayLog, estMinutes, mealCheck,
   nextMeal, greet, weekMonday, routinesOf, routineLog, extrasKcal, save,
+  nomeCurto,
 } from '../lib/core.js';
 import { go } from '../lib/ui.js';
 import Illu, { Anim } from '../components/Illu.jsx';
@@ -129,7 +130,7 @@ export default function Hoje() {
   return (
     <>
       <Head emoji={new Date().getHours() < 12 ? 'manha' : new Date().getHours() < 18 ? 'tarde' : 'noite'} kicker={cap(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }))}
-        title={greet() + (p.nome ? `, ${p.nome.split(' ')[0]}` : '')} />
+        title={greet() + (p.nome ? `, ${nomeCurto(p.nome)}` : '')} />
       {incomplete && (
         <div className="section"><button className="row group" onClick={() => openEditProfile()}>
           <span className="badge accent"><Icon n="user" /></span>
