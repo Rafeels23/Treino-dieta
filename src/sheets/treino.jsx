@@ -37,6 +37,10 @@ export function openWorkout(id) {
   openSheet(() => <WorkoutSheet id={id} />);
 }
 
+/* ----- sair sem concluir / continuar depois ----- */
+export function sairDoTreino() { if (!state.active) return; state.ui.treinoMin = true; save(); }
+export function continuarTreino() { if (!state.active) return; state.ui.treinoMin = false; save(); go('treino'); }
+
 /* ----- começar (A.start) ----- */
 export function startWorkout(id) {
   const w = state.plan.workouts.find((x) => x.id === id);
@@ -49,6 +53,7 @@ export function startWorkout(id) {
     foco: 0,
   };
   state.ui.treinoLista = false; // abre na tela de um exercício por vez
+  state.ui.treinoMin = false;
   save(); keepAwake(true); go('treino');
 }
 

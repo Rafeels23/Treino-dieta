@@ -11,11 +11,15 @@ import { startTimer, stopTimer, addTimer, subscribeTimer, getTimer } from '../li
 import { demoDe } from '../lib/exercicios.js';
 import { Icon } from '../components/ui.jsx';
 import { Anim } from '../components/Illu.jsx';
-import { finishWorkout } from '../sheets/treino.jsx';
+import { finishWorkout, sairDoTreino } from '../sheets/treino.jsx';
 
 export const DESCANSO = 90; // 1 minuto e meio entre as séries
 
-const metaReps = (e) => String(e.reps ?? '').split('-')[0].replace(/[^\d]/g, '');
+/* repetições da série: "15-12-10-8-8" muda a cada série; "8-12" ou "8 a 12" usa o primeiro número */
+const metaReps = (e, si = 0) => {
+  const n = String(e.reps ?? '').match(/\d+/g) || [];
+  return n.length >= 3 ? n[Math.min(si, n.length - 1)] : (n[0] || '');
+};
 const fmt = (v) => (v === '' || v == null ? '' : br(num(v)));
 
 /* valores que aparecem na série atual: o que foi digitado, senão a série anterior, senão a última vez */
@@ -23,7 +27,7 @@ function sugestao(e, si) {
   const st = e.sets[si], pv = lastPerformance(e.name)?.sets[si], ant = e.sets[si - 1];
   return {
     kg: st.kg !== '' ? st.kg : (ant?.kg || pv?.kg || ''),
-    reps: st.reps !== '' ? st.reps : (ant?.reps || pv?.reps || (e.tipo === 'carga' ? metaReps(e) : '')),
+    reps: st.reps !== '' ? st.reps : (pv?.reps || (e.tipo === 'carga' ? (metaReps(e, si) || ant?.reps) : '')),
   };
 }
 
@@ -123,7 +127,7 @@ export default function TreinoFoco({ s, onLista }) {
   return (
     <div className="foco">
       <div className="pl-top">
-        <button type="button" className="icon-btn" onClick={onLista} aria-label="Ver lista de séries"><Icon n="left" /></button>
+        <button type="button" className="icon-btn" onClick={sairDoTreino} aria-label="Sair sem concluir (fica salvo)"><Icon n="left" /></button>
         <div className="pl-tit"><b>{s.workoutLetter ? `${s.workoutLetter} · ` : ''}{s.workoutName}</b>
           <span className="num"><Relogio start={s.start} /> · {feitas} de {todas} séries</span></div>
         <button type="button" className="text-btn" onClick={onLista}>Lista</button>
@@ -165,7 +169,7 @@ export default function TreinoFoco({ s, onLista }) {
         <div className="pl-fields">
           {carga ? <>
             <Stepper label="Carga" unit="kg" step={2.5} value={val.kg} placeholder={pv?.sets?.[atual]?.kg || '0'} onChange={(v) => setVal('kg', v)} />
-            <Stepper label="Repetições" step={1} value={val.reps} placeholder={metaReps(e) || '0'} onChange={(v) => setVal('reps', v)} />
+            <Stepper label="Repetições" step={1} value={val.reps} placeholder={metaReps(e, atual) || '0'} onChange={(v) => setVal('reps', v)} />
           </> : cardio ? <>
             <Stepper label="Tempo" unit="min" step={1} value={val.kg} placeholder={metaReps(e) || '0'} onChange={(v) => setVal('kg', v)} />
             <Stepper label="Distância" unit="km" step={0.5} value={val.reps} onChange={(v) => setVal('reps', v)} />

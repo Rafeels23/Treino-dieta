@@ -9,7 +9,7 @@ import {
 import { go } from '../lib/ui.js';
 import Illu, { Anim } from '../components/Illu.jsx';
 import { celebrateDay } from '../lib/effects.js';
-import { openWorkout, startWorkout, openSession } from '../sheets/treino.jsx';
+import { openWorkout, startWorkout, openSession, continuarTreino } from '../sheets/treino.jsx';
 import { openMeal, quickMeal } from '../sheets/dieta.jsx';
 import { openActivity, openEditProfile } from '../sheets/perfil.jsx';
 import { openDay } from '../sheets/hoje-dia.jsx';
@@ -58,7 +58,7 @@ export default function Hoje() {
     workout = (
       <div className="hero-workout"><div className="kick">Treino em andamento</div><div className="name">{s.workoutName}</div>
         <div className="meta num">{done} de {total} séries</div><div className="letter">{s.workoutLetter || ''}</div>
-        <button className="btn light" onClick={() => go('treino')}><Icon n="play" /> Continuar</button></div>
+        <button className="btn light" onClick={continuarTreino}><Icon n="play" /> Continuar</button></div>
     );
   } else if (doneToday.length) {
     const s = doneToday[doneToday.length - 1];

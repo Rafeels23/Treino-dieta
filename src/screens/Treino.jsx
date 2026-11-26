@@ -6,7 +6,7 @@ import Illu from '../components/Illu.jsx';
 import TreinoFoco from './TreinoFoco.jsx';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
-import { openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
+import { openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout, sairDoTreino, continuarTreino } from '../sheets/treino.jsx';
 import { buzzOnly } from '../lib/effects.js';
 
 /* série recém-marcada (animação `just`); limpa depois do render, como no antigo */
@@ -61,6 +61,7 @@ function ActiveView({ s }) {
     <>
       <div className="session-head">
         <div className="row1">
+          <button className="icon-btn" onClick={sairDoTreino} aria-label="Sair sem concluir (fica salvo)"><Icon n="left" /></button>
           <div className="body"><div className="t">{s.workoutLetter || ''} · {s.workoutName}</div>
             <div className="s num"><Elapsed start={s.start} /> · {done} de {total} séries</div></div>
           <button className="btn sm" onClick={finishWorkout}>Concluir</button>
@@ -112,7 +113,7 @@ function ActiveView({ s }) {
 
 export default function Treino() {
   const state = useStore();
-  if (state.active) return state.ui.treinoLista
+  if (state.active && !state.ui.treinoMin) return state.ui.treinoLista
     ? <ActiveView s={state.active} />
     : <TreinoFoco s={state.active} onLista={() => { state.ui.treinoLista = true; save(); }} />;
   const nw = nextWorkout();
@@ -121,13 +122,21 @@ export default function Treino() {
     <>
       <Head emoji={ws.length ? 'fogo' : null} kicker={ws.length ? `${ws.length} ${ws.length === 1 ? 'treino' : 'treinos'} no plano` : 'Monte seu plano'} title="Treino"
         action={<button className="icon-btn destaque" style={{ '--cor': 'var(--c-treino)' }} onClick={addWorkout} aria-label="Adicionar treino"><Icon n="plus" /></button>} />
+      {state.active ? (
+        <div className="section"><div className="group em-andamento">
+          <div className="body"><div className="k">Treino em andamento</div>
+            <div className="t">{state.active.workoutLetter ? `${state.active.workoutLetter} · ` : ''}{state.active.workoutName}</div>
+            <div className="s num">{state.active.exercises.reduce((n, e) => n + e.sets.filter((x) => x.done).length, 0)} de {state.active.exercises.reduce((n, e) => n + e.sets.length, 0)} séries feitas</div></div>
+          <button className="btn sm" onClick={continuarTreino}><Icon n="play" /> Continuar</button>
+        </div></div>
+      ) : null}
       <Section title="Seus treinos">
         {ws.length ? (
           <div className="wk-list">
             {ws.map((w) => {
               const isNext = nw && w.id === nw.id;
               return (
-                <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} {...segurar(() => openWorkout(w.id), () => startWorkout(w.id))}>
+                <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} {...segurar(() => openWorkout(w.id), () => tocarTreino(w.id))}>
                   <span className="lt">{w.letter}</span>
                   <span className="body"><div className="t">{w.name}</div><div className="s">{w.exercises.length} exercícios · ~{estMinutes(w)} min</div></span>
                   <span className="end">{isNext ? <span className="tag accent">Próximo</span> : null}<Icon n="right" /></span>
@@ -156,4 +165,11 @@ function segurar(onHold, onTap) {
     onContextMenu: (e) => e.preventDefault(),
     onClick: (e) => { if (segurou) { e.preventDefault(); segurou = false; return; } onTap(); },
   };
+}
+
+/* tocar num treino: começa; se já houver um em andamento, continua ele (ou avisa se for outro) */
+function tocarTreino(id) {
+  const a = state.active;
+  if (!a) return startWorkout(id);
+  if (a.workoutId === id || confirm(`Você tem o treino "${a.workoutName}" em andamento. Continuar ele?`)) continuarTreino();
 }

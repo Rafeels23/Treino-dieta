@@ -5,15 +5,14 @@ import { br, initials, latestWeight, weightFeedback } from '../lib/core.js';
 import {
   WeightCard, openPeso, openPesoReport, openEditProfile, openAiKey, exportBackup, importBackup, resetAll,
 } from '../sheets/perfil.jsx';
-import { openDietEditor } from '../sheets/dieta.jsx';
 import { useSyncExternalStore } from 'react';
 import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
 import { Seg } from '../components/ui.jsx';
 import { getThemePref, setThemePref, subscribeTheme } from '../lib/theme.js';
 import { useState } from 'react';
-import { config as lembConfig, ligar as lembLigar, ehNativo } from '../lib/lembretes.js';
+import { config as lembConfig, ligar as lembLigar, ehNativo, aguaMeta } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
-import { MetaAgua, LembretesAgua } from '../components/AguaAjustes.jsx';
+import { openAgua } from './Dieta.jsx';
 
 function Kv({ label, value }) {
   return (
@@ -54,21 +53,11 @@ export default function Perfil() {
           <Kv label="Idade" value={p.idade ? `${p.idade} anos` : ''} />
           <Kv label="Sexo" value={p.sexo ? (p.sexo === 'm' ? 'Masculino' : 'Feminino') : ''} />
           <Kv label="Altura" value={p.altura ? `${br(p.altura / 100, 2)} m` : ''} />
-          <div className="row plain kv split">
-            <button className="kv-main" onClick={openPeso}><span className="body"><div className="t">Peso atual</div></span>
-              <span className="end">{w != null ? <span className="v num">{br(w)} kg</span> : <span>Atualizar</span>}</span></button>
-            <button className="kv-side" onClick={openPesoReport} aria-label="Relatório de peso" title="Relatório de peso"><Icon n="chart" /></button>
-          </div>
+          <button className="row plain kv" onClick={openPeso}><span className="body"><div className="t">Peso atual</div></span>
+            <span className="end">{w != null ? <span className="v num">{br(w)} kg</span> : <span>Atualizar</span>}</span></button>
           <Kv label="Meta de peso" value={p.meta ? `${br(p.meta)} kg` : ''} />
           <Kv label="Nutricionista" value={p.nutri || ''} />
         </div>
-      </Section>
-
-      <Section title="Alimentação">
-        <div className="group"><button className="row plain" onClick={() => openDietEditor()}>
-          <span className="body"><div className="t">Montar refeições</div>
-            <div className="s">{groups.length ? `${groups.length} ${groups.length === 1 ? 'refeição' : 'refeições'} · ${groups.reduce((t, g) => t + g.options.length, 0)} opções` : 'Café, almoço, lanche, jantar, ceia…'}</div></span>
-          <span className="end"><Icon n="right" /></span></button></div>
       </Section>
 
       <Section title="Assistente IA">
@@ -144,8 +133,9 @@ function LembretesSection() {
     <Section title="Lembretes">
       <div className="group">
         <Linha tipo="refeicoes" titulo="Refeições" sub={comHora ? `No horário de cada refeição do plano (${comHora})` : 'Coloque horário nas refeições do plano'} />
-        <div className="pad"><MetaAgua /></div>
-        <LembretesAgua />
+        <button className="row plain" onClick={() => { go('dieta'); setTimeout(openAgua, 50); }}>
+          <span className="body"><div className="t">Água</div><div className="s">{c.agua ? `Ligado · meta de ${(aguaMeta(c) / 1000).toLocaleString('pt-BR')} L` : 'Desligado'} · ajustar meta e horários</div></span>
+          <span className="end"><Icon n="right" /></span></button>
       </div>
       <p className="hint" style={{ padding: '8px 4px 0' }}>
         {ehNativo() ? 'Notificação sem som, com ✓ Sim e ✗ Não: marque direto pela barra de notificações, sem abrir o app.'

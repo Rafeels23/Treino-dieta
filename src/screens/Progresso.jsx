@@ -10,7 +10,7 @@ import {
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { buzzOnly } from '../lib/effects.js';
 import { openSession } from '../sheets/treino.jsx';
-import { openPeso, openActivity, deleteActivity } from '../sheets/perfil.jsx';
+import { openPeso, deleteActivity } from '../sheets/perfil.jsx';
 import { openDay } from '../sheets/hoje-dia.jsx';
 
 const emOrdem = () => finished().slice().sort((a, b) => a.start - b.start);
@@ -183,7 +183,7 @@ export default function Progresso() {
           : <div className="group empty"><Illu nome="historico" /><div>Seus treinos concluídos aparecem aqui.</div></div>}
       </Section>
 
-      <Section title="Atividades fora da academia" action={<button className="text-btn" onClick={() => openActivity()}>+ Adicionar</button>}>
+      <Section title="Atividades fora da academia">
         {ativRecentes.length ? (
           <>
             <div className="group">{ativRecentes.map(linhaAtividade)}</div>
@@ -192,7 +192,7 @@ export default function Progresso() {
               {state.activities.length > 3 ? <button className="text-btn" onClick={() => openHistorico('atividades')}>Ver todas ({state.activities.length})</button> : null}
             </div>
           </>
-        ) : <div className="group empty">Caminhada, corrida, bike, futebol… Registre o que fizer fora da academia, e os minutos entram no seu resumo.</div>}
+        ) : <div className="group empty">Caminhada, corrida, bike, futebol… Registre no card Atividade da tela Hoje, e os minutos entram no seu resumo.</div>}
       </Section>
     </>
   );
