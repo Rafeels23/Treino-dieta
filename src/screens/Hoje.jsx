@@ -78,7 +78,9 @@ export default function Hoje() {
 
   /* resumo da semana (domingo e segunda), até fechar */
   const diasResumo = semanaDoResumo();
-  const rs = diasResumo && state.ui.resumoVisto !== diasResumo[0] ? resumoSemana(diasResumo) : null;
+  const rs0 = diasResumo && state.ui.resumoVisto !== diasResumo[0] ? resumoSemana(diasResumo) : null;
+  /* semana sem nada registrado: não mostra um resumo zerado */
+  const rs = rs0 && (rs0.treinos || rs0.refPct || rs0.agua || rs0.passos || rs0.sono || rs0.dPeso != null) ? rs0 : null;
   const fmtH = (m) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, '0')}`;
   const resumo = rs ? (
     <div className="section"><div className="group pad resumo-semana">
