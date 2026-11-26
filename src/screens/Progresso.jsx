@@ -52,7 +52,7 @@ const linhaTreino = (s) => (
 );
 const linhaAtividade = (a) => (
   <div key={a.id} className="row plain segura" {...segurar(() => removerAtividade(a))}><span className="body"><div className="t">{a.tipo}</div>
-    <div className="s num">{fmtDay(a.date)}{a.minutos ? ` · ${a.minutos} min` : ''}{a.kcal ? ` · ${a.kcal} kcal` : ''}{a.passos ? ` · ${a.passos.toLocaleString('pt-BR')} passos` : ''}</div></span></div>
+    <div className="s num">{fmtDay(a.date)}{a.minutos ? ` · ${a.minutos} min` : ''}{a.km ? ` · ${br(a.km)} km` : ''}{a.kcal ? ` · ${a.kcal} kcal` : ''}{a.passos ? ` · ${a.passos.toLocaleString('pt-BR')} passos` : ''}</div></span></div>
 );
 
 /* histórico completo, separado por mês */
