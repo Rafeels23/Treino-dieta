@@ -22,6 +22,19 @@ public class PilarLembretesPlugin extends Plugin {
 
     private boolean precisaPermissao() { return Build.VERSION.SDK_INT >= 33; }
 
+    /** Agenda o aviso de fim do descanso (substitui o anterior). */
+    @PluginMethod
+    public void descanso(PluginCall call) {
+        long quando = (long) (call.getDouble("quando", 0.0) + 0);
+        if (quando <= System.currentTimeMillis()) { DescansoReceiver.cancelar(getContext()); call.resolve(); return; }
+        DescansoReceiver.criarCanal(getContext());
+        DescansoReceiver.agendar(getContext(), quando, call.getString("texto", ""));
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void cancelarDescanso(PluginCall call) { DescansoReceiver.cancelar(getContext()); call.resolve(); }
+
     /** Versão instalada do APK (para avisar quando sair uma versão nova da parte nativa). */
     @PluginMethod
     public void versao(PluginCall call) {

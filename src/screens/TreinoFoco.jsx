@@ -32,6 +32,19 @@ function sugestao(e, si) {
   };
 }
 
+/* dupla progressão: na última vez, todas as séries chegaram ao topo da faixa (ex.: 12 em "8-12") → sugere mais carga */
+function sugestaoCarga(e, pv) {
+  const faixa = String(e.reps ?? '').match(/\d+/g) || [];
+  if (e.tipo !== 'carga' || faixa.length !== 2 || !pv) return null;
+  const topo = Math.max(...faixa.map(Number)), base = Math.min(...faixa.map(Number));
+  const feitas = pv.sets.filter((x) => x.done);
+  if (!feitas.length || feitas.length < Math.min(e.sets.length, pv.sets.length)) return null;
+  if (!feitas.every((x) => Number(x.reps) >= topo && num(x.kg) > 0)) return null;
+  const maior = Math.max(...feitas.map((x) => num(x.kg)));
+  const passo = maior < 10 ? 1 : 2.5;
+  return { kg: String(Math.round((maior + passo) * 100) / 100).replace('.', ','), topo, base, maior };
+}
+
 function Relogio({ start }) {
   useTick(1000, true);
   return <>{fmtClock((Date.now() - start) / 1000)}</>;
@@ -97,6 +110,10 @@ export default function TreinoFoco({ s, onLista }) {
   const pv = lastPerformance(e.name);
   const ultimo = ei === total - 1;
   const demo = demoDe(e.name, e.demo);
+  const sobe = !completo ? sugestaoCarga(e, pv) : null;
+  const usarSugestao = () => { e.sets[si].kg = sobe.kg; e.sets[si].reps = String(sobe.base); save(); buzz(10); };
+  const jaSubiu = sobe && num(val.kg) >= num(sobe.kg);
+  const descanso = Number(e.rest) > 0 ? Number(e.rest) : DESCANSO;   // o descanso do exercício (editor) ou 1:30
   const carga = e.tipo === 'carga', cardio = e.tipo === 'cardio';
   const feitas = s.exercises.reduce((n, x) => n + x.sets.filter((y) => y.done).length, 0);
   const todas = s.exercises.reduce((n, x) => n + x.sets.length, 0);
@@ -116,7 +133,7 @@ export default function TreinoFoco({ s, onLista }) {
     const resta = e.sets.findIndex((x) => !x.done);
     const prox = resta !== -1 ? `Próximo: ${e.name} · série ${resta + 1}` : (ultimo ? 'Última série feita! Finalize o treino.' : `Próximo exercício: ${s.exercises[ei + 1].name}`);
     save();
-    startTimer(DESCANSO, prox);
+    startTimer(descanso, prox);
   };
   const proximo = () => {
     registra();
@@ -163,6 +180,11 @@ export default function TreinoFoco({ s, onLista }) {
             : <>Série <b>{si + 1}</b> de {e.sets.length} · meta {repsTexto(e)}</>}
           {(() => { const u = pv?.sets?.[atual] || pv?.sets?.[pv.sets.length - 1]; return u && carga && !completo ? <span className="pl-last"> · última vez {fmt(u.kg) || '—'} kg × {u.reps || '—'}</span> : null; })()}
         </div>
+        {sobe && !jaSubiu ? (
+          <button type="button" className="pl-sobe" onClick={usarSugestao}>
+            <span>Na última vez você fez {sobe.topo} em todas as séries com {br(sobe.maior)} kg. Que tal <b>{sobe.kg} kg</b> e {sobe.base} repetições?</span>
+            <em>Usar</em></button>
+        ) : null}
         <div className="pl-sets" aria-hidden="true">{e.sets.map((x, i) => <i key={i} className={`${x.done ? 'done' : ''} ${i === si ? 'cur' : ''}`} />)}</div>
         {e.notes ? <p className="pl-note">{e.notes}</p> : null}
       </div>
@@ -184,7 +206,7 @@ export default function TreinoFoco({ s, onLista }) {
       <div className="pl-btns">
         {!cardio && !completo ? (
           <button type="button" className="btn soft" onClick={pausa} disabled={descansando}>
-            <Icon n="pause" /> Pausa <span className="num">{fmtClock(DESCANSO)}</span></button>
+            <Icon n="pause" /> Pausa <span className="num">{fmtClock(descanso)}</span></button>
         ) : null}
         <button type="button" className={`btn ${completo || cardio ? 'block' : ''}`} onClick={proximo}>
           {ultimo ? <>Finalizar treino <Icon n="check" /></> : <>Próximo <Icon n="right" /></>}</button>

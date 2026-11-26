@@ -1,1 +1,1 @@
-{ "minimo": 0, "nota": "versionCode mínimo do APK. Aumente quando mudar algo nativo (android/), para o app avisar que tem APK novo." }
+{"minimo": 59, "nota": "versionCode mínimo do APK. Aumente quando mudar algo nativo (android/), para o app avisar que tem APK novo."}

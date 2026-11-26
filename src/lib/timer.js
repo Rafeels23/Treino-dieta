@@ -4,6 +4,27 @@ const emit = () => listeners.forEach((f) => f());
 export const subscribeTimer = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 
 let t = { end: 0, total: 0, beeped: false, next: '', iv: null };
+
+/* Android: com o app em segundo plano ou a tela bloqueada, o aviso do fim do descanso vem pelo sistema
+   (notificação com som e vibração). Com o app aberto, quem avisa é o próprio app. */
+let nativo = null;
+async function plugin() {
+  if (nativo !== null) return nativo;
+  try {
+    const { Capacitor, registerPlugin } = await import('@capacitor/core');
+    nativo = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android' ? registerPlugin('PilarLembretes') : false;
+  } catch { nativo = false; }
+  return nativo;
+}
+async function avisoNativo() {
+  const p = await plugin(); if (!p) return;
+  const fora = document.visibilityState === 'hidden';
+  try {
+    if (fora && t.end && t.end > Date.now() + 1000) await p.descanso({ quando: t.end, texto: t.next || '' });
+    else await p.cancelarDescanso();
+  } catch { /* APK antigo sem o aviso: segue só com o aviso do app */ }
+}
+if (typeof document !== 'undefined') document.addEventListener('visibilitychange', avisoNativo);
 export const getTimer = () => t;
 
 let audio;
@@ -31,20 +52,20 @@ export function startTimer(sec, next = '') {
   clearInterval(t.iv);
   t = { end: Date.now() + sec * 1000, total: sec, beeped: false, next, iv: setInterval(tick, 250) };
   document.body.classList.add('timer-on');
-  emit();
+  emit(); avisoNativo();
 }
 export function stopTimer() {
   clearInterval(t.iv);
   t = { ...t, end: 0, iv: null };
   document.body.classList.remove('timer-on');
-  emit();
+  emit(); avisoNativo();
 }
 export function addTimer(sec) {
   if (!t.end) return;
   t.end += sec * 1000;
   t.total = Math.max(t.total, (t.end - Date.now()) / 1000);
   if (t.end > Date.now()) t.beeped = false;
-  emit();
+  emit(); avisoNativo();
 }
 
 /* tela ligada durante o treino */
