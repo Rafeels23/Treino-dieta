@@ -12,6 +12,15 @@
       document.documentElement.dataset.theme = d ? 'dark' : 'light';
       document.documentElement.style.colorScheme = d ? 'dark' : 'light';
       document.querySelector('meta[name="theme-color"]').setAttribute('content', d ? '#0c0d0f' : '#f6f5f1');
+      /* cor principal escolhida no Perfil (mesma tabela de src/lib/theme.js) */
+      var cores = { vermelho: ['#d6303a', '#f2545b'], rosa: ['#d1366f', '#f06595'], roxo: ['#7048e8', '#9b7bff'], azul: ['#1f6fd1', '#4f9ff5'] };
+      var c = null; try { c = cores[localStorage.getItem('pilar-cor')]; } catch (e) {}
+      if (c) {
+        var cor = d ? c[1] : c[0], st = document.documentElement.style;
+        st.setProperty('--c-treino', cor);
+        st.setProperty('--treino-soft', 'color-mix(in srgb, ' + cor + ' ' + (d ? 22 : 14) + '%, ' + (d ? '#141619' : '#ffffff') + ')');
+        st.setProperty('--accent-ink', '#ffffff');
+      }
     })();
   </script>
   <title>Pilar</title>

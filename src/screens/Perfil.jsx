@@ -8,7 +8,7 @@ import {
 import { useSyncExternalStore } from 'react';
 import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
 import { Seg } from '../components/ui.jsx';
-import { getThemePref, setThemePref, subscribeTheme } from '../lib/theme.js';
+import { getThemePref, setThemePref, subscribeTheme, CORES, getCor, setCor } from '../lib/theme.js';
 import { useState } from 'react';
 import { config as lembConfig, ligar as lembLigar, ehNativo, aguaMeta } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
@@ -107,10 +107,19 @@ function ContaSection() {
 
 function AparenciaSection() {
   const pref = useSyncExternalStore(subscribeTheme, getThemePref);
+  const cor = useSyncExternalStore(subscribeTheme, getCor);
   return (
     <Section title="Aparência">
       <Seg options={[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Escuro']]} value={pref} onChange={setThemePref} />
       <p className="hint" style={{ padding: '8px 4px 0' }}>Automático segue o modo do celular.</p>
+      <div className="cor-titulo">Cor do app</div>
+      <div className="cores" role="radiogroup" aria-label="Cor do app">
+        {Object.entries(CORES).map(([k, [nome, claro]]) => (
+          <button key={k} type="button" role="radio" aria-checked={cor === k} aria-label={nome} title={nome}
+            className={`cor-op ${cor === k ? 'on' : ''}`} onClick={() => setCor(k)}>
+            <span className="cor-bola" style={{ background: claro || '#d44e22' }} />{nome}</button>
+        ))}
+      </div>
     </Section>
   );
 }
