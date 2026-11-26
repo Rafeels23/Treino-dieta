@@ -173,6 +173,9 @@ main { padding: 6px 16px 0; }
 .btn .i { width: 20px; height: 20px; }
 .text-btn { background: none; border: 0; padding: 6px 4px; color: var(--accent); font-weight: 700; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .text-btn .i { width: 18px; height: 18px; }
+/* área de toque maior (mín. ~44 px) sem mudar o desenho */
+.text-btn { position: relative; }
+.text-btn::after { content: ''; position: absolute; inset: -6px -4px; }
 .stack-btns { display: grid; gap: 10px; margin-top: 16px; }
 .row-btns { display: flex; justify-content: center; gap: 18px; }
 

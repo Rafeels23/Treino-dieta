@@ -1,7 +1,8 @@
 # Skills de agente: ferramenta local, nao faz parte do app publicado.
 # O app e servido pelo GitHub Pages — tudo que entra aqui vira arquivo publico.
 .agents/
-.claude/
+.claude/*
+!.claude/agents/
 skills-lock.json
 transitions/
 
