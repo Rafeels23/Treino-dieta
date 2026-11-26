@@ -1,5 +1,5 @@
 // Cache do app para funcionar offline (ex.: academia sem sinal).
-const CACHE = 'pilar-v32';
+const CACHE = 'pilar-v33';
 // Os arquivos do app (assets/*.js e *.css, com nome que muda a cada versão) entram no cache na primeira visita.
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 

@@ -2,7 +2,7 @@
    Contrato usado por outras telas: openMeal, quickMeal, openExtra, openDietEditor. */
 import { Anim } from '../components/Illu.jsx';
 import {
-  state, save, todayKey, dayLog, mealCheck, mealLabel, foodQty, autoSubs, MOODS, pickImage, shrink,
+  state, save, todayKey, dayLog, mealCheck, mealLabel, foodQty, MOODS, pickImage, shrink,
 } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { buzz } from '../lib/effects.js';
@@ -30,9 +30,9 @@ function SubLine({ x }) {
   return <div className="sub"><div className="t">{x.name}</div>{x.qty ? <div className="s">{x.qty}</div> : null}</div>;
 }
 
-/* um alimento: quantidade e o botão das substituições (da nutri + equivalentes) */
+/* um alimento: quantidade e o botão das substituições — só as que a nutricionista passou */
 function FoodRow({ f, fi, gid, oi }) {
-  const own = f.subs || [], auto = autoSubs(f), total = own.length + (auto ? auto.list.length : 0);
+  const total = (f.subs || []).length;
   const qty = foodQty(f);
   return (
     <div className="food">
@@ -51,17 +51,16 @@ function SubsSheet({ gid, oi, fi }) {
   const g = state.diet.groups.find((x) => x.id === gid);
   const f = g?.options[oi]?.foods[fi];
   if (!f) return null;
-  const own = f.subs || [], auto = autoSubs(f);
+  const own = f.subs || [];
   return (
     <>
       <div className="sheet-nav">
         <button type="button" className="icon-btn" onClick={() => openMeal(gid, oi)} aria-label="Voltar para a refeição"><Icon n="left" /></button>
         <div><div className="kicker">{mealLabel(g, oi)}</div><h2 style={{ margin: 0 }}>{f.name}</h2></div>
       </div>
-      <p className="lead">{foodQty(f)}{auto ? ` · ≈ ${auto.kcal} kcal` : ''}</p>
+      <p className="lead">{foodQty(f)}</p>
       <div className="subs-screen">
-        {own.length ? <><div className="sub-head">Indicadas pela nutricionista</div>{own.map((x, i) => <SubLine key={i} x={x} />)}</> : null}
-        {auto ? <><div className="sub-head">Equivalentes · {auto.label} · mesma caloria</div>{auto.list.map((x, i) => <SubLine key={i} x={x} />)}</> : null}
+        <div className="sub-head">Opções para substituir</div>{own.map((x, i) => <SubLine key={i} x={x} />)}
       </div>
     </>
   );
