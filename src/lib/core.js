@@ -553,7 +553,7 @@ export const weekIdx = (k) => (keyToDate(k).getDay() + 6) % 7;
 export const routinesOf = (k) => (state.routines || []).filter((r) => !r.dias?.length || r.dias.includes(weekIdx(k)));
 export const routineSorted = (k) => routinesOf(k).slice().sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 
-export const ROTINA_PRESETS = ['Ler', 'Beber 2 L de água', 'Tomar sol', 'Alongar', 'Meditar', 'Dormir até 23h', 'Estudar', 'Caminhar'];
+export const ROTINA_PRESETS = ['Ler', 'Tomar sol', 'Alongar', 'Meditar', 'Dormir até 23h', 'Estudar', 'Caminhar'];
 
 export const mealLabel = (g, oi) => (g.options.length > 1 ? `${g.name} - Opção ${oi + 1}` : g.name);
 /* "07:30 - Café da manhã - Opção 2", como na lista do app da nutricionista */
