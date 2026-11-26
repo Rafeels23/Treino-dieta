@@ -12,8 +12,9 @@ import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
 import { Seg } from '../components/ui.jsx';
 import { getThemePref, setThemePref, subscribeTheme } from '../lib/theme.js';
 import { useState } from 'react';
-import { config as lembConfig, ligar as lembLigar, ajustarAgua, ehNativo, aguaHorarios, aguaCopo, aguaMeta, INTERVALOS } from '../lib/lembretes.js';
+import { config as lembConfig, ligar as lembLigar, ehNativo } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
+import { MetaAgua, LembretesAgua } from '../components/AguaAjustes.jsx';
 
 function Kv({ label, value }) {
   return (
@@ -149,22 +150,8 @@ function LembretesSection() {
     <Section title="Lembretes">
       <div className="group">
         <Linha tipo="refeicoes" titulo="Refeições" sub={comHora ? `No horário de cada refeição do plano (${comHora})` : 'Coloque horário nas refeições do plano'} />
-        <Linha tipo="agua" titulo="Água" sub={c.agua ? `${aguaHorarios(c).length} lembretes de ${aguaCopo(c)} ml · meta de ${(aguaMeta(c) / 1000).toLocaleString('pt-BR')} L` : 'Você escolhe a meta, o horário e o intervalo'} />
-        {c.agua ? (
-          <div className="pad agua-ajuste">
-            <div className="field"><label>Meta por dia (litros)</label>
-              <input inputMode="decimal" defaultValue={(aguaMeta(c) / 1000).toLocaleString('pt-BR')} key={`m${c.aguaMeta}`}
-                onBlur={(e) => { const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0) ajustarAgua({ aguaMeta: Math.round(v * 1000) }); }} /></div>
-            <div className="two">
-              <div className="field"><label>Das</label><input type="time" value={c.aguaInicio} onChange={(e) => e.target.value && ajustarAgua({ aguaInicio: e.target.value })} /></div>
-              <div className="field"><label>Até</label><input type="time" value={c.aguaFim} onChange={(e) => e.target.value && ajustarAgua({ aguaFim: e.target.value })} /></div>
-            </div>
-            <div className="field"><label>Lembrar a cada</label>
-              <select value={c.aguaIntervalo} onChange={(e) => ajustarAgua({ aguaIntervalo: Number(e.target.value) })}>
-                {INTERVALOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-            <p className="hint">O app divide a meta pelos lembretes: {aguaHorarios(c).length} × {aguaCopo(c)} ml ≈ {((aguaHorarios(c).length * aguaCopo(c)) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} L.</p>
-          </div>
-        ) : null}
+        <div className="pad"><MetaAgua /></div>
+        <LembretesAgua />
       </div>
       <p className="hint" style={{ padding: '8px 4px 0' }}>
         {ehNativo() ? 'Notificação sem som, com ✓ Sim e ✗ Não: marque direto pela barra de notificações, sem abrir o app.'
