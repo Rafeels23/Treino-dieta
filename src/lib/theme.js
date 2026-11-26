@@ -10,14 +10,14 @@ export const getThemePref = () => { try { return localStorage.getItem(KEY) || 'a
    Quando a cor principal é igual à de uma área, essa área muda de cor para não confundir
    (verde → a Dieta fica laranja; azul → a Rotina fica roxa). */
 export const CORES = {
-  verde: ['Verde', '#2b9348', '#3dbb63', { dieta: ['#d9480f', '#f08c45'] }],
   laranja: ['Laranja', '#d44e22', '#ee5a2b'],
+  verde: ['Verde', '#2b9348', '#3dbb63', { dieta: ['#d9480f', '#f08c45'] }],
   vermelho: ['Vermelho', '#d6303a', '#f2545b'],
   rosa: ['Rosa', '#d1366f', '#f06595'],
   roxo: ['Roxo', '#7048e8', '#9b7bff'],
   azul: ['Azul', '#1f6fd1', '#4f9ff5', { rotina: ['#7048e8', '#9b7bff'] }],
 };
-export const COR_PADRAO = 'verde';
+export const COR_PADRAO = 'laranja';
 const KEY_COR = 'pilar-cor';
 export const getCor = () => { try { const c = localStorage.getItem(KEY_COR); return CORES[c] ? c : COR_PADRAO; } catch { return COR_PADRAO; } };
 export function setCor(c) {
