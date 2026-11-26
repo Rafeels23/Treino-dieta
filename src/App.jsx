@@ -1,3 +1,4 @@
+import { motion, MotionConfig } from 'motion/react';
 import { Component, lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { useStore } from './lib/hooks.js';
 import { go } from './lib/ui.js';
@@ -83,13 +84,13 @@ function Main() {
     <>
       <main id="view" className="enter" key={tab}><Falha><Suspense fallback={<div className="carregando" aria-busy="true" />}><Screen /></Suspense></Falha></main>
       <TimerBar />
-      <nav className="tabs" id="tabs">
+      <MotionConfig reducedMotion="user"><nav className="tabs" id="tabs">
         {TABS.map(([k, label, icon]) => (
           <button key={k} className={k === tab ? 'active' : ''} aria-current={k === tab ? 'page' : 'false'} onClick={() => go(k)}>
-            <span className="pill"><Icon n={icon} /></span>{label}
+            <span className="pill">{k === tab ? <motion.span layoutId="aba-ativa" className="pill-bg" transition={{ type: 'spring', stiffness: 520, damping: 36 }} /> : null}<Icon n={icon} /></span>{label}
           </button>
         ))}
-      </nav>
+      </nav></MotionConfig>
       <SheetHost />
     </>
   );

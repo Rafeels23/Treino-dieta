@@ -1029,3 +1029,28 @@ body:has(.login) { padding-bottom: 0; }
 .head h1 { overflow: hidden; text-overflow: ellipsis; }
 .profile-head > div:last-child { min-width: 0; }
 .profile-head h1 { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+
+/* ---------- Microanimações (inspiradas nos modelos de interface do Jitter) ---------- */
+/* 1. Abas: o fundo da aba ativa desliza até a aba tocada */
+.tabs .pill { position: relative; }
+.tabs button.active .pill { background: none; }
+.tabs .pill .i { position: relative; z-index: 1; }
+.tabs .pill-bg { position: absolute; inset: 0; border-radius: inherit; background: var(--surface-2); }
+
+/* 2. Interruptor com mola: a bolinha passa um pouco do ponto, estica e assenta */
+.switch { transition: background .25s; }
+.switch i { transition: transform .42s cubic-bezier(.34, 1.56, .64, 1); animation: estica-off .42s ease; }
+.switch.on i { animation: estica-on .42s ease; }
+@keyframes estica-on { 35% { scale: 1.3 .9; } }
+@keyframes estica-off { 35% { scale: 1.3 .9; } }
+
+/* 3. Barras de progresso enchem do zero quando a tela aparece */
+.bar > i, .agua-bar i, .session-head .prog i { transform-origin: left center; animation: enche .8s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes enche { from { transform: scaleX(0); } }
+
+/* 4. IA calculando: três barrinhas pulsando */
+.pensando { display: inline-flex; align-items: center; gap: 3px; height: 14px; margin-right: 8px; vertical-align: -2px; }
+.pensando i { width: 3px; height: 100%; border-radius: 2px; background: currentColor; animation: pulsa 1s ease-in-out infinite; }
+.pensando i:nth-child(2) { animation-delay: .15s; }
+.pensando i:nth-child(3) { animation-delay: .3s; }
+@keyframes pulsa { 0%, 100% { transform: scaleY(.35); opacity: .5; } 50% { transform: scaleY(1); opacity: 1; } }

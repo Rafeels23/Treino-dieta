@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { soInteiro } from '../lib/campos.js';
 import { state, save, todayKey, dayLog, num, br, pickImage, shrink, estimateFood, aiErrorText } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
-import { Icon, SheetActions } from '../components/ui.jsx';
+import { Icon, SheetActions, Pensando } from '../components/ui.jsx';
 
 const AI_LABEL = { idle: 'Calcular calorias com IA', busy: 'Calculando…', done: 'Calcular de novo', err: 'Tentar de novo' };
 
@@ -68,7 +68,7 @@ function ExtraSheet() {
             placeholder="ex.: 1 barra de chocolate ao leite, uns 3 quadradinhos" /></div>
       </div>
       {hasKey
-        ? <button type="button" className="btn soft block" style={{ marginTop: 12 }} disabled={ai === 'busy'} onClick={calc}>{AI_LABEL[ai]}</button>
+        ? <button type="button" className="btn soft block" style={{ marginTop: 12 }} disabled={ai === 'busy'} onClick={calc}>{ai === 'busy' ? <Pensando /> : null}{AI_LABEL[ai]}</button>
         : <p className="hint" style={{ marginTop: 12 }}>Para calcular com IA, configure a chave em <b>Perfil › Assistente IA</b>. Sem ela, você pode informar as calorias abaixo.</p>}
       <div id="food-result">
         {r ? (

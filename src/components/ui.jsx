@@ -45,6 +45,9 @@ export function Section({ title, action = null, children, className = '' }) {
 }
 
 /* Anéis de progresso (de fora para dentro). items: [{ v: 0..1, color }] */
+/* "Pensando": três barrinhas pulsando na cor do texto (IA calculando) */
+export const Pensando = () => <span className="pensando" aria-hidden="true"><i /><i /><i /></span>;
+
 export function Rings({ items, size = 128, sw = 12, innerRef }) {
   const c = size / 2;
   return (

@@ -6,7 +6,7 @@ import {
 } from '../lib/core.js';
 import { go, openSheet, closeSheet } from '../lib/ui.js';
 import { stopTimer, keepAwake } from '../lib/timer.js';
-import { Icon, Seg, SheetActions } from '../components/ui.jsx';
+import { Icon, Seg, SheetActions, Pensando } from '../components/ui.jsx';
 import { demoDe, SUGESTOES } from '../lib/exercicios.js';
 import { soInteiro, soFaixa, repsTexto } from '../lib/campos.js';
 
@@ -310,7 +310,7 @@ function TreinoIASheet() {
         placeholder="ex.: treino ABC, 4x por semana, foco em pernas" /></div>
       {!texto ? <div className="chips">{EXEMPLOS.map((x) => <button key={x} type="button" className="chip" onClick={() => setTexto(x)}>{x}</button>)}</div> : null}
       <button type="button" className="btn block" style={{ marginTop: 12 }} disabled={estado === 'busy'} onClick={montar}>
-        {estado === 'busy' ? 'Montando…' : res ? 'Montar de novo' : 'Montar treino'}</button>
+        {estado === 'busy' ? <><Pensando />Montando…</> : res ? 'Montar de novo' : 'Montar treino'}</button>
       {estado && estado !== 'busy' ? <p className="hint" style={{ color: 'var(--danger)', marginTop: 10 }}>{estado}</p> : null}
       {res?.treinos?.length ? (
         <>
