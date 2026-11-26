@@ -112,6 +112,9 @@ function ActiveView({ s }) {
   );
 }
 
+/* deixa o nome quebrar depois da barra: "Peito/Ombro/Tríceps" */
+const quebraBarra = (t) => String(t || '').split('/').flatMap((p, i, a) => (i < a.length - 1 ? [p, '/', <wbr key={i} />] : [p]));
+
 export default function Treino() {
   const state = useStore();
   if (state.active && !state.ui.treinoMin) return state.ui.treinoLista
@@ -139,7 +142,7 @@ export default function Treino() {
               return (
                 <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} {...segurar(() => openWorkout(w.id), () => tocarTreino(w.id))}>
                   <span className="lt">{w.letter}</span>
-                  <span className="body"><div className="t">{w.name}</div><div className="s">{w.exercises.length} {w.exercises.length === 1 ? 'exercício' : 'exercícios'} · ~{estMinutes(w)} min</div></span>
+                  <span className="body"><div className="t">{quebraBarra(w.name)}</div><div className="s">{w.exercises.length} {w.exercises.length === 1 ? 'exercício' : 'exercícios'} · ~{estMinutes(w)} min</div></span>
                   <span className="end">{isNext ? <span className="tag accent">Próximo</span> : null}<Icon n="right" /></span>
                 </button>
               );

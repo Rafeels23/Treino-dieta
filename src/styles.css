@@ -1054,3 +1054,14 @@ body:has(.login) { padding-bottom: 0; }
 .pensando i:nth-child(2) { animation-delay: .15s; }
 .pensando i:nth-child(3) { animation-delay: .3s; }
 @keyframes pulsa { 0%, 100% { transform: scaleY(.35); opacity: .5; } 50% { transform: scaleY(1); opacity: 1; } }
+
+/* ---------- Alinhamento (padding) ---------- */
+/* título da tela alinhado com os títulos das seções e com a borda dos cards */
+.head { padding-left: 4px; padding-right: 0; }
+/* card de treino não passa da tela com nome sem espaço (ex.: Peito/Ombro/Tríceps) */
+.wk-list > *, .wk-card { min-width: 0; }
+.wk-card .t { overflow-wrap: anywhere; }
+/* janelas: respiro em cima e embaixo; ao rolar, o conteúdo some suave em vez de cortar no topo */
+.sheet > .sheet-body { padding-top: 30px; padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  -webkit-mask-image: linear-gradient(to bottom, transparent 4px, #000 30px); mask-image: linear-gradient(to bottom, transparent 4px, #000 30px); }
+.stack-btns > .text-btn:first-child { margin-left: -4px; }
