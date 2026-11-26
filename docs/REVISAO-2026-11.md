@@ -72,15 +72,39 @@ O que os estudos e os apps mais bem avaliados mostram, e como o Pilar está:
 | Personal e aluno pedem progressão sugerida e carga preenchida | [Trainerize — ideias](https://ideas.abcfitness.com/forums/940789-client-gym-members-abc-trainerize/suggestions/5728988-have-sets-and-weights-auto-fill-with-previous-numb) | 🟡 ver sugestão 1 abaixo |
 | No iPhone, a notificação pela web só funciona com o app na tela de início, sem botões de ação | [MagicBell — PWA no iOS](https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide) | ✅ já tratado: no iPhone, tocar abre o app; ✓/✗ só no Android |
 
-## 5. Funcionalidades sugeridas (não implementadas, só se você quiser)
+## 5. Melhorias sugeridas (ainda não implementadas)
 
-Ficaram de fora de propósito, porque você pediu para não adicionar nada sem combinar. Em ordem de valor:
+Ficaram de fora de propósito: só entram no app quando você escolher. Estão em ordem de prioridade.
 
-1. **Sugestão de carga (dupla progressão).** Quando todas as séries chegam ao topo da faixa (ex.: 12, 12, 12 em "8-12"), o treino seguinte sugere +2,5 kg e volta para 8 repetições. Só sugere; você aceita ou não. É o que Boostcamp, Liftosaur e Alpha Progression fazem ([Boostcamp](https://www.boostcamp.app/features/auto-progression), [Legion — double progression](https://legionathletics.com/double-progression)).
-2. **Medidas e fotos de progresso** (cintura, quadril, braço), mensais como o peso, com comparação lado a lado. As fotos ficariam só no aparelho. É o que os apps de medidas mais destacam ([exemplo](https://apps.apple.com/us/app/-/id1369905597)).
-3. **Resumo da semana** no domingo: treinos feitos, refeições no plano, média de água e sono, em um card.
-4. **Dia de folga na constância**: 1 dia por semana que não quebra a sequência.
-5. **Descanso por exercício**: hoje é 1:30 fixo no treino focado; o editor já guarda o descanso de cada exercício, então daria para usar o valor dele.
+### 1. Sugestão de carga ⭐ (prioridade)
+- **Como funciona:** quando todas as séries chegam ao topo da faixa (ex.: 12, 12, 12 em "8 a 12"), o próximo treino sugere +2,5 kg e volta para 8 repetições. É a "dupla progressão".
+- **Na tela:** um aviso discreto no treino focado, por exemplo "Bateu 12 em todas, tenta 22,5 kg". Você aceita ou ignora.
+- **Por que vale:** é o método de progressão mais usado na musculação (Boostcamp, Liftosaur, Alpha Progression). O Pilar já guarda o que foi feito da última vez, então encaixa bem.
+- **Fontes:** [Boostcamp](https://www.boostcamp.app/features/auto-progression), [Legion — double progression](https://legionathletics.com/double-progression).
+
+### 2. Descanso de cada exercício (prioridade)
+- **Como funciona:** usar o descanso que o editor já guarda para cada exercício, em vez do 1:30 fixo do treino focado (ex.: 2:00 no agachamento, 1:00 no abdominal).
+- **Por que vale:** deixa o treino mais fiel à ficha do personal. É uma mudança pequena.
+
+### 3. Medidas do corpo e fotos de progresso
+- **Como funciona:** cintura, quadril e braço uma vez por mês, junto com o peso, e fotos de frente e de lado com comparação "antes e depois".
+- **Privacidade:** as fotos ficam só no celular, sem ir para a nuvem.
+- **Por que vale:** a balança às vezes para enquanto a cintura diminui; ver isso segura a motivação.
+- **Fonte:** [exemplo de app de medidas](https://apps.apple.com/us/app/-/id1369905597).
+
+### 4. Resumo da semana
+- **Como funciona:** no domingo, um card com:
+  - treinos feitos;
+  - refeições que seguiram o plano;
+  - média de água, sono e passos (pela pulseira);
+  - variação do peso.
+
+### 5. Dia de folga na sequência
+- **Como funciona:** 1 dia por semana que não quebra a constância.
+- **Por que vale:** perder a sequência por um dia ruim é um dos motivos mais comuns para largar o app.
+- **Fontes:** [INSEAD](https://knowledge.insead.edu/marketing/consumer-streaks-are-motivating-key-keeping-them-alive), [Mobbin](https://mobbin.com/blog/streaks-are-about-losing-a-study-of-859-streak-designs).
+
+**Ordem recomendada:** 1 e 2 primeiro (ajudam no treino do dia a dia e quase não mudam o visual), depois a 3.
 
 ## 6. Desempenho
 
