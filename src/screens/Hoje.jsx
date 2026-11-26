@@ -103,8 +103,22 @@ export default function Hoje() {
   }
 
   const minsAct = acts.reduce((t, a) => t + (a.minutos || 0), 0);
+  /* pulseira: passos de hoje e sono da noite passada */
+  const sd = state.saude?.conectado ? state.saude : null;
+  const passos = sd?.dias?.[key]?.passos, sono = sd?.sono?.[key];
+  const fmtSono = (m) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, '0')}`;
   const bento = (
-    <div className="section bento one">
+    <div className={`section bento ${sd ? 'com-pulseira' : 'one'}`}>
+      {sd ? (
+        <>
+          <div className="tile passos"><div className="top"><span className="lbl">Passos</span><span className="badge passos">👟</span></div>
+            <div className="val digits">{passos != null ? passos.toLocaleString('pt-BR') : '—'}</div>
+            <div className="sub">{sd.dias?.[key]?.kcal ? `${sd.dias[key].kcal} kcal ativas` : 'da pulseira'}</div></div>
+          <div className="tile sono"><div className="top"><span className="lbl">Sono</span><span className="badge sono">🌙</span></div>
+            <div className="val digits">{sono ? fmtSono(sono) : '—'}</div>
+            <div className="sub">{sono ? 'noite passada' : 'sem registro'}</div></div>
+        </>
+      ) : null}
       <button className="tile ativ" onClick={() => openActivity()}><div className="top"><span className="lbl">Atividade</span><span className="badge ativ"><Icon n="pulse" /></span></div>
         {acts.length ? (<><div className="val digits">{minsAct || acts.length}<small>{minsAct ? 'min' : 'reg.'}</small></div><div className="sub">{acts.map((a) => a.tipo).join(', ')}</div></>)
           : (<><div className="cta"><Icon n="plus" /> Registrar</div><div className="sub">Caminhada, bike…</div></>)}</button>

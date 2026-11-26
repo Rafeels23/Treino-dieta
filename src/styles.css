@@ -989,3 +989,7 @@ body:has(.login) { padding-bottom: 0; }
 .em-andamento .t { font-weight: 650; font-size: 16px; margin-top: 2px; }
 .em-andamento .s { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
 .session-head .row1 { align-items: center; gap: 10px; }
+/* passos e sono da pulseira na tela Hoje */
+.bento.com-pulseira .tile.ativ { grid-column: 1 / -1; }
+.bento .tile.passos, .bento .tile.sono { text-align: left; }
+.badge.passos, .badge.sono { font-size: 16px; display: grid; place-items: center; background: var(--surface-2); }

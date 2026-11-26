@@ -13,6 +13,8 @@ import { useState } from 'react';
 import { config as lembConfig, ligar as lembLigar, ehNativo, aguaMeta } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
 import { openAgua } from './Dieta.jsx';
+import { pulseiraDisponivel, conectarPulseira, desconectarPulseira, sincronizarPulseira, estadoPulseira, PLAY_SAUDE } from '../lib/pulseira.js';
+import { useEffect } from 'react';
 
 function Kv({ label, value }) {
   return (
@@ -65,6 +67,8 @@ export default function Perfil() {
           <div className="s">{state.ai?.key ? 'Usando a chave deste celular' : 'Pela conta do Pilar, para vocês dois'}</div></span>
           <span className="end"><span className="tag ok">Ativo</span><Icon n="right" /></span></button></div>
       </Section>
+
+      <PulseiraSection />
 
       <LembretesSection />
 
@@ -141,6 +145,43 @@ function LembretesSection() {
         {ehNativo() ? 'Notificação sem som, com ✓ Sim e ✗ Não: marque direto pela barra de notificações, sem abrir o app.'
           : 'Notificação sem botões (o iPhone não permite em sites): tocar abre o Pilar na tela certa.'}</p>
       {aviso && !c.refeicoes && !c.agua ? <p className="hint" style={{ padding: '6px 4px 0' }}>{aviso}</p> : null}
+      {msg ? <p className="hint" style={{ padding: '6px 4px 0', color: 'var(--danger)' }}>{msg}</p> : null}
+    </Section>
+  );
+}
+
+function PulseiraSection() {
+  const state = useStore();
+  const [st, setSt] = useState(null), [msg, setMsg] = useState(''), [busy, setBusy] = useState(false);
+  useEffect(() => { estadoPulseira().then(setSt); }, [state.saude?.conectado]);
+  if (!pulseiraDisponivel()) return null;       // só no app Android
+  const sd = state.saude || {};
+  const conectada = sd.conectado && st?.permitido;
+  const quando = sd.ultima ? Math.round((Date.now() - sd.ultima) / 60000) : null;
+  const conectar = async () => { setBusy(true); setMsg(''); const e = await conectarPulseira(); setBusy(false); if (e) setMsg(e); estadoPulseira().then(setSt); };
+  const atualizar = async () => { setBusy(true); await sincronizarPulseira(true); setBusy(false); };
+  return (
+    <Section title="Pulseira">
+      <div className="group">
+        {st && st.status !== 'ok' && st.status !== 'app_antigo' ? (
+          <a className="row plain" href={PLAY_SAUDE} target="_blank" rel="noreferrer">
+            <span className="body"><div className="t">Instalar o Saúde Connect</div><div className="s">É por ele que os dados do Zepp chegam ao Pilar</div></span>
+            <span className="end"><Icon n="right" /></span></a>
+        ) : conectada ? (
+          <>
+            <div className="row plain"><span className="body"><div className="t">Conectada</div>
+              <div className="s">{sd.erro || (quando == null ? 'Lendo…' : quando < 1 ? 'Atualizada agora' : `Atualizada há ${quando} min`)} · passos, sono e exercícios</div></span>
+              <span className="sync-dot ok" aria-hidden="true" /></div>
+            <button className="row plain" onClick={atualizar} disabled={busy}><span className="body"><div className="t">{busy ? 'Atualizando…' : 'Atualizar agora'}</div></span></button>
+            <button className="row plain" onClick={desconectarPulseira}><span className="body"><div className="t" style={{ color: 'var(--ink-2)' }}>Desconectar</div></span></button>
+          </>
+        ) : (
+          <button className="row plain" onClick={conectar} disabled={busy}>
+            <span className="body"><div className="t">{busy ? 'Conectando…' : 'Conectar pulseira'}</div><div className="s">Amazfit pelo Zepp → Saúde Connect: passos, sono e exercícios</div></span>
+            <span className="end"><Icon n="right" /></span></button>
+        )}
+      </div>
+      <p className="hint" style={{ padding: '8px 4px 0' }}>Os exercícios da pulseira (caminhada, corrida, bike…) entram sozinhos nas atividades. Musculação não entra, porque já é o treino do Pilar.</p>
       {msg ? <p className="hint" style={{ padding: '6px 4px 0', color: 'var(--danger)' }}>{msg}</p> : null}
     </Section>
   );

@@ -8,6 +8,7 @@ import SheetHost from './components/Sheet.jsx';
 import Login, { NotMember, Splash } from './components/Login.jsx';
 import { initAccount, getAccount, subscribeAccount } from './lib/cloud.js';
 import { iniciarLembretes } from './lib/lembretes.js';
+import { iniciarPulseira } from './lib/pulseira.js';
 
 initAccount();
 import TimerBar from './components/TimerBar.jsx';
@@ -36,6 +37,7 @@ function Main() {
 
   useEffect(() => {
     iniciarLembretes();
+    iniciarPulseira();
     const abrir = new URLSearchParams(location.search).get('abrir');
     if (abrir && SCREENS[abrir]) { go(abrir); history.replaceState(null, '', location.pathname); }
     if (state.active) keepAwake(true);
