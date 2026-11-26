@@ -1,5 +1,5 @@
 // Cache do app para funcionar offline (ex.: academia sem sinal).
-const CACHE = 'pilar-v31';
+const CACHE = 'pilar-v32';
 // Os arquivos do app (assets/*.js e *.css, com nome que muda a cada versão) entram no cache na primeira visita.
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
@@ -19,4 +19,28 @@ self.addEventListener('fetch', (e) => {
       return r;
     }).catch(() => caches.match(e.request).then((r) => r || caches.match('index.html')))
   );
+});
+
+// Lembretes (Web Push): o servidor manda { titulo, texto, tag, abrir } na hora do lembrete.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { texto: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.titulo || 'Pilar', {
+    body: d.texto || '',
+    tag: d.tag || 'pilar',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
+    silent: true,
+    data: { abrir: d.abrir || './' },
+  }));
+});
+// Tocar na notificação abre (ou traz para frente) o Pilar na tela certa.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const alvo = new URL(e.notification.data?.abrir || './', self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+    const c = cs.find((x) => x.url.startsWith(self.registration.scope));
+    if (c) { c.navigate(alvo).catch(() => {}); return c.focus(); }
+    return self.clients.openWindow(alvo);
+  }));
 });

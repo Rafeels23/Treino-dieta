@@ -953,3 +953,21 @@ body:has(.login) { padding-bottom: 0; }
 .const-d.hoje { box-shadow: inset 0 0 0 2px var(--ink); }
 .const-grid.semana .const-d { border-radius: 12px; font-size: 14px; }
 .row.segura { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* ----- Água ----- */
+.agua-card { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+.agua-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.agua-top .t { font-weight: 650; font-size: 16px; }
+.agua-top .s { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
+.agua-btns { display: flex; align-items: center; gap: 8px; }
+.agua-btns .icon-btn { font-size: 20px; }
+.agua-mais { background: #3b8fe0; color: #fff; }
+.agua-bar { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.agua-bar i { display: block; height: 100%; border-radius: 5px; background: #3b8fe0; transition: width .35s ease; }
+
+/* ----- chave liga/desliga ----- */
+.switch { width: 44px; height: 26px; border-radius: 13px; background: var(--surface-3); position: relative; display: inline-block; transition: background .2s; }
+.switch i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.switch.on { background: var(--c-dieta); }
+.switch.on i { transform: translateX(18px); }
+.agua-ajuste { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--surface-2); }

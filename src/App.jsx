@@ -7,6 +7,7 @@ import { Icon } from './components/ui.jsx';
 import SheetHost from './components/Sheet.jsx';
 import Login, { NotMember, Splash } from './components/Login.jsx';
 import { initAccount, getAccount, subscribeAccount } from './lib/cloud.js';
+import { iniciarLembretes } from './lib/lembretes.js';
 
 initAccount();
 import TimerBar from './components/TimerBar.jsx';
@@ -34,6 +35,9 @@ function Main() {
   const Screen = SCREENS[tab] || Hoje;
 
   useEffect(() => {
+    iniciarLembretes();
+    const abrir = new URLSearchParams(location.search).get('abrir');
+    if (abrir && SCREENS[abrir]) { go(abrir); history.replaceState(null, '', location.pathname); }
     if (state.active) keepAwake(true);
     const onVis = () => {
       if (document.visibilityState !== 'visible') return;

@@ -11,6 +11,7 @@ import {
 } from '../sheets/dieta.jsx';
 import { saveDietText, openGrpEditor } from '../sheets/dieta-editor.jsx';
 import { buzzOnly } from '../lib/effects.js';
+import { aguaDe, aguaSomar, aguaMeta, aguaCopo } from '../lib/lembretes.js';
 
 const PLACEHOLDER = '07:30 - Café da manhã\nIogurte desnatado - 170 g\nAveia em flocos - 30 g\nMorango - 10 unidades ou 120 g\nSubstituição: Salada de frutas - 1 porção\n\n07:30 - Café da manhã - Opção 2\nPão integral - 2 fatias\n\n12:00 - Almoço\nArroz branco cozido - 125 g\nPeito de frango grelhado - 150 g\nObservação: legumes e folhas à vontade';
 
@@ -78,6 +79,7 @@ export default function Dieta() {
           <div className="s">{done === groups.length ? 'todas as refeições feitas' : 'refeições'}{xk ? ` · ${Math.round(xk)} kcal fora do plano` : ''}</div></div>
         {done === groups.length ? <Anim key={key} nome="palmas" tamanho={60} className="sum-anim" /> : null}
       </div></div>
+      <AguaCard k={key} />
       <Section title="Refeições">
         <div className="meal-list">{comExtras(groups, log.extras, (g) => g.options.map((o, oi) => {
           const c = mealCheck(log, g);
@@ -209,3 +211,22 @@ function MealActions({ gid, oi }) {
   );
 }
 function openMealActions(gid, oi) { openSheet(() => <MealActions gid={gid} oi={oi} />); }
+
+/* Água do dia: meta de 2 L, um toque soma um copo */
+function AguaCard({ k }) {
+  const META = aguaMeta(), COPO = aguaCopo();
+  const ml = aguaDe(k), frac = Math.min(1, ml / META);
+  const litros = (v) => (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  return (
+    <div className="section"><div className="group agua-card">
+      <div className="agua-top">
+        <div><div className="t">Água</div><div className="s num">{litros(ml)} de {litros(META)} L{ml >= META ? ' · meta batida!' : ''}</div></div>
+        <div className="agua-btns">
+          <button type="button" className="icon-btn" onClick={() => aguaSomar(-COPO, k)} disabled={!ml} aria-label="Tirar um copo">−</button>
+          <button type="button" className="btn sm agua-mais" onClick={() => { buzzOnly(10); aguaSomar(COPO, k); }}>+ {COPO} ml</button>
+        </div>
+      </div>
+      <div className="agua-bar" role="progressbar" aria-valuemin={0} aria-valuemax={META} aria-valuenow={ml}><i style={{ width: `${frac * 100}%` }} /></div>
+    </div></div>
+  );
+}
