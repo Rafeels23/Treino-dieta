@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react';
 import { useStore } from './lib/hooks.js';
 import { go } from './lib/ui.js';
 import { save } from './lib/core.js';
@@ -13,11 +13,12 @@ import { iniciarPulseira } from './lib/pulseira.js';
 initAccount();
 import TimerBar from './components/TimerBar.jsx';
 import Hoje from './screens/Hoje.jsx';
-import Treino from './screens/Treino.jsx';
-import Dieta from './screens/Dieta.jsx';
-import Rotina from './screens/Rotina.jsx';
-import Progresso from './screens/Progresso.jsx';
-import Perfil from './screens/Perfil.jsx';
+/* as outras abas só carregam quando você entra nelas (abre mais rápido) */
+const Treino = lazy(() => import('./screens/Treino.jsx'));
+const Dieta = lazy(() => import('./screens/Dieta.jsx'));
+const Rotina = lazy(() => import('./screens/Rotina.jsx'));
+const Progresso = lazy(() => import('./screens/Progresso.jsx'));
+const Perfil = lazy(() => import('./screens/Perfil.jsx'));
 
 const SCREENS = { hoje: Hoje, treino: Treino, dieta: Dieta, rotina: Rotina, progresso: Progresso, perfil: Perfil };
 export const TABS = [['hoje', 'Hoje', 'home'], ['treino', 'Treino', 'dumbbell'], ['dieta', 'Dieta', 'meal'], ['rotina', 'Rotina', 'check'], ['progresso', 'Progresso', 'chart']];
@@ -53,7 +54,7 @@ function Main() {
 
   return (
     <>
-      <main id="view" className="enter" key={tab}><Screen /></main>
+      <main id="view" className="enter" key={tab}><Suspense fallback={<div className="carregando" aria-busy="true" />}><Screen /></Suspense></main>
       <TimerBar />
       <nav className="tabs" id="tabs">
         {TABS.map(([k, label, icon]) => (

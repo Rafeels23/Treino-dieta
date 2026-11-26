@@ -11,14 +11,15 @@
       var d = p === 'dark' || (p === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.theme = d ? 'dark' : 'light';
       document.documentElement.style.colorScheme = d ? 'dark' : 'light';
+      document.documentElement.style.setProperty('--bg-inicial', d ? '#0c0d0f' : '#f6f5f1');
       document.querySelector('meta[name="theme-color"]').setAttribute('content', d ? '#0c0d0f' : '#f6f5f1');
       /* cor principal escolhida no Perfil (mesma tabela de src/lib/theme.js; padrão: laranja) */
-      var cores = { verde: ['#2b9348', '#3dbb63', ['#d9480f', '#f08c45']], laranja: ['#d44e22', '#ee5a2b'], vermelho: ['#d6303a', '#f2545b'],
+      var cores = { verde: ['#237a3b', '#3dbb63', ['#c2410c', '#f08c45']], laranja: ['#c4481d', '#ee5a2b'], vermelho: ['#d6303a', '#f2545b'],
         rosa: ['#d1366f', '#f06595'], roxo: ['#7048e8', '#9b7bff'], azul: ['#1f6fd1', '#4f9ff5', null, ['#7048e8', '#9b7bff']] };
       var c = cores.laranja; try { c = cores[localStorage.getItem('pilar-cor')] || cores.laranja; } catch (e) {}
       var st = document.documentElement.style, i = d ? 1 : 0;
       var mix = function (x) { return 'color-mix(in srgb, ' + x + ' ' + (d ? 22 : 14) + '%, ' + (d ? '#141619' : '#ffffff') + ')'; };
-      st.setProperty('--c-treino', c[i]); st.setProperty('--treino-soft', mix(c[i])); st.setProperty('--accent-ink', '#ffffff');
+      st.setProperty('--c-treino', c[i]); st.setProperty('--treino-soft', mix(c[i])); st.setProperty('--accent-ink', d ? '#111214' : '#ffffff');
       if (c[2]) { st.setProperty('--c-dieta', c[2][i]); st.setProperty('--dieta-soft', mix(c[2][i])); }
       if (c[3]) { st.setProperty('--c-rotina', c[3][i]); st.setProperty('--rotina-soft', mix(c[3][i])); }
     })();
@@ -32,7 +33,15 @@
   <meta name="apple-mobile-web-app-title" content="Pilar">
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <!-- logo na hora, antes do app carregar (o React substitui) -->
+    <div style="min-height:100vh;display:grid;place-items:center;background:var(--bg-inicial)">
+      <svg width="72" height="72" viewBox="0 0 512 512" aria-label="Pilar">
+        <rect x="150" y="212" width="78" height="184" rx="39" fill="var(--c-treino, #c4481d)" />
+        <rect x="284" y="132" width="78" height="264" rx="39" fill="var(--c-dieta, #0c7d69)" />
+      </svg>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

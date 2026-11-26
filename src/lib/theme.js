@@ -10,8 +10,8 @@ export const getThemePref = () => { try { return localStorage.getItem(KEY) || 'a
    Quando a cor principal é igual à de uma área, essa área muda de cor para não confundir
    (verde → a Dieta fica laranja; azul → a Rotina fica roxa). */
 export const CORES = {
-  laranja: ['Laranja', '#d44e22', '#ee5a2b'],
-  verde: ['Verde', '#2b9348', '#3dbb63', { dieta: ['#d9480f', '#f08c45'] }],
+  laranja: ['Laranja', '#c4481d', '#ee5a2b'],
+  verde: ['Verde', '#237a3b', '#3dbb63', { dieta: ['#c2410c', '#f08c45'] }],
   vermelho: ['Vermelho', '#d6303a', '#f2545b'],
   rosa: ['Rosa', '#d1366f', '#f06595'],
   roxo: ['Roxo', '#7048e8', '#9b7bff'],
@@ -31,7 +31,8 @@ function applyCor(root, dark) {
   const cor = dark ? escuro : claro;
   root.style.setProperty('--c-treino', cor);
   root.style.setProperty('--treino-soft', suave(cor, dark));
-  root.style.setProperty('--accent-ink', '#ffffff');
+  /* texto dos botões: branco no tema claro (cores escuras) e escuro no tema escuro (cores claras) */
+  root.style.setProperty('--accent-ink', dark ? '#111214' : '#ffffff');
   for (const area of ['dieta', 'rotina']) {
     if (areas[area]) {
       const c = dark ? areas[area][1] : areas[area][0];
