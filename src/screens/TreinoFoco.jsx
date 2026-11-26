@@ -161,7 +161,7 @@ export default function TreinoFoco({ s, onLista }) {
         <div className="pl-meta">
           {completo ? <span className="pl-ok"><Icon n="check" /> Exercício concluído</span>
             : <>Série <b>{si + 1}</b> de {e.sets.length} · meta {repsTexto(e)}</>}
-          {pv?.sets?.[0] && carga ? <span className="pl-last"> · última vez {fmt(pv.sets[0].kg) || '—'} kg × {pv.sets[0].reps || '—'}</span> : null}
+          {(() => { const u = pv?.sets?.[atual] || pv?.sets?.[pv.sets.length - 1]; return u && carga && !completo ? <span className="pl-last"> · última vez {fmt(u.kg) || '—'} kg × {u.reps || '—'}</span> : null; })()}
         </div>
         <div className="pl-sets" aria-hidden="true">{e.sets.map((x, i) => <i key={i} className={`${x.done ? 'done' : ''} ${i === si ? 'cur' : ''}`} />)}</div>
         {e.notes ? <p className="pl-note">{e.notes}</p> : null}

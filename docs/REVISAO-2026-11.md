@@ -106,6 +106,38 @@ Ficaram de fora de propósito: só entram no app quando você escolher. Estão e
 
 **Ordem recomendada:** 1 e 2 primeiro (ajudam no treino do dia a dia e quase não mudam o visual), depois a 3.
 
+## 5b. Referências de apps (Mobbin, galerias de telas e apps líderes)
+
+Os sites Mobbin, Screenlane e Pttrns ficam bloqueados no ambiente de trabalho do Claude, então a pesquisa foi feita pela busca, que mostra telas do Mobbin, galerias como a ScreensDesign e a documentação do Hevy. Quando o ambiente for liberado pelo computador, dá para abrir os sites direto e complementar.
+
+**O que os melhores apps fazem e como o Pilar está:**
+
+| Padrão | Quem faz | No Pilar |
+|---|---|---|
+| "Última vez" da mesma série durante o treino | Hevy (coluna PREVIOUS) | ✅ corrigido: antes mostrava sempre a 1ª série; agora mostra a série atual |
+| Descanso diz quanto falta, o que vem depois, ±15 s e "pular" separado de "pausar" | Hevy, ScreensDesign | ✅ já tem |
+| Treino salvo no aparelho primeiro (academia sem sinal) | ScreensDesign | ✅ já tem |
+| Treino em andamento com visual próprio, fácil de achar | Apple (diretrizes de treino) | ✅ faixa "em andamento" e tela focada |
+| **Aviso do fim do descanso com o celular bloqueado** | Hevy e Gym Log (tela de bloqueio) | ❌ hoje só toca e vibra com o app aberto |
+| **Recorde pessoal** (aviso quando bate a maior carga) | Hevy (alerta de recorde) | ❌ |
+| Água: botões prontos (copo, garrafa) | apps de água | 🟡 um toque soma o copo escolhido; não tem garrafa |
+| Medidas do corpo junto com o perfil | Fitbod (Mobbin) | 🟡 já está nas melhorias sugeridas (item 3) |
+
+**Novas melhorias sugeridas, além das 5 da seção anterior:**
+6. **Aviso de fim do descanso no Android**, mesmo com a tela bloqueada, pelo mesmo sistema de alarmes dos lembretes. No iPhone, pelo site, isso não dá.
+7. **Recorde pessoal:** quando uma série passa a maior carga já feita naquele exercício, aparece "Novo recorde!" com a animação de festa, e o Progresso marca o recorde.
+8. **Garrafa na água:** um segundo botão, opcional, com o tamanho da sua garrafa.
+
+Fontes:
+- [Mobbin — Fitbod](https://mobbin.com/explore/screens/85d6e973-9daf-4fc6-a00b-0b27e2cda4c2)
+- [Mobbin — apps de saúde e fitness](https://mobbin.com/explore/mobile/app-categories/health-fitness)
+- [ScreensDesign — rastreadores de treino](https://screensdesign.com/articles/workout-tracker-app-design-examples/)
+- [ScreensDesign — timer de descanso](https://screensdesign.com/articles/workout-app-rest-timer-controls-ux/)
+- [Apple — diretrizes de treino](https://developer.apple.com/design/human-interface-guidelines/workouts)
+- [Hevy — registrar treinos](https://www.hevyapp.com/features/track-workouts/)
+- [Hevy — timer de descanso](https://www.hevyapp.com/features/workout-rest-timer/)
+- [Hevy — Live Activity](https://www.hevyapp.com/features/live-activity/)
+
 ## 6. Desempenho
 
 | Medida | Antes | Depois |
