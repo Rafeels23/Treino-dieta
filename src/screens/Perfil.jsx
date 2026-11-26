@@ -1,11 +1,10 @@
 import { Section, Icon } from '../components/ui.jsx';
 import { useStore } from '../lib/hooks.js';
 import { go } from '../lib/ui.js';
-import { br, initials, latestWeight, weightFeedback, LEVEL_LABEL } from '../lib/core.js';
+import { br, initials, latestWeight, weightFeedback } from '../lib/core.js';
 import {
   WeightCard, openPeso, openPesoReport, openEditProfile, openAiKey, exportBackup, importBackup, resetAll,
 } from '../sheets/perfil.jsx';
-import { openPlanSettings } from '../sheets/treino.jsx';
 import { openDietEditor } from '../sheets/dieta.jsx';
 import { useSyncExternalStore } from 'react';
 import { getAccount, subscribeAccount, signOut, pull } from '../lib/cloud.js';
@@ -63,11 +62,6 @@ export default function Perfil() {
           <Kv label="Meta de peso" value={p.meta ? `${br(p.meta)} kg` : ''} />
           <Kv label="Nutricionista" value={p.nutri || ''} />
         </div>
-      </Section>
-
-      <Section title="Treino">
-        <div className="group"><button className="row plain" onClick={() => openPlanSettings()}><span className="body"><div className="t">Plano de treino</div>
-          <div className="s">Emagrecimento · {p.dias}x por semana · {LEVEL_LABEL[p.nivel]}</div></span><span className="end"><Icon n="right" /></span></button></div>
       </Section>
 
       <Section title="Alimentação">

@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { Head, Section, Icon } from '../components/ui.jsx';
 import { useStore, useTick } from '../lib/hooks.js';
-import { state, save, fmtClock, br, num, LEVEL_LABEL, estMinutes, nextWorkout, lastPerformance } from '../lib/core.js';
+import { state, save, fmtClock, br, num, estMinutes, nextWorkout, lastPerformance } from '../lib/core.js';
 import Illu from '../components/Illu.jsx';
 import TreinoFoco from './TreinoFoco.jsx';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
-import { openWorkout, startWorkout, openPlanSettings, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
+import { openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout } from '../sheets/treino.jsx';
 import { buzzOnly } from '../lib/effects.js';
 
 /* série recém-marcada (animação `just`); limpa depois do render, como no antigo */
@@ -119,9 +119,9 @@ export default function Treino() {
   const ws = state.plan.workouts;
   return (
     <>
-      <Head emoji={state.plan.workouts.length ? 'fogo' : null} kicker={`${state.profile.dias}x por semana · ${LEVEL_LABEL[state.profile.nivel]}`} title="Treino"
-        action={<button className="icon-btn" onClick={openPlanSettings} aria-label="Ajustar plano"><Icon n="sliders" /></button>} />
-      <Section title="Seus treinos" action={<button className="text-btn" onClick={addWorkout}>+ Novo</button>}>
+      <Head emoji={ws.length ? 'fogo' : null} kicker={ws.length ? `${ws.length} ${ws.length === 1 ? 'treino' : 'treinos'} no plano` : 'Monte seu plano'} title="Treino"
+        action={<button className="icon-btn destaque" style={{ '--cor': 'var(--c-treino)' }} onClick={addWorkout} aria-label="Adicionar treino"><Icon n="plus" /></button>} />
+      <Section title="Seus treinos">
         {ws.length ? (
           <div className="wk-list">
             {ws.map((w) => {
@@ -135,10 +135,12 @@ export default function Treino() {
               );
             })}
           </div>
-        ) : <div className="group empty"><Illu nome="treino" cor="var(--c-treino)" /><div>Nenhum treino no plano.</div></div>}
+        ) : (
+          <div className="group empty"><Illu nome="treino" cor="var(--c-treino)" /><div>Nenhum treino no plano ainda.</div>
+            <div className="stack-btns" style={{ marginTop: 14 }}><button className="btn block" onClick={addWorkout}><Icon n="plus" /> Adicionar treino</button></div></div>
+        )}
       </Section>
       {ws.length ? <p className="hint" style={{ padding: '10px 4px 0' }}>Toque para começar. Segure para ver a lista ou editar.</p> : null}
-      {state.plan.source === 'personalizado' ? <p className="hint" style={{ padding: '4px 4px 0' }}>Plano editado por você.</p> : null}
     </>
   );
 }

@@ -49,3 +49,14 @@ export function demoDe(nome = '', demo = '') {
   const base = CDN + encodeURIComponent(id).replace(/%2F/g, '/');
   return { frames: [`${base}/0.jpg`, `${base}/1.jpg`] };
 }
+
+/* sugestões de nomes ao montar o treino sozinho (todos têm demonstração) */
+export const SUGESTOES = [
+  'Agachamento livre', 'Agachamento goblet', 'Agachamento no Smith', 'Agachamento com salto', 'Leg press 45°',
+  'Cadeira extensora', 'Mesa flexora', 'Cadeira abdutora', 'Stiff com halteres', 'Passada (cada perna)',
+  'Elevação pélvica', 'Panturrilha em pé', 'Supino reto com halteres', 'Supino inclinado na máquina',
+  'Crucifixo na máquina', 'Flexão de braço', 'Puxada frontal', 'Remada baixa no cabo', 'Remada curvada com halteres',
+  'Desenvolvimento com halteres', 'Elevação lateral', 'Rosca direta', 'Tríceps corda', 'Abdominal',
+  'Abdominal infra', 'Abdominal bicicleta', 'Prancha', 'Prancha lateral', 'Mountain climber', 'Superman',
+  'Esteira', 'Bike', 'Elíptico',
+];

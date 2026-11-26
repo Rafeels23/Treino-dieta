@@ -7,6 +7,7 @@ import {
 import { go, openSheet, closeSheet } from '../lib/ui.js';
 import { stopTimer, keepAwake } from '../lib/timer.js';
 import { Icon, Seg, SheetActions } from '../components/ui.jsx';
+import { demoDe, SUGESTOES } from '../lib/exercicios.js';
 
 /* ----- folha de um treino do plano (A.workout) ----- */
 function WorkoutSheet({ id }) {
@@ -151,11 +152,19 @@ const TIPOS = [['carga', 'Carga'], ['tempo', 'Tempo'], ['cardio', 'Cardio']];
 const toDraft = (e) => ({ id: e.id || uid(), name: e.name ?? '', sets: String(e.sets ?? ''), reps: String(e.reps ?? ''),
   rest: String(e.rest ?? ''), tipo: e.tipo || 'carga', notes: e.notes ?? '', demo: e.demo || '', nome0: e.name ?? '' });
 
+/* fotinha do exercício enquanto você digita o nome */
+function DemoMini({ nome, demo }) {
+  const d = nome.trim() ? demoDe(nome, demo) : null;
+  const src = d?.src || d?.frames?.[0];
+  return <span className="ed-demo">{src ? <img src={src} alt="" loading="lazy" /> : <Icon n="dumbbell" />}</span>;
+}
+
 function ExEditor({ e, onChange, onDelete, nameRef }) {
   const f = (k) => ({ value: e[k], onChange: (ev) => onChange({ ...e, [k]: ev.target.value }) });
   return (
     <div className="ed-ex">
-      <div className="top"><input ref={nameRef} {...f('name')} placeholder="Nome do exercício" />
+      <div className="top"><DemoMini nome={e.name} demo={e.name.trim() === e.nome0 ? e.demo : ''} />
+        <input ref={nameRef} {...f('name')} list="ex-nomes" placeholder="Nome do exercício" />
         <button type="button" className="btn sm soft" style={{ background: 'var(--surface)' }} onClick={onDelete} aria-label="Remover">✕</button></div>
       <div className="three">
         <div><small>Séries</small><input inputMode="numeric" {...f('sets')} /></div>
@@ -178,7 +187,7 @@ function EditorSheet({ w, isNew }) {
   useEffect(() => { if (focusId && newRef.current) { newRef.current.focus(); setFocusId(null); } }, [focusId]);
 
   const addEx = () => {
-    const e = toDraft({ id: uid(), name: '', sets: 3, reps: '12', rest: 60, tipo: 'carga', notes: '' });
+    const e = toDraft({ id: uid(), name: '', sets: 3, reps: '12', rest: 90, tipo: 'carga', notes: '' });
     setList((l) => [...l, e]); setFocusId(e.id);
   };
   const ok = () => {
@@ -203,6 +212,7 @@ function EditorSheet({ w, isNew }) {
     <>
       <h2>{isNew ? 'Novo treino' : 'Editar treino'}</h2>
       <div className="field"><label>Nome</label><input ref={nameInput} value={name} onChange={(e) => setName(e.target.value)} required={isNew} /></div>
+      <datalist id="ex-nomes">{SUGESTOES.map((n) => <option key={n} value={n} />)}</datalist>
       <div id="ed-list">
         {list.map((e) => (
           <ExEditor key={e.id} e={e} nameRef={e.id === focusId ? newRef : undefined}
