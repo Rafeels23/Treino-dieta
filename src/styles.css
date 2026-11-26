@@ -1068,3 +1068,19 @@ body:has(.login) { padding-bottom: 0; }
 /* nunca rolar para o lado: nada passa da largura da tela */
 html, body { overflow-x: clip; }
 #view { overflow-x: clip; }
+/* valor comprido no Perfil (ex.: nome) corta com "…" e não passa por cima do rótulo */
+.kv .body { flex: none; }
+.kv .end { min-width: 0; flex: 1; justify-content: flex-end; }
+.kv .v { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* saudação: o nome corta com "…" e a animação continua visível */
+.head h1 { display: flex; align-items: center; gap: .25em; }
+.head h1 > span:not(.anim) { flex: none; }
+.head h1 > span:not(.anim):nth-last-child(2), .head h1 > span:not(.anim):last-child { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.head h1 .hello-anim { flex: none; margin-left: 0; }
+/* treino focado em tela pequena: os dois botões cabem lado a lado */
+.pl-btns { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+.pl-btns .btn { min-width: 0; padding-left: 10px; padding-right: 10px; white-space: nowrap; }
+@media (max-width: 340px) { .pl-btns .btn { font-size: 15px; gap: 4px; } .pl-btns .btn .num { display: none; } }
+@media (max-width: 380px) { .pl-btns .btn { font-size: 16px; gap: 4px; } }
+/* tela baixa (iPhone SE e afins): demonstração menor para Pausa e Próximo aparecerem sem rolar */
+@media (max-height: 720px) { .pl-media { aspect-ratio: auto; height: 27vh; min-height: 140px; } .foco { gap: 10px; } }
