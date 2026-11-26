@@ -10,6 +10,7 @@ import { buzz } from '../lib/effects.js';
 import { startTimer, stopTimer, addTimer, subscribeTimer, getTimer } from '../lib/timer.js';
 import { demoDe } from '../lib/exercicios.js';
 import { Icon } from '../components/ui.jsx';
+import { soDecimal, soInteiro, repsTexto } from '../lib/campos.js';
 import { Anim } from '../components/Illu.jsx';
 import { finishWorkout, sairDoTreino } from '../sheets/treino.jsx';
 
@@ -36,7 +37,7 @@ function Relogio({ start }) {
   return <>{fmtClock((Date.now() - start) / 1000)}</>;
 }
 
-function Stepper({ label, unit, value, step, onChange, placeholder }) {
+function Stepper({ label, unit, value, step, onChange, placeholder, inteiro }) {
   const n = num(value);
   const mudar = (d) => onChange(String(Math.max(0, Math.round(((n || 0) + d) * 100) / 100)).replace('.', ','));
   return (
@@ -47,7 +48,8 @@ function Stepper({ label, unit, value, step, onChange, placeholder }) {
         <label className="pl-step-v">
           <input inputMode="decimal" value={value === '' ? '' : String(value).replace('.', ',')} placeholder={placeholder || '0'}
             style={{ width: `${Math.max(1, String(value === '' ? (placeholder || '0') : value).length) + 0.4}ch` }}
-            onChange={(ev) => onChange(ev.target.value.replace(/[^\d.,]/g, ''))} aria-label={label} />
+            onFocus={(ev) => ev.target.select()}  /* tocar seleciona o número: o que digitar substitui */
+            onChange={(ev) => onChange(inteiro ? soInteiro(ev.target.value, 3) : soDecimal(ev.target.value, 2, 4))} aria-label={label} />
           {unit ? <span>{unit}</span> : null}
         </label>
         <button type="button" className="pl-step-b" onClick={() => mudar(step)} aria-label={`Aumentar ${label}`}>+</button>
@@ -158,7 +160,7 @@ export default function TreinoFoco({ s, onLista }) {
         <h2 className="pl-nome">{e.name}</h2>
         <div className="pl-meta">
           {completo ? <span className="pl-ok"><Icon n="check" /> Exercício concluído</span>
-            : <>Série <b>{si + 1}</b> de {e.sets.length} · meta {e.reps}</>}
+            : <>Série <b>{si + 1}</b> de {e.sets.length} · meta {repsTexto(e)}</>}
           {pv?.sets?.[0] && carga ? <span className="pl-last"> · última vez {fmt(pv.sets[0].kg) || '—'} kg × {pv.sets[0].reps || '—'}</span> : null}
         </div>
         <div className="pl-sets" aria-hidden="true">{e.sets.map((x, i) => <i key={i} className={`${x.done ? 'done' : ''} ${i === si ? 'cur' : ''}`} />)}</div>
@@ -169,12 +171,12 @@ export default function TreinoFoco({ s, onLista }) {
         <div className="pl-fields">
           {carga ? <>
             <Stepper label="Carga" unit="kg" step={2.5} value={val.kg} placeholder={pv?.sets?.[atual]?.kg || '0'} onChange={(v) => setVal('kg', v)} />
-            <Stepper label="Repetições" step={1} value={val.reps} placeholder={metaReps(e, atual) || '0'} onChange={(v) => setVal('reps', v)} />
+            <Stepper label="Repetições" inteiro step={1} value={val.reps} placeholder={metaReps(e, atual) || '0'} onChange={(v) => setVal('reps', v)} />
           </> : cardio ? <>
-            <Stepper label="Tempo" unit="min" step={1} value={val.kg} placeholder={metaReps(e) || '0'} onChange={(v) => setVal('kg', v)} />
+            <Stepper label="Tempo" unit="min" inteiro step={1} value={val.kg} placeholder={metaReps(e) || '0'} onChange={(v) => setVal('kg', v)} />
             <Stepper label="Distância" unit="km" step={0.5} value={val.reps} onChange={(v) => setVal('reps', v)} />
           </> : (
-            <Stepper label="Tempo" unit="seg" step={5} value={val.kg} placeholder={metaReps(e) || '30'} onChange={(v) => setVal('kg', v)} />
+            <Stepper label="Tempo" unit="seg" inteiro step={5} value={val.kg} placeholder={metaReps(e) || '30'} onChange={(v) => setVal('kg', v)} />
           )}
         </div>
       ) : null}

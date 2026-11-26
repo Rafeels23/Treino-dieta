@@ -8,6 +8,7 @@ import { go, openSheet, closeSheet } from '../lib/ui.js';
 import { stopTimer, keepAwake } from '../lib/timer.js';
 import { Icon, Seg, SheetActions } from '../components/ui.jsx';
 import { demoDe, SUGESTOES } from '../lib/exercicios.js';
+import { soInteiro, soFaixa, repsTexto } from '../lib/campos.js';
 
 /* ----- folha de um treino do plano (A.workout) ----- */
 function WorkoutSheet({ id }) {
@@ -21,7 +22,7 @@ function WorkoutSheet({ id }) {
         {w.exercises.map((e, i) => (
           <div key={e.id || i} className="row plain" style={{ minHeight: 52 }}>
             <span className="body"><div className="t" style={{ fontWeight: 500 }}>{e.name}</div></span>
-            <span className="end num">{e.sets} × {e.reps}</span>
+            <span className="end num">{e.sets} × {repsTexto(e)}</span>
           </div>
         ))}
       </div>
@@ -165,19 +166,24 @@ function DemoMini({ nome, demo }) {
 }
 
 function ExEditor({ e, onChange, onDelete, nameRef }) {
-  const f = (k) => ({ value: e[k], onChange: (ev) => onChange({ ...e, [k]: ev.target.value }) });
+  const f = (k, limpa) => ({ value: e[k], onChange: (ev) => onChange({ ...e, [k]: limpa ? limpa(ev.target.value) : ev.target.value }) });
+  /* repetições: carga aceita faixa (8-12) ou série a série (15-12-10); tempo em segundos e cardio em minutos, só números */
+  const limpaReps = e.tipo === 'carga' ? soFaixa : (v) => soInteiro(v, 3);
+  const rotuloReps = e.tipo === 'tempo' ? 'Tempo (s)' : e.tipo === 'cardio' ? 'Duração (min)' : 'Repetições';
   return (
     <div className="ed-ex">
       <div className="top"><DemoMini nome={e.name} demo={e.name.trim() === e.nome0 ? e.demo : ''} />
         <input ref={nameRef} {...f('name')} list="ex-nomes" placeholder="Nome do exercício" />
         <button type="button" className="btn sm soft" style={{ background: 'var(--surface)' }} onClick={onDelete} aria-label="Remover">✕</button></div>
       <div className="three">
-        <div><small>Séries</small><input inputMode="numeric" {...f('sets')} /></div>
-        <div><small>Reps / tempo</small><input {...f('reps')} /></div>
-        <div><small>Descanso (s)</small><input inputMode="numeric" {...f('rest')} /></div>
+        <div><small>Séries</small><input inputMode="numeric" {...f('sets', (v) => soInteiro(v, 2))} /></div>
+        <div><small>{rotuloReps}</small><input inputMode={e.tipo === 'carga' ? 'text' : 'numeric'} {...f('reps', limpaReps)}
+          placeholder={e.tipo === 'carga' ? '8-12' : e.tipo === 'tempo' ? '30' : '15'} /></div>
+        <div><small>Descanso (s)</small><input inputMode="numeric" {...f('rest', (v) => soInteiro(v, 3))} /></div>
       </div>
       <div className="three" style={{ gridTemplateColumns: '1fr 2fr' }}>
-        <div><small>Tipo</small><select {...f('tipo')}>{TIPOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
+        <div><small>Tipo</small><select value={e.tipo} onChange={(ev) => onChange({ ...e, tipo: ev.target.value, reps: ev.target.value === 'carga' ? soFaixa(e.reps) : (String(e.reps).match(/\d+/)?.[0] || '').slice(0, 3) })}>
+          {TIPOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
         <div><small>Observação</small><input {...f('notes')} placeholder="ex.: banco no 4" /></div>
       </div>
     </div>
@@ -197,12 +203,15 @@ function EditorSheet({ w, isNew }) {
   };
   const ok = () => {
     if (isNew && !name.trim()) { nameInput.current?.reportValidity(); return; }
+    const sem = list.find((e) => e.name.trim() && (!(parseInt(e.sets, 10) >= 1) || !String(e.reps).replace(/-/g, '')));
+    if (sem) { alert(`Preencha séries e ${sem.tipo === 'carga' ? 'repetições' : 'tempo'} de "${sem.name.trim()}".`); return; }
+    if (list.some((e) => parseInt(e.sets, 10) > 20)) { alert('Use no máximo 20 séries por exercício.'); return; }
     w.name = name.trim() || w.name;
     w.exercises = list.map((e) => ({
       id: e.id,
       name: e.name.trim(),
-      sets: Math.max(1, parseInt(e.sets, 10) || 1),
-      reps: e.reps.trim() || '10',
+      sets: Math.max(1, Math.min(20, parseInt(e.sets, 10) || 1)),
+      reps: String(e.reps).replace(/-+$/, '') || '10',
       rest: Math.max(0, parseInt(e.rest, 10) || 0),
       tipo: e.tipo,
       notes: e.notes.trim(),

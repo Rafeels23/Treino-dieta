@@ -7,6 +7,7 @@ import {
 } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { buzz } from '../lib/effects.js';
+import { soInteiro, soDecimal, dentro } from '../lib/campos.js';
 import { stopTimer } from '../lib/timer.js';
 import { Seg, SheetActions, CountUp } from '../components/ui.jsx';
 import Chart from '../components/Chart.jsx';
@@ -39,8 +40,9 @@ function PesoSheet() {
   const [data, setData] = useState(key);
   const p = state.profile;
   const ok = () => {
-    const v = num(peso);
+    const v = dentro(peso, 25, 350);
     if (v == null) { alert('Informe o peso.'); return; }
+    if (Number.isNaN(v)) { alert('Confira o peso: use um valor entre 25 e 350 kg.'); return; }
     const d = data || key;
     const old = state.morning.find((x) => x.date === d);
     /* preserva sono e disposição de um registro que já exista nessa data */
@@ -54,7 +56,7 @@ function PesoSheet() {
       <p className="lead">{ini.w != null
         ? `Último peso: ${br(ini.w)} kg${ini.dias ? `, há ${ini.dias} ${ini.dias === 1 ? 'dia' : 'dias'}` : ', hoje'}. Atualize uma vez por semana ou por mês, de preferência no mesmo horário.`
         : 'Informe seu peso atual. Depois, atualize uma vez por semana ou por mês.'}</p>
-      <div className="field"><input className="big-input" name="peso" inputMode="decimal" value={peso} onChange={(e) => setPeso(e.target.value)} placeholder="0,0 kg" aria-label="Peso em kg" autoFocus /></div>
+      <div className="field"><input className="big-input" name="peso" inputMode="decimal" value={peso} onChange={(e) => setPeso(soDecimal(e.target.value, 1, 3))} placeholder="0,0 kg" aria-label="Peso em kg" autoFocus /></div>
       <div className="field"><label>Data</label><input name="data" type="date" value={data} max={key} onChange={(e) => setData(e.target.value)} /></div>
       {p.meta ? <p className="hint">Sua meta é {br(p.meta)} kg.</p> : null}
       <SheetActions onCancel={closeSheet} onOk={ok} ok="Atualizar" />
@@ -117,17 +119,19 @@ function ActivitySheet() {
   const [passos, setPassos] = useState('');
   const [date, setDate] = useState(todayKey());
   const ok = () => {
+    if (!num(minutos) && !num(passos)) { alert('Informe os minutos ou os passos da atividade.'); return; }
+    if (num(minutos) > 1440) { alert('Confira os minutos: um dia tem 1.440.'); return; }
     state.activities.push({ id: uid(), tipo: tipo || 'Outro', minutos: num(minutos), kcal: num(kcal), passos: num(passos), date: date || todayKey(), fonte: 'manual' });
     save(); closeSheet();
   };
   return (
     <>
-      <h2>Atividade extra</h2><p className="lead">Até a integração com o relógio, registre aqui.</p>
+      <h2>Atividade extra</h2><p className="lead">Registre o que fez fora da academia. Com a pulseira conectada, caminhadas e corridas entram sozinhas.</p>
       <div className="field"><label>Tipo</label>
         <Seg options={[['Caminhada', 'Caminhada'], ['Corrida', 'Corrida'], ['Bicicleta', 'Bike'], ['Outro', 'Outro']]} value={tipo} onChange={setTipo} /></div>
-      <div className="two"><div className="field"><label>Minutos</label><input name="minutos" inputMode="numeric" value={minutos} onChange={(e) => setMinutos(e.target.value)} /></div>
-        <div className="field"><label>Calorias</label><input name="kcal" inputMode="numeric" placeholder="kcal" value={kcal} onChange={(e) => setKcal(e.target.value)} /></div></div>
-      <div className="two"><div className="field"><label>Passos</label><input name="passos" inputMode="numeric" value={passos} onChange={(e) => setPassos(e.target.value)} /></div>
+      <div className="two"><div className="field"><label>Minutos</label><input name="minutos" inputMode="numeric" value={minutos} onChange={(e) => setMinutos(soInteiro(e.target.value, 4))} /></div>
+        <div className="field"><label>Calorias</label><input name="kcal" inputMode="numeric" placeholder="kcal" value={kcal} onChange={(e) => setKcal(soInteiro(e.target.value, 4))} /></div></div>
+      <div className="two"><div className="field"><label>Passos</label><input name="passos" inputMode="numeric" value={passos} onChange={(e) => setPassos(soInteiro(e.target.value, 6))} /></div>
         <div className="field"><label>Data</label><input name="date" type="date" value={date} max={todayKey()} onChange={(e) => setDate(e.target.value)} /></div></div>
       <SheetActions onCancel={closeSheet} onOk={ok} ok="Adicionar" />
     </>
@@ -152,8 +156,15 @@ function EditProfileSheet() {
     nome: p0.nome || '', idade: p0.idade ? String(p0.idade) : '', altura: p0.altura ? String(p0.altura) : '',
     sexo: p0.sexo || '', peso: w != null ? br(w) : '', meta: p0.meta ? br(p0.meta) : '', nutri: p0.nutri || '',
   });
-  const set = (k) => (e) => setF({ ...f, [k]: e && e.target ? e.target.value : e });
+  const LIMPA = { idade: (v) => soInteiro(v, 3), altura: (v) => soInteiro(v, 3), peso: (v) => soDecimal(v, 1, 3), meta: (v) => soDecimal(v, 1, 3) };
+  const set = (k) => (e) => { const v = e && e.target ? e.target.value : e; setF({ ...f, [k]: LIMPA[k] ? LIMPA[k](v) : v }); };
   const ok = () => {
+    const erros = [];
+    if (Number.isNaN(dentro(f.idade, 10, 110))) erros.push('idade entre 10 e 110 anos');
+    if (Number.isNaN(dentro(f.altura, 100, 250))) erros.push('altura entre 100 e 250 cm');
+    if (Number.isNaN(dentro(f.peso, 25, 350))) erros.push('peso entre 25 e 350 kg');
+    if (Number.isNaN(dentro(f.meta, 25, 350))) erros.push('meta entre 25 e 350 kg');
+    if (erros.length) { alert(`Confira: ${erros.join(', ')}.`); return; }
     const p = state.profile, alt = num(f.altura);
     Object.assign(p, {
       nome: f.nome.trim(), idade: num(f.idade), sexo: f.sexo,
@@ -171,7 +182,7 @@ function EditProfileSheet() {
   };
   return (
     <>
-      <h2>Seus dados</h2><p className="lead">Ficam só no seu celular. Ajudam a acompanhar a evolução e, no futuro, a IA.</p>
+      <h2>Seus dados</h2><p className="lead">Ficam na sua conta. Servem para acompanhar o peso e a faixa saudável.</p>
       <div className="field"><label>Nome</label><input name="nome" value={f.nome} onChange={set('nome')} autoComplete="name" placeholder="Como quer ser chamado" /></div>
       <div className="two"><div className="field"><label>Idade</label><input name="idade" inputMode="numeric" value={f.idade} onChange={set('idade')} placeholder="anos" /></div>
         <div className="field"><label>Altura (cm)</label><input name="altura" inputMode="numeric" value={f.altura} onChange={set('altura')} placeholder="ex.: 175" /></div></div>

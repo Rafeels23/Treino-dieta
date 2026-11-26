@@ -1,5 +1,6 @@
 /* Fora do plano: foto e/ou descrição; a IA estima as calorias (ou a pessoa informa). */
 import { useEffect, useState } from 'react';
+import { soInteiro } from '../lib/campos.js';
 import { state, save, todayKey, dayLog, num, br, pickImage, shrink, estimateFood, aiErrorText } from '../lib/core.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import { Icon, SheetActions } from '../components/ui.jsx';
@@ -81,7 +82,7 @@ function ExtraSheet() {
         {ai === 'err' ? <p className="hint" style={{ marginTop: 10, color: 'var(--danger)' }}>{err}</p> : null}
       </div>
       <div className="two" style={{ marginTop: 12 }}>
-        <div className="field"><label>Calorias (kcal)</label><input name="kcal" inputMode="numeric" placeholder="opcional" value={kcal} onChange={(e) => setKcal(e.target.value)} /></div>
+        <div className="field"><label>Calorias (kcal)</label><input name="kcal" inputMode="numeric" placeholder="opcional" value={kcal} onChange={(e) => setKcal(soInteiro(e.target.value, 4))} /></div>
         <div className="field"><label>Horário</label><input name="hora" type="time" value={hora} onChange={(e) => setHora(e.target.value)} /></div>
       </div>
       <SheetActions onCancel={closeSheet} onOk={add} ok="Adicionar" />

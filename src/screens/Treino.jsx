@@ -4,6 +4,7 @@ import { useStore, useTick } from '../lib/hooks.js';
 import { state, save, fmtClock, br, num, estMinutes, nextWorkout, lastPerformance } from '../lib/core.js';
 import Illu from '../components/Illu.jsx';
 import TreinoFoco from './TreinoFoco.jsx';
+import { soDecimal, soInteiro, repsTexto } from '../lib/campos.js';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
 import { OpcoesNovoTreino, openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout, sairDoTreino, continuarTreino } from '../sheets/treino.jsx';
@@ -79,7 +80,7 @@ function ActiveView({ s }) {
           <div key={ei} className={`ex ${complete ? 'complete' : ''}`}>
             <div className="ex-top"><div>
               <div className="ex-name">{e.name}</div>
-              <div className="ex-meta num">{e.sets.length} × {e.reps}{e.rest ? ` · descanso ${e.rest}s` : ''}</div>
+              <div className="ex-meta num">{e.sets.length} × {repsTexto(e)}{e.rest ? ` · descanso ${e.rest}s` : ''}</div>
               {e.notes ? <div className="ex-note">{e.notes}</div> : null}
             </div>{complete ? <span className="ex-done"><Icon n="check" /></span> : null}</div>
             <div className="sets">
@@ -93,10 +94,10 @@ function ActiveView({ s }) {
                     <div className="n">{si + 1}</div>
                     <button className="prev num" onClick={() => copyPrev(k)} disabled={!pv} aria-label="Usar valores anteriores">{pvTxt}</button>
                     <input inputMode="decimal" value={st.kg ?? ''} placeholder={pv?.kg ?? ''} aria-label={`${h1}, série ${si + 1}`}
-                      onChange={(ev) => setField(ei, si, 'kg', ev.target.value)} />
+                      onChange={(ev) => setField(ei, si, 'kg', carga ? soDecimal(ev.target.value, 2, 4) : soInteiro(ev.target.value, 3))} />
                     <input inputMode="decimal" value={st.reps ?? ''} placeholder={pv?.reps ?? (carga ? String(e.reps).split('-')[0] : '')}
                       aria-label={`${h2}, série ${si + 1}`} disabled={!carga && e.tipo !== 'cardio'}
-                      onChange={(ev) => setField(ei, si, 'reps', ev.target.value)} />
+                      onChange={(ev) => setField(ei, si, 'reps', carga ? soInteiro(ev.target.value, 3) : soDecimal(ev.target.value, 2, 3))} />
                     <button className="chk" onClick={() => toggleSet(k)} aria-label={`Concluir série ${si + 1}`}><Icon n="check" /></button>
                   </div>
                 );

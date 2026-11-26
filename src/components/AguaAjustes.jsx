@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useStore } from '../lib/hooks.js';
 import { config, ligar, ajustarAgua, aguaHorarios, aguaCopo, aguaMeta, INTERVALOS, ehNativo } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
+import { soDecimal } from '../lib/campos.js';
 
 const METAS = [1500, 2000, 2500, 3000, 3500];
 const litros = (ml) => (ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
@@ -19,7 +20,8 @@ export function MetaAgua() {
       <div className="meta-outra">
         <span>Outra:</span>
         <input inputMode="decimal" defaultValue={litros(meta)} key={meta} aria-label="Meta em litros"
-          onBlur={(e) => { const v = parseFloat(e.target.value.replace(',', '.')); if (v > 0 && v <= 8) ajustarAgua({ aguaMeta: Math.round(v * 1000) }); }} />
+          onInput={(e) => { e.target.value = soDecimal(e.target.value, 2, 1); }}
+          onBlur={(e) => { const v = parseFloat(e.target.value.replace(',', '.')); if (v >= 0.5 && v <= 8) ajustarAgua({ aguaMeta: Math.round(v * 1000) }); else e.target.value = litros(meta); }} />
         <span>litros</span>
       </div>
     </div>
