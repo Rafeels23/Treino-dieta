@@ -1065,3 +1065,6 @@ body:has(.login) { padding-bottom: 0; }
 .sheet > .sheet-body { padding-top: 30px; padding-bottom: calc(28px + env(safe-area-inset-bottom));
   -webkit-mask-image: linear-gradient(to bottom, transparent 4px, #000 30px); mask-image: linear-gradient(to bottom, transparent 4px, #000 30px); }
 .stack-btns > .text-btn:first-child { margin-left: -4px; }
+/* nunca rolar para o lado: nada passa da largura da tela */
+html, body { overflow-x: clip; }
+#view { overflow-x: clip; }
