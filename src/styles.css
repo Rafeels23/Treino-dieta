@@ -1134,3 +1134,15 @@ html, body { overflow-x: clip; }
 .pl-sobe span { flex: 1; min-width: 0; }
 .pl-sobe b { color: var(--c-treino); }
 .pl-sobe em { font-style: normal; font-weight: 750; color: var(--c-treino); flex: none; }
+.agua-garrafa { background: color-mix(in srgb, #3b8fe0 16%, transparent); color: #3b8fe0; }
+/* Hoje: sequência com dia de folga */
+.seq-linha { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 4px 0; font-size: 14px; }
+.seq-linha b { font-weight: 750; }
+.seq-linha span { color: var(--ink-2); }
+/* Hoje: resumo da semana */
+.resumo-semana .t { font-weight: 750; font-size: 17px; }
+.resumo-semana .s { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+.rs-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; margin-top: 14px; }
+.rs-grade div { display: flex; flex-direction: column; min-width: 0; }
+.rs-grade b { font-size: 20px; font-weight: 750; }
+.rs-grade span { font-size: 12px; color: var(--ink-2); font-weight: 600; margin-top: 2px; }

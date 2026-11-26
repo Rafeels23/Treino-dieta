@@ -2,7 +2,7 @@
    Usado na folha da água (Dieta) e em Perfil › Lembretes. */
 import { useState } from 'react';
 import { useStore } from '../lib/hooks.js';
-import { config, ligar, ajustarAgua, aguaHorarios, aguaCopo, aguaMeta, INTERVALOS, ehNativo } from '../lib/lembretes.js';
+import { config, ligar, ajustarAgua, aguaHorarios, aguaCopo, aguaMeta, aguaGarrafa, INTERVALOS, ehNativo } from '../lib/lembretes.js';
 import { avisoPush } from '../lib/push.js';
 import { soDecimal } from '../lib/campos.js';
 
@@ -24,6 +24,20 @@ export function MetaAgua() {
           onBlur={(e) => { const v = parseFloat(e.target.value.replace(',', '.')); if (v >= 0.5 && v <= 8) ajustarAgua({ aguaMeta: Math.round(v * 1000) }); else e.target.value = litros(meta); }} />
         <span>litros</span>
       </div>
+    </div>
+  );
+}
+
+const GARRAFAS = [[0, 'Sem garrafa'], [500, '500 ml'], [750, '750 ml'], [1000, '1 L']];
+export function GarrafaAgua() {
+  useStore();
+  const g = aguaGarrafa();
+  return (
+    <div className="field"><label>Sua garrafa (opcional)</label>
+      <div className="chips">{GARRAFAS.map(([v, t]) => (
+        <button key={v} type="button" className={`chip ${g === v ? 'on' : ''}`} onClick={() => ajustarAgua({ aguaGarrafa: v })}>{t}</button>
+      ))}</div>
+      <p className="hint">Com uma garrafa escolhida, aparece um botão para somar a garrafa inteira de uma vez.</p>
     </div>
   );
 }

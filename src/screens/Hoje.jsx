@@ -1,6 +1,7 @@
 /* Tela Hoje: resumo do dia (anéis), treino, próxima refeição, atividade e a semana. */
 import { useEffect, useRef, useState } from 'react';
 import { apkDesatualizado, baixarApk, dispensarAviso } from '../lib/versao.js';
+import { sequencia, semanaDoResumo, resumoSemana } from '../lib/semana.js';
 import { Head, Section, Icon, Rings, CountUp } from '../components/ui.jsx';
 import { useStore } from '../lib/hooks.js';
 import {
@@ -57,6 +58,7 @@ export default function Hoje() {
   const pct = Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 100);
   useEffect(() => { if (pct === 100) celebrateDay(() => ringsRef.current); }, [pct]);
 
+  const seq = sequencia();
   const summary = (
     <div className="section"><div className={`group today-card ${pct === 100 ? 'complete' : ''}`}>
       <Rings innerRef={ringsRef} items={[{ v: vTreino, color: 'var(--c-treino)' }, { v: vMeal, color: 'var(--c-dieta)' }, { v: vRot, color: 'var(--c-rotina)' }]} />
@@ -66,8 +68,33 @@ export default function Hoje() {
           <li><i style={{ background: 'var(--c-treino)' }} />Treino<b>{doneToday.length ? 'Feito' : state.active ? 'Agora' : '—'}</b></li>
           <li><i style={{ background: 'var(--c-dieta)' }} />Refeições<b className="num">{meals.length ? `${mealsDone}/${meals.length}` : '—'}</b></li>
           <li><i style={{ background: 'var(--c-rotina)' }} />Rotina<b className="num">{rotList.length ? `${rotDone}/${rotList.length}` : '—'}</b></li>
-        </ul></div></div></div>
+        </ul></div></div>
+      {seq.dias >= 2 ? (
+        <div className="seq-linha"><Anim nome="fogo" tamanho={22} /><b className="num">{seq.dias} dias seguidos</b>
+          <span>{seq.folgaEstaSemana ? 'folga da semana já usada' : '1 dia de folga livre nesta semana'}</span></div>
+      ) : null}
+    </div>
   );
+
+  /* resumo da semana (domingo e segunda), até fechar */
+  const diasResumo = semanaDoResumo();
+  const rs = diasResumo && state.ui.resumoVisto !== diasResumo[0] ? resumoSemana(diasResumo) : null;
+  const fmtH = (m) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, '0')}`;
+  const resumo = rs ? (
+    <div className="section"><div className="group pad resumo-semana">
+      <div className="row-between"><div className="t">Resumo da semana</div>
+        <button type="button" className="text-btn" onClick={() => { state.ui.resumoVisto = diasResumo[0]; save(); }}>Fechar</button></div>
+      <div className="s">{fmtDay(diasResumo[0])} a {fmtDay(diasResumo[6])}</div>
+      <div className="rs-grade">
+        <div><b className="num">{rs.treinos}</b><span>{rs.treinos === 1 ? 'treino' : 'treinos'}</span></div>
+        {rs.refPct != null ? <div><b className="num">{rs.refPct}%</b><span>das refeições</span></div> : null}
+        {rs.agua ? <div><b className="num">{br(rs.agua / 1000, 1)} L</b><span>água por dia</span></div> : null}
+        {rs.passos ? <div><b className="num">{Math.round(rs.passos).toLocaleString('pt-BR')}</b><span>passos por dia</span></div> : null}
+        {rs.sono ? <div><b className="num">{fmtH(rs.sono)}</b><span>de sono por noite</span></div> : null}
+        {rs.dPeso != null ? <div><b className="num">{rs.dPeso > 0 ? '+' : ''}{br(rs.dPeso, 1)} kg</b><span>no peso</span></div> : null}
+      </div>
+    </div></div>
+  ) : null;
 
   let workout;
   if (state.active) {
@@ -169,6 +196,7 @@ export default function Hoje() {
           <span className="body"><div className="t">Complete seu perfil</div><div className="s">Nome, altura, peso e meta</div></span>
           <span className="end"><Icon n="right" /></span></button></div>
       )}
+      {resumo}
       {summary}
       {pct === 100 ? <div className="section"><div className="group day-party"><Illu nome="festa" cor="var(--c-rotina)" atraso={0.5} />
         <div><div className="t">Dia completo</div><div className="s">Treino, refeições e rotina em dia. Bom trabalho.</div></div></div></div> : null}

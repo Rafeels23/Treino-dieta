@@ -11,8 +11,8 @@ import {
 } from '../sheets/dieta.jsx';
 import { saveDietText, openGrpEditor } from '../sheets/dieta-editor.jsx';
 import { buzzOnly } from '../lib/effects.js';
-import { aguaDe, aguaSomar, aguaMeta, aguaCopo } from '../lib/lembretes.js';
-import { MetaAgua, LembretesAgua } from '../components/AguaAjustes.jsx';
+import { aguaDe, aguaSomar, aguaMeta, aguaCopo, aguaGarrafa } from '../lib/lembretes.js';
+import { MetaAgua, GarrafaAgua, LembretesAgua } from '../components/AguaAjustes.jsx';
 
 const PLACEHOLDER = '07:30 - Café da manhã\nIogurte desnatado - 170 g\nAveia em flocos - 30 g\nMorango - 10 unidades ou 120 g\nSubstituição: Salada de frutas - 1 porção\n\n07:30 - Café da manhã - Opção 2\nPão integral - 2 fatias\n\n12:00 - Almoço\nArroz branco cozido - 125 g\nPeito de frango grelhado - 150 g\nObservação: legumes e folhas à vontade';
 
@@ -215,7 +215,7 @@ function openMealActions(gid, oi) { openSheet(() => <MealActions gid={gid} oi={o
 
 /* Água do dia: meta de 2 L, um toque soma um copo */
 function AguaCard({ k }) {
-  const META = aguaMeta(), COPO = aguaCopo();
+  const META = aguaMeta(), COPO = aguaCopo(), GARRAFA = aguaGarrafa();
   const ml = aguaDe(k), frac = Math.min(1, ml / META);
   const litros = (v) => (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
   return (
@@ -226,6 +226,8 @@ function AguaCard({ k }) {
         <div className="agua-btns">
           <button type="button" className="icon-btn" onClick={() => aguaSomar(-COPO, k)} disabled={!ml} aria-label="Tirar um copo">−</button>
           <button type="button" className="btn sm agua-mais" onClick={() => { buzzOnly(10); aguaSomar(COPO, k); }}>+ {COPO} ml</button>
+          {GARRAFA ? <button type="button" className="btn sm soft agua-garrafa" onClick={() => { buzzOnly(15); aguaSomar(GARRAFA, k); }}
+            aria-label={`Somar uma garrafa de ${GARRAFA} ml`}>+ garrafa</button> : null}
         </div>
       </div>
       <div className="agua-bar" role="progressbar" aria-valuemin={0} aria-valuemax={META} aria-valuenow={ml}><i style={{ width: `${frac * 100}%` }} /></div>
@@ -239,6 +241,7 @@ function AguaSheet() {
       <h2>Água</h2>
       <p className="lead">Escolha quanto você precisa beber por dia. Se quiser, ligue os lembretes: o app divide a meta pelo horário que você escolher.</p>
       <MetaAgua />
+      <GarrafaAgua />
       <div className="group" style={{ marginTop: 6 }}><LembretesAgua /></div>
       <div className="stack-btns"><button type="button" className="btn block" onClick={closeSheet}>Pronto</button></div>
     </>

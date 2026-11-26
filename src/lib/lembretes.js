@@ -16,6 +16,8 @@ export function aguaHorarios(c = config()) {
   for (let t = ini; t <= fim && out.length < 96; t += passo) out.push({ hora: Math.floor(t / 60), minuto: t % 60 });
   return out;
 }
+/* garrafa (opcional): um segundo botão na água que soma o tamanho da sua garrafa; 0 = sem garrafa */
+export const aguaGarrafa = (c = config()) => Math.max(0, Math.min(3000, Number(c.aguaGarrafa) || 0));
 export const aguaMeta = (c = config()) => Math.max(250, Math.min(8000, Number(c.aguaMeta) || 2000));
 /* quanto cada lembrete vale (meta dividida igualmente); sem lembretes, um copo de 250 ml */
 export function aguaCopo(c = config()) {
