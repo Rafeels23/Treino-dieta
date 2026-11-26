@@ -16,7 +16,7 @@ function WorkoutSheet({ id }) {
   return (
     <>
       <h2>{w.letter} · {w.name}</h2>
-      <p className="lead">{w.exercises.length} exercícios · ~{estMinutes(w)} min</p>
+      <p className="lead">{w.exercises.length} {w.exercises.length === 1 ? 'exercício' : 'exercícios'} · ~{estMinutes(w)} min</p>
       <div className="group" style={{ background: 'var(--surface-2)' }}>
         {w.exercises.map((e, i) => (
           <div key={e.id || i} className="row plain" style={{ minHeight: 52 }}>
@@ -238,21 +238,27 @@ function addManual() {
 }
 
 /* "+ Novo": montar com IA ou sozinho */
+/* as duas formas de montar: usadas na folha do + e na tela vazia do Treino */
+export function OpcoesNovoTreino() {
+  return (
+    <div className="novo-treino">
+      <button type="button" className="nt-card ia" onClick={() => openSheet(() => <TreinoIASheet />, 1)}>
+        <span className="nt-ic" aria-hidden="true">✦</span>
+        <span className="nt-t">Montar com IA</span>
+        <span className="nt-s">Descreva o treino ou cole o que seu personal passou</span></button>
+      <button type="button" className="nt-card" onClick={addManual}>
+        <span className="nt-ic" aria-hidden="true"><Icon n="pencil" /></span>
+        <span className="nt-t">Montar sozinho</span>
+        <span className="nt-s">Escolha os exercícios, séries e descanso</span></button>
+    </div>
+  );
+}
 function NovoTreinoSheet() {
   return (
     <>
       <h2>Novo treino</h2>
       <p className="lead">Como você quer montar?</p>
-      <div className="group">
-        <button type="button" className="row plain" onClick={() => openSheet(() => <TreinoIASheet />, 1)}>
-          <span className="badge ia" aria-hidden="true">✦</span>
-          <span className="body"><div className="t">Montar com IA</div><div className="s">Descreva o treino ou cole o que seu personal passou</div></span>
-          <span className="end"><Icon n="right" /></span></button>
-        <button type="button" className="row plain" onClick={addManual}>
-          <span className="badge"><Icon n="pencil" /></span>
-          <span className="body"><div className="t">Montar sozinho</div><div className="s">Escolha nome, exercícios, séries e descanso</div></span>
-          <span className="end"><Icon n="right" /></span></button>
-      </div>
+      <OpcoesNovoTreino />
     </>
   );
 }

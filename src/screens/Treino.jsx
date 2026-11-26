@@ -6,7 +6,7 @@ import Illu from '../components/Illu.jsx';
 import TreinoFoco from './TreinoFoco.jsx';
 import { buzz } from '../lib/effects.js';
 import { startTimer } from '../lib/timer.js';
-import { openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout, sairDoTreino, continuarTreino } from '../sheets/treino.jsx';
+import { OpcoesNovoTreino, openWorkout, startWorkout, addWorkout, finishWorkout, cancelWorkout, sairDoTreino, continuarTreino } from '../sheets/treino.jsx';
 import { buzzOnly } from '../lib/effects.js';
 
 /* série recém-marcada (animação `just`); limpa depois do render, como no antigo */
@@ -121,7 +121,7 @@ export default function Treino() {
   return (
     <>
       <Head emoji={ws.length ? 'fogo' : null} kicker={ws.length ? `${ws.length} ${ws.length === 1 ? 'treino' : 'treinos'} no plano` : 'Monte seu plano'} title="Treino"
-        action={<button className="icon-btn destaque" style={{ '--cor': 'var(--c-treino)' }} onClick={addWorkout} aria-label="Adicionar treino"><Icon n="plus" /></button>} />
+        action={ws.length ? <button className="icon-btn destaque" style={{ '--cor': 'var(--c-treino)' }} onClick={addWorkout} aria-label="Adicionar treino"><Icon n="plus" /></button> : null} />
       {state.active ? (
         <div className="section"><div className="group em-andamento">
           <div className="body"><div className="k">Treino em andamento</div>
@@ -130,25 +130,29 @@ export default function Treino() {
           <button className="btn sm" onClick={continuarTreino}><Icon n="play" /> Continuar</button>
         </div></div>
       ) : null}
-      <Section title="Seus treinos">
-        {ws.length ? (
+      {ws.length ? <Section title="Seus treinos">
+        {(
           <div className="wk-list">
             {ws.map((w) => {
               const isNext = nw && w.id === nw.id;
               return (
                 <button key={w.id} className={`wk-card ${isNext ? 'next' : ''}`} {...segurar(() => openWorkout(w.id), () => tocarTreino(w.id))}>
                   <span className="lt">{w.letter}</span>
-                  <span className="body"><div className="t">{w.name}</div><div className="s">{w.exercises.length} exercícios · ~{estMinutes(w)} min</div></span>
+                  <span className="body"><div className="t">{w.name}</div><div className="s">{w.exercises.length} {w.exercises.length === 1 ? 'exercício' : 'exercícios'} · ~{estMinutes(w)} min</div></span>
                   <span className="end">{isNext ? <span className="tag accent">Próximo</span> : null}<Icon n="right" /></span>
                 </button>
               );
             })}
           </div>
-        ) : (
-          <div className="group empty"><Illu nome="treino" cor="var(--c-treino)" /><div>Nenhum treino no plano ainda.</div>
-            <div className="stack-btns" style={{ marginTop: 14 }}><button className="btn block" onClick={addWorkout}><Icon n="plus" /> Adicionar treino</button></div></div>
         )}
-      </Section>
+      </Section> : (
+        <div className="section treino-vazio">
+          <Illu nome="treino" cor="var(--c-treino)" />
+          <h2>Monte seu primeiro treino</h2>
+          <p>Escolha como quer começar. Depois é só tocar no treino para treinar.</p>
+          <OpcoesNovoTreino />
+        </div>
+      )}
       {ws.length ? <p className="hint" style={{ padding: '10px 4px 0' }}>Toque para começar. Segure para ver a lista ou editar.</p> : null}
     </>
   );

@@ -70,7 +70,7 @@ export default function Hoje() {
   } else if (nw) {
     workout = (
       <div className="hero-workout"><div className="kick shine">Próximo treino</div><div className="name">{nw.name}</div>
-        <div className="meta">{nw.exercises.length} exercícios · ~{estMinutes(nw)} min</div><div className="letter">{nw.letter}</div>
+        <div className="meta">{nw.exercises.length} {nw.exercises.length === 1 ? 'exercício' : 'exercícios'} · ~{estMinutes(nw)} min</div><div className="letter">{nw.letter}</div>
         <div className="row-btns" style={{ justifyContent: 'flex-start', gap: 10 }}>
           <button className="btn light glow" onClick={() => startWorkout(nw.id)}><Icon n="play" /> Começar</button>
           <button className="btn" style={{ background: 'rgba(255,255,255,.16)', color: '#fff', marginTop: 18 }} onClick={() => openWorkout(nw.id)}>Ver exercícios</button>
