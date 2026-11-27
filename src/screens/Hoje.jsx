@@ -173,7 +173,7 @@ export default function Hoje() {
         </>
       ) : null}
       <button className="tile ativ" onClick={() => openActivity()}><div className="top"><span className="lbl">Atividade</span><span className="badge ativ"><Icon n="pulse" /></span></div>
-        {acts.length ? (<><div className="val digits">{minsAct || acts.length}<small>{minsAct ? 'min' : 'reg.'}</small></div><div className="sub">{acts.map((a) => a.tipo).join(', ')}</div></>)
+        {acts.length ? (<><div className="val digits">{minsAct || acts.length}<small>{minsAct ? 'min' : 'reg.'}</small></div><div className="sub">{acts.length === 1 ? [acts[0].tipo, acts[0].km ? `${br(acts[0].km, 1)} km` : '', acts[0].kcal ? `${Math.round(acts[0].kcal)} kcal` : ''].filter(Boolean).join(' · ') : acts.map((a) => a.tipo).join(', ')}</div></>)
           : (<><div className="cta"><Icon n="plus" /> Registrar</div><div className="sub">Caminhada, bike…</div></>)}</button>
     </div>
   );
