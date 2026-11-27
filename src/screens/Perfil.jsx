@@ -1,7 +1,7 @@
 import { Section, Icon } from '../components/ui.jsx';
 import { useStore } from '../lib/hooks.js';
 import { go } from '../lib/ui.js';
-import { br, initials, latestWeight, weightFeedback } from '../lib/core.js';
+import { br, fmtDay, initials, latestWeight, weightFeedback } from '../lib/core.js';
 import {
   WeightCard, openPeso, openPesoReport, openEditProfile, openAiKey, exportBackup, importBackup, resetAll,
 } from '../sheets/perfil.jsx';
@@ -181,6 +181,11 @@ function PulseiraSection() {
             <div className="row plain"><span className="body"><div className="t">Conectada</div>
               <div className="s">{sd.erro || (quando == null ? 'Lendo…' : quando < 1 ? 'Atualizada agora' : `Atualizada há ${quando} min`)} · passos, sono e exercícios</div></span>
               <span className="sync-dot ok" aria-hidden="true" /></div>
+            <div className="row plain pulseira-lidos"><span className="body"><div className="t">Exercícios no Saúde Connect (7 dias)</div>
+              {sd.lidos?.length ? sd.lidos.map((e, i) => (
+                <div key={i} className="s num">{fmtDay(e.data)}{e.hora ? ` ${e.hora}` : ''} · {e.tipo} · {e.minutos} min{e.fora ? ` · não entra (${e.fora})` : ''}</div>
+              )) : <div className="s">{sd.ultima ? 'Nenhum exercício chegou do Zepp. Confira no Saúde Connect se o Zepp tem permissão para gravar "Exercício".' : 'Toque em Atualizar agora.'}</div>}
+            </span></div>
             <button className="row plain" onClick={atualizar} disabled={busy}><span className="body"><div className="t">{busy ? 'Atualizando…' : 'Atualizar agora'}</div></span></button>
             <button className="row plain" onClick={desconectarPulseira}><span className="body"><div className="t" style={{ color: 'var(--ink-2)' }}>Desconectar</div></span></button>
           </>

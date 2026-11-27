@@ -71,7 +71,11 @@ export async function sincronizarPulseira(forcar = false) {
       if (i >= 0) ativs[i] = { ...ativs[i], ...a }; else ativs.push(a);
     });
     state.activities = ativs;
-    state.saude = { ...s, conectado: true, dias, sono, ultima: Date.now(), erro: '' };
+    /* o que o Saúde Connect entregou na última leitura (aparece no Perfil para conferir) */
+    const lidos = (r.exercicios || []).map((e) => ({ data: e.data, hora: e.hora || '', tipo: e.titulo || NOMES[e.tipo] || 'Exercício', minutos: Number(e.minutos) || 0,
+      fora: e.tipo === 'musculacao' ? 'musculação' : Number(e.minutos) < 3 ? 'menos de 3 min' : '' }))
+      .sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora)).slice(0, 5);
+    state.saude = { ...s, conectado: true, dias, sono, ultima: Date.now(), erro: '', lidos, nLidos: (r.exercicios || []).length };
     save();
   } catch (e) {
     state.saude = { ...s, erro: String(e?.message || e) === 'sem_permissao' ? 'Permissão do Saúde Connect retirada. Toque em Conectar de novo.' : 'Não consegui ler a pulseira agora.' };
