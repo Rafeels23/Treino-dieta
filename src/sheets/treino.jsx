@@ -7,6 +7,7 @@ import {
 import { go, openSheet, closeSheet } from '../lib/ui.js';
 import { stopTimer, keepAwake } from '../lib/timer.js';
 import { Icon, Seg, SheetActions, Pensando } from '../components/ui.jsx';
+import Comemoracao from '../components/Comemoracao.jsx';
 import { demoDe, SUGESTOES } from '../lib/exercicios.js';
 import { soInteiro, soFaixa, repsTexto } from '../lib/campos.js';
 
@@ -59,20 +60,26 @@ export function startWorkout(id) {
 }
 
 /* ----- concluir (A.finish) ----- */
+/* treino concluído: tela de comemoração com duração, séries, volume e recordes */
+function recordesDe(s) {
+  const kg = (v) => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
+  const antes = state.sessions.filter((x) => x.id !== s.id && x.start < s.start);
+  return s.exercises.filter((e) => (e.tipo || 'carga') === 'carga').filter((e) => {
+    const agora = Math.max(0, ...e.sets.map((x) => kg(x.kg)));
+    const melhor = Math.max(0, ...antes.flatMap((x) => x.exercises.filter((y) => y.name === e.name).flatMap((y) => y.sets.map((z) => kg(z.kg)))));
+    return agora > 0 && melhor > 0 && agora > melhor;
+  }).map((e) => e.name);
+}
 function FinishSheet({ s, done, vol, next }) {
+  const pr = recordesDe(s);
+  const min = Math.max(1, Math.round((s.end - s.start) / 60000));
+  const numeros = [{ valor: min, unidade: ' min', rotulo: 'de treino' }, { valor: done, rotulo: done === 1 ? 'série' : 'séries' }];
+  if (vol) numeros.push(vol >= 1000 ? { valor: vol / 1000, casas: 1, unidade: ' t', rotulo: 'levantadas' } : { valor: Math.round(vol), unidade: ' kg', rotulo: 'levantados' });
   return (
-    <>
-      <h2>Treino concluído</h2><p className="lead">{s.workoutName}</p>
-      <div className="two">
-        <div className="group pad" style={{ background: 'var(--surface-2)' }}><div className="hint">Duração</div>
-          <div className="big num" style={{ fontSize: 28, fontWeight: 700 }}>{Math.round((s.end - s.start) / 60000)} min</div></div>
-        <div className="group pad" style={{ background: 'var(--surface-2)' }}><div className="hint">Séries</div>
-          <div className="num" style={{ fontSize: 28, fontWeight: 700 }}>{done}</div></div>
-      </div>
-      {vol ? <p className="hint" style={{ marginTop: 12 }}>Volume total: <b className="num">{Math.round(vol).toLocaleString('pt-BR')} kg</b></p> : null}
-      <p className="hint" style={{ marginTop: 6 }}>Próximo: <b>{next}</b></p>
-      <div className="stack-btns"><button type="button" className="btn block" onClick={closeSheet}>Fechar</button></div>
-    </>
+    <Comemoracao anim={pr.length ? 'trofeu' : 'festa'} titulo={pr.length ? 'Treino concluído com recorde!' : 'Treino concluído!'}
+      texto={s.workoutName} numeros={numeros}
+      extra={<>{pr.length ? <div className="cel-pr">🏅 {pr.length === 1 ? `Recorde em ${pr[0]}` : `Recordes em ${pr.join(', ')}`}</div> : null}
+        {next ? <p className="cel-prox">Próximo: <b>{next}</b></p> : null}</>} />
   );
 }
 export function finishWorkout() {

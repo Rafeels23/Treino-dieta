@@ -772,7 +772,7 @@ dialog.sheet.is-closing::backdrop { opacity: 0; transition: opacity var(--sheet-
 .hero-workout .name { font-weight: 600; font-size: 24px; letter-spacing: -.02em; max-width: none; }
 .hero-workout .meta { color: var(--ink-2); opacity: 1; }
 .hero-workout .btn.light { background: var(--c-treino); color: #fff; }
-.hero-workout .btn:not(.light) { background: var(--surface-2) !important; color: var(--ink) !important; }
+.hero-workout .btn:not(.light):not(.gordo) { background: var(--surface-2) !important; color: var(--ink) !important; }
 .hero-workout.done .kick { color: var(--c-dieta); }
 
 /* Próxima refeição e afins: rótulos em texto normal */
@@ -1198,3 +1198,81 @@ html, body { overflow-x: clip; }
    à toa. 24px ainda separa, sem espalhar. */
 .section { margin-top: 24px; }
 .section + .section { margin-top: 24px; }
+
+/* =====================================================================
+   Visual limpo com animações (inspirado no Duolingo e no Zepp)
+   - um destaque por tela; laranja só no principal; menos caixas
+   - botão "gordinho": sombra sólida embaixo e afunda ao tocar
+   ===================================================================== */
+.btn { --sombra-btn: color-mix(in srgb, var(--accent) 62%, #000);
+  box-shadow: 0 4px 0 var(--sombra-btn); transition: transform .08s ease, box-shadow .08s ease; margin-bottom: 4px; }
+.btn:active:not(:disabled) { transform: translateY(4px) !important; box-shadow: 0 0 0 var(--sombra-btn); }
+.btn.soft { --sombra-btn: color-mix(in srgb, var(--ink) 14%, transparent); }
+.btn.light { --sombra-btn: rgba(0, 0, 0, .18); }
+.btn.line, .btn.danger { box-shadow: inset 0 0 0 1px var(--hair); margin-bottom: 0; }
+.btn.line:active, .btn.danger:active { transform: scale(.98) !important; box-shadow: inset 0 0 0 1px var(--hair); }
+.agua-mais { --sombra-btn: #2367a8; }
+.agua-garrafa { --sombra-btn: color-mix(in srgb, #3b8fe0 40%, transparent); }
+.btn.gordo { font-size: 17px; font-weight: 700; min-height: 56px; border-radius: 16px; }
+@media (prefers-reduced-motion: reduce) { .btn:active:not(:disabled) { transform: none !important; } }
+
+/* Hoje: tira da semana (sem caixa) */
+.semana-tira { display: grid; gap: 10px; }
+.st-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink-2); }
+.st-top b { color: var(--ink); font-weight: 700; }
+.st-fogo { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 99px; background: color-mix(in srgb, #ff9600 14%, transparent); }
+.st-fogo b { color: #e8770b; font-size: 15px; }
+.st-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.sd { background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: var(--ink-3); font: inherit; }
+.sd .l { font-size: 12px; font-weight: 600; }
+.sd .c { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--ink-2); background: var(--surface); transition: transform .2s; }
+.sd .c .i { width: 20px; height: 20px; stroke-width: 2.6; }
+.sd.on .c { background: var(--accent-soft); color: var(--accent); animation: sd-pop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+.sd.hoje .l { color: var(--ink); }
+.sd.hoje .c { box-shadow: inset 0 0 0 2px var(--ink); }
+.sd:disabled { cursor: default; opacity: .45; }
+.sd:active:not(:disabled) .c { transform: scale(.9); }
+@keyframes sd-pop { from { transform: scale(.4); } }
+.st-folga { margin: 0; font-size: 13px; color: var(--ink-2); }
+
+/* Hoje: "Seu dia" sem caixa */
+.today-card.plano { background: none; padding: 4px 0; }
+
+/* Hoje: card do treino é o único destaque; tocar no texto abre o treino */
+.hw-abre { all: unset; display: block; cursor: pointer; width: 100%; }
+.hw-abre:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+.hero-workout .btn.gordo { margin-top: 18px; }
+
+/* Hoje: refeição, atividade, passos e sono numa lista só */
+.lista-dia .row { min-height: 68px; gap: 14px; }
+.lista-dia .body .s { font-size: 13px; }
+.lista-dia .body .t { font-weight: 600; }
+.ld-ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--surface-2); color: var(--ink-2); font-size: 18px; }
+.ld-ic .i { width: 20px; height: 20px; }
+.ld-ic.dieta { background: var(--dieta-soft); color: var(--c-dieta); }
+.ld-val { color: var(--ink) !important; display: flex; align-items: baseline; gap: 3px; }
+.ld-val b { font-size: 20px; font-weight: 700; }
+.ld-val small { font-size: 13px; color: var(--ink-2); }
+.ld-add { color: var(--accent); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 4px; }
+.ld-add .i { width: 16px; height: 16px; }
+.lista-dia .tick { width: 44px; height: 44px; border-radius: 50%; border: 0; flex: none; display: grid; place-items: center; background: var(--dieta-soft); color: var(--c-dieta); cursor: pointer; box-shadow: 0 3px 0 color-mix(in srgb, var(--c-dieta) 30%, transparent); transition: transform .08s; }
+.lista-dia .tick:active { transform: translateY(3px) scale(.96); box-shadow: none; }
+
+/* Comemoração em tela cheia (treino concluído, marcos da sequência) */
+.sheet:has(.celebra) { min-height: 86vh; }
+.sheet:has(.celebra) .sheet-x { display: none; }
+.celebra { min-height: calc(86vh - 60px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 8px 4px 0; }
+.celebra h2 { font-size: 28px; line-height: 1.15; margin: 8px 0 0; padding-right: 0 !important; text-wrap: balance; }
+.cel-anim { display: grid; place-items: center; }
+.cel-texto { color: var(--ink-2); margin: 0; font-size: 16px; }
+.cel-nums { display: flex; justify-content: center; gap: 26px; margin: 18px 0 6px; flex-wrap: wrap; }
+.cel-num { display: flex; flex-direction: column; align-items: center; }
+.cel-num b { font-size: 34px; font-weight: 700; line-height: 1; }
+.cel-num b small { font-size: 16px; color: var(--ink-2); font-weight: 600; }
+.cel-num span { font-size: 13px; color: var(--ink-2); margin-top: 6px; font-weight: 600; }
+.cel-pr { display: inline-block; margin-top: 8px; padding: 10px 14px; border-radius: 14px; background: var(--treino-soft); font-weight: 600; max-width: 100%; }
+.cel-prox { color: var(--ink-2); margin: 10px 0 0; font-size: 14px; }
+.cel-btn { margin-top: auto; }
+.spark { z-index: 100; }
+.celebra .cel-num b, .celebra .cel-num b span { font-size: 36px !important; color: var(--ink) !important; font-weight: 700 !important; letter-spacing: -.02em; }
+.celebra .cel-num b small { font-size: 16px !important; color: var(--ink-2) !important; }

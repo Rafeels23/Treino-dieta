@@ -10,7 +10,7 @@ import {
   openMeal, quickMeal, openExtra, openDietEditor, openShopping, openRecipes, deleteExtra, dietJustKey, clearDietJust,
 } from '../sheets/dieta.jsx';
 import { saveDietText, openGrpEditor } from '../sheets/dieta-editor.jsx';
-import { buzzOnly } from '../lib/effects.js';
+import { buzzOnly, spark, cssVar } from '../lib/effects.js';
 import { aguaDe, aguaSomar, aguaMeta, aguaCopo, aguaGarrafa } from '../lib/lembretes.js';
 import { MetaAgua, GarrafaAgua, LembretesAgua } from '../components/AguaAjustes.jsx';
 
@@ -94,7 +94,7 @@ export default function Dieta() {
                 <span className="mc-ic"><Icon n={iconeRefeicao(g.name)} /></span>
                 <span className="body"><div className="t">{mealTitle(g, oi)}</div>{isNow ? <span className="now-tag">Agora</span> : null}</span>
               </button>
-              <button className="meal-tick" onClick={() => quickMeal(g.id, oi)} aria-pressed={reg} aria-label={`Marcar ${mealLabel(g, oi)}`}><Icon n="check" /></button>
+              <button className="meal-tick" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); quickMeal(g.id, oi); if (!reg) spark(r.left + r.width / 2, r.top + r.height / 2, [cssVar('--c-dieta'), cssVar('--accent'), '#ffd23f'], 12, 30); }} aria-pressed={reg} aria-label={`Marcar ${mealLabel(g, oi)}`}><Icon n="check" /></button>
             </div>
           );
         }), (x, i) => (
