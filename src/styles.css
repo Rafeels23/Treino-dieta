@@ -1276,3 +1276,23 @@ html, body { overflow-x: clip; }
 .spark { z-index: 100; }
 .celebra .cel-num b, .celebra .cel-num b span { font-size: 36px !important; color: var(--ink) !important; font-weight: 700 !important; letter-spacing: -.02em; }
 .celebra .cel-num b small { font-size: 16px !important; color: var(--ink-2) !important; }
+
+/* Dieta e Rotina: uma lista só (sem uma caixa para cada item) e marcador redondo que "pula" */
+.meal-list { gap: 0 !important; background: var(--surface); border-radius: var(--r, 20px); overflow: hidden; }
+.meal-list .meal-card { background: transparent !important; border-radius: 0; box-shadow: none !important; }
+.meal-list .meal-card + .meal-card { border-top: 1px solid var(--hair); }
+.meal-list .meal-card.now { background: color-mix(in srgb, var(--c-dieta) 8%, transparent) !important; box-shadow: none !important; }
+.meal-list.rot .meal-card.now { background: color-mix(in srgb, var(--c-rotina) 8%, transparent) !important; }
+.meal-list.rot .meal-card .mc-ic { display: none; }            /* hábito: um marcador só, o da direita */
+.meal-list.rot .meal-main { padding-left: 18px; }
+.meal-tick { --cor-tick: var(--c-dieta); }
+.meal-list.rot .meal-tick { --cor-tick: var(--c-rotina); }
+.meal-tick .i { width: 32px !important; height: 32px !important; padding: 6px; border-radius: 50%; box-sizing: border-box;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 18%, transparent); color: transparent; transition: background .15s, color .15s; }
+.meal-card.done .meal-tick .i, .meal-tick[aria-pressed="true"] .i { background: var(--cor-tick); color: #fff !important; box-shadow: 0 2px 0 color-mix(in srgb, var(--cor-tick) 60%, #000); stroke-width: 3; }
+.meal-tick:active .i { transform: scale(.88); }
+.meal-card.done .meal-main .t { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+.meal-card.extra + .meal-card, .meal-card + .meal-card.extra { border-top: 1px solid var(--hair); }
+.meal-card.extra { box-shadow: none !important; }
+/* resumos de Dieta e Rotina sem caixa */
+.group.diet-sum { background: none !important; padding: 4px 0 !important; }
