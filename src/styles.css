@@ -1186,7 +1186,8 @@ html, body { overflow-x: clip; }
 
 /* números do Progresso em tinta neutra; a cor da área vira um ponto no rótulo,
    assim a tela deixa de ter quatro destaques gritando ao mesmo tempo */
-.stat-tile .l { display: flex; align-items: center; gap: 6px; }
+.stat-tile .l { display: flex; align-items: flex-start; gap: 6px; }
+.stat-tile .l .pt { margin-top: .45em; }   /* o ponto fica na primeira linha quando o rótulo quebra */
 .stat-tile .l .pt { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 
 /* seletor de período: no escuro a pílula ativa era quase branca e saltava

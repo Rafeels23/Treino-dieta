@@ -47,9 +47,9 @@ export const ICONS = {
    nutricionista escreveu. Sem correspondência, fica o talher genérico.
    Usa eqNorm (mais abaixo) para ignorar acento e caixa. */
 const REFEICAO_ICONE = [
+  [/\b(lanche|colacao|merenda|fruta)\b/, 'lanche'],   // antes do café: "Lanche da manhã" é lanche
   [/\b(cafe|desjejum|manha)\b/, 'cafe'],
   [/\b(almoco)\b/, 'almoco'],
-  [/\b(lanche|colacao|merenda|fruta)\b/, 'lanche'],
   [/\b(jantar|janta)\b/, 'jantar'],
   [/\b(ceia)\b/, 'ceia'],
   [/\b(pre|pos)[- ]?treino\b/, 'dumbbell'],
