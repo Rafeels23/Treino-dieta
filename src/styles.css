@@ -1296,3 +1296,46 @@ html, body { overflow-x: clip; }
 .meal-card.extra { box-shadow: none !important; }
 /* resumos de Dieta e Rotina sem caixa */
 .group.diet-sum { background: none !important; padding: 4px 0 !important; }
+
+/* =====================================================================
+   Sem "pílula tonal" (fundo escuro + texto claro da mesma cor).
+   Duas regras só:
+   1) ativo, marcado ou destaque → cor cheia com branco
+   2) ícones e etiquetas comuns → fundo neutro com texto normal
+   A cor cheia escurece um pouco no tema escuro para o branco ficar legível.
+   ===================================================================== */
+:root { --solido: var(--accent); --solido-dieta: var(--c-dieta); --solido-rotina: var(--c-rotina); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --solido: color-mix(in srgb, var(--accent) 82%, #000); --solido-dieta: color-mix(in srgb, var(--c-dieta) 78%, #000); --solido-rotina: color-mix(in srgb, var(--c-rotina) 85%, #000); } }
+:root[data-theme="dark"] { --solido: color-mix(in srgb, var(--accent) 82%, #000); --solido-dieta: color-mix(in srgb, var(--c-dieta) 78%, #000); --solido-rotina: color-mix(in srgb, var(--c-rotina) 85%, #000); }
+
+/* 1) cor cheia + branco */
+.tag.accent { background: var(--solido) !important; color: #fff !important; }
+.now-tag { background: var(--solido-dieta) !important; color: #fff !important; }
+.icon-btn.destaque { background: color-mix(in srgb, var(--cor) 85%, #000) !important; color: #fff !important; }
+.sd.on .c { background: var(--solido) !important; color: #fff !important; }
+.mood-pick .mood.on, .day-chip.on { background: var(--solido-dieta) !important; color: #fff !important; box-shadow: none !important; }
+.set.done input { background: var(--solido-dieta) !important; color: #fff !important; }
+
+/* 2) fundo neutro + texto normal */
+.badge.done, .badge.accent, .badge.treino, .badge.dieta, .badge.peso, .badge.ativ, .badge.ia, .badge.warn,
+.meal-card .mc-ic, .meal-list.rot .meal-card .mc-ic, .meal-card.extra .mc-ic, .ld-ic, .ld-ic.dieta, .nt-card.ia .nt-ic {
+  background: var(--surface-2) !important; color: var(--ink-2) !important; }
+.badge.warn, .meal-card.extra .mc-ic { color: var(--danger, #d64545) !important; }
+.tag.ok { background: var(--surface-2) !important; color: var(--ink) !important; display: inline-flex; align-items: center; gap: 6px; }
+.tag.ok::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--c-dieta); }
+.subs-btn { background: var(--surface-2) !important; color: var(--ink) !important; }
+.feito-pr, .cel-pr, .pl-sobe { background: var(--surface-2) !important; color: var(--ink) !important; }
+.ex-linha.on { background: var(--surface-2) !important; }
+.ex-linha.on .t { color: var(--ink) !important; }
+.st-fogo { background: var(--surface) !important; }
+.st-fogo b { color: var(--ink) !important; }
+
+/* marcador de refeição no Hoje: anel neutro, igual ao da lista da Dieta */
+.lista-dia .tick, .next-meal .tick { background: none !important; color: var(--ink-3) !important; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 18%, transparent) !important; width: 40px; height: 40px; }
+.lista-dia .tick:active, .next-meal .tick:active { background: var(--solido-dieta) !important; color: #fff !important; box-shadow: none !important; transform: scale(.94); }
+/* botão principal: laranja cheio com texto branco nos dois temas */
+.btn:not(.soft):not(.light):not(.line):not(.danger):not(.agua-mais):not(.agua-garrafa) { background: var(--solido); color: #fff; --sombra-btn: color-mix(in srgb, var(--solido) 60%, #000); }
+.hero-workout .btn.gordo { background: var(--solido) !important; color: #fff !important; }
+/* refeição/hábito "agora": fundo neutro (a etiqueta "Agora" já marca) */
+.meal-list .meal-card.now, .meal-list.rot .meal-card.now { background: var(--surface-2) !important; }
