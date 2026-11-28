@@ -4,7 +4,7 @@ import { Anim } from '../components/Illu.jsx';
 import { useStore } from '../lib/hooks.js';
 import { openSheet, closeSheet } from '../lib/ui.js';
 import {
-  state as st, save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES,
+  state as st, save, todayKey, keyToDate, fmtDayLong, cap, dayLog, mealCheck, nextMeal, mealTitle, mealLabel, extrasKcal, RECIPES, iconeRefeicao,
 } from '../lib/core.js';
 import {
   openMeal, quickMeal, openExtra, openDietEditor, openShopping, openRecipes, deleteExtra, dietJustKey, clearDietJust,
@@ -91,7 +91,7 @@ export default function Dieta() {
           return (
             <div key={`${g.id}:${o.id || oi}`} className={cls}>
               <button className="meal-main" {...segurar(() => openMealActions(g.id, oi), () => openMeal(g.id, oi))}>
-                <span className="mc-ic"><Icon n="meal" /></span>
+                <span className="mc-ic"><Icon n={iconeRefeicao(g.name)} /></span>
                 <span className="body"><div className="t">{mealTitle(g, oi)}</div>{isNow ? <span className="now-tag">Agora</span> : null}</span>
               </button>
               <button className="meal-tick" onClick={() => quickMeal(g.id, oi)} aria-pressed={reg} aria-label={`Marcar ${mealLabel(g, oi)}`}><Icon n="check" /></button>

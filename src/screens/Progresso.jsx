@@ -209,17 +209,17 @@ export default function Progresso() {
       <div className="section"><Seg options={[[7, 'Semana'], [30, 'Mês']]} value={periodo} onChange={(v) => { state.ui.progPeriodo = v; save(); }} /></div>
 
       <div className="section stats prog-stats">
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-treino)' }}>{sess.length}</div><div className="l">{sess.length === 1 ? 'treino' : 'treinos'}</div>
+        <div className="stat-tile"><div className="v digits">{sess.length}</div><div className="l"><i className="pt" style={{ background: 'var(--c-treino)' }} />{sess.length === 1 ? 'treino' : 'treinos'}</div>
           {periodo === 7 ? <div className="dots-semana" aria-label={`Treinou em ${dias.filter((k) => treinosPorDia.has(k)).length} dos 7 dias`}>
             {dias.map((k) => <i key={k} className={treinosPorDia.has(k) ? 'on' : ''} title={fmtDay(k)} />)}</div> : null}
           {temAnterior ? <Delta v={atual.treinos - ant.treinos} /> : null}</div>
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-treino)' }}>{minAtivos >= 60
+        <div className="stat-tile"><div className="v digits">{minAtivos >= 60
           ? <>{br(minAtivos / 60, 1)}<small style={{ fontSize: 14 }}> h</small></>
-          : <>{Math.round(minAtivos)}<small style={{ fontSize: 14 }}> min</small></>}</div><div className="l">ativos</div>
+          : <>{Math.round(minAtivos)}<small style={{ fontSize: 14 }}> min</small></>}</div><div className="l"><i className="pt" style={{ background: 'var(--c-treino)' }} />ativos</div>
           {temAnterior ? <Delta v={atual.min - ant.min} unidade=" min" /> : null}</div>
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-dieta)' }}>{dietaOk ?? '—'}<small style={{ fontSize: 14 }}>/{periodo}</small></div><div className="l">dias de dieta completa</div>
+        <div className="stat-tile"><div className="v digits">{dietaOk ?? '—'}<small style={{ fontSize: 14 }}>/{periodo}</small></div><div className="l"><i className="pt" style={{ background: 'var(--c-dieta)' }} />dias de dieta completa</div>
           {temAnterior && dietaOk != null ? <Delta v={atual.dieta - ant.dieta} /> : null}</div>
-        <div className="stat-tile"><div className="v digits" style={{ color: 'var(--c-rotina)' }}>{habPct ?? '—'}{habPct != null ? <small style={{ fontSize: 14 }}>%</small> : null}</div><div className="l">dos hábitos</div>
+        <div className="stat-tile"><div className="v digits">{habPct ?? '—'}{habPct != null ? <small style={{ fontSize: 14 }}>%</small> : null}</div><div className="l"><i className="pt" style={{ background: 'var(--c-rotina)' }} />dos hábitos</div>
           {temAnterior && habPct != null && ant.hab != null ? <Delta v={atual.hab - ant.hab} unidade=" pts" /> : null}</div>
       </div>
       <p className="hint prog-comp">{periodo === 7 ? 'Setas: comparado com os 7 dias anteriores.' : 'Setas: comparado com os 30 dias anteriores.'}</p>

@@ -36,7 +36,29 @@ export const ICONS = {
   ruler: '<path d="M3.5 15.5 15.5 3.5l5 5-12 12z"/><path d="m8 11 2 2M11 8l2 2M14 5l1.5 1.5"/>',
   pill: '<rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M12 8.5v7"/>',
   history: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M12 8v4l3 2"/>',
+  cafe: '<path d="M4.5 8.5h11v5.5a4 4 0 0 1-4 4h-3a4 4 0 0 1-4-4z"/><path d="M15.5 10h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M7.5 3.5v2M11.5 3.5v2"/>',
+  almoco: '<circle cx="12" cy="12" r="5.2"/><path d="M3.5 5.5v13M20.5 5.5v13"/>',
+  lanche: '<path d="M12 8.6c-1-1.4-2.6-1.9-4-1.1-1.8 1-2.2 3.5-1.1 6 1 2.3 2.8 4.3 4.2 4.3.5 0 .8-.2 1-.3.2.1.5.3 1 .3 1.3 0 3.2-2 4.2-4.3 1.1-2.5.6-5-1.1-6-1.4-.8-3-.3-4 1.1z"/><path d="M12 8.6V6.4a2.4 2.4 0 0 1 2.4-2.4"/>',
+  jantar: '<path d="M3.5 18h17"/><path d="M5.5 18a6.5 6.5 0 0 1 13 0"/><path d="M12 9.5v-2"/><circle cx="12" cy="6" r="1.2"/>',
+  ceia: '<path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M9 8c0-1.2 1.2-1.6 1.2-2.8M14 8c0-1.2 1.2-1.6 1.2-2.8"/>',
 };
+
+/* Cada refeição ganha seu próprio ícone: quem decide é o nome que a
+   nutricionista escreveu. Sem correspondência, fica o talher genérico.
+   Usa eqNorm (mais abaixo) para ignorar acento e caixa. */
+const REFEICAO_ICONE = [
+  [/\b(cafe|desjejum|manha)\b/, 'cafe'],
+  [/\b(almoco)\b/, 'almoco'],
+  [/\b(lanche|colacao|merenda|fruta)\b/, 'lanche'],
+  [/\b(jantar|janta)\b/, 'jantar'],
+  [/\b(ceia)\b/, 'ceia'],
+  [/\b(pre|pos)[- ]?treino\b/, 'dumbbell'],
+];
+export function iconeRefeicao(nome) {
+  const n = eqNorm(nome);
+  for (const [re, ic] of REFEICAO_ICONE) if (re.test(n)) return ic;
+  return 'meal';
+}
 
 export const ex = (name, reps, rest = 60, tipo = 'carga', sets) => ({ name, reps, rest, tipo, sets });
 export const TEMPLATES = [
