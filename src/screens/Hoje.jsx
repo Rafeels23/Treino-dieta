@@ -239,7 +239,7 @@ function WeekStrip() {
       <button className="icon-btn" aria-label="Próxima semana" disabled={off >= 0} style={off >= 0 ? { opacity: 0.3 } : undefined} onClick={() => week(1)}><Icon n="right" /></button>
     </div>
     <div className="week">{days}</div>
-    <div className="pad" style={{ paddingTop: 0 }}><div className="hint">{count} de {state.profile.dias} treinos da semana</div>
+    <div className="pad" style={{ paddingTop: 0 }}><div className="hint">{count >= state.profile.dias ? `${count} ${count === 1 ? 'treino' : 'treinos'} · meta de ${state.profile.dias} batida` : `${count} de ${state.profile.dias} treinos da semana`}</div>
       <div className="bar"><i style={{ width: `${Math.min(100, (count / state.profile.dias) * 100)}%`, background: 'var(--accent)' }} /></div></div></div>
   );
 }
